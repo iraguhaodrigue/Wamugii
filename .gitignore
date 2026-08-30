@@ -1,0 +1,23 @@
+# python
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# secrets
+.env
+*.env
+!.env.example
+
+# database & uploads
+*.db
+uploads/
+
+# node / frontend
+node_modules/
+dist/
+
+# misc
+*.log
+*.zip
+*.rar
