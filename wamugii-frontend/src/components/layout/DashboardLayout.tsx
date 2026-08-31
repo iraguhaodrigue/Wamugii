@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, NavLink, Outlet } from 'react-router-dom'
-import { Menu, X } from 'lucide-react'
+import { LogOut, Menu, X } from 'lucide-react'
+import { useAuth } from '@/context/AuthContext'
 import { paths } from '@/routes/paths'
 import { cn } from '@/utils/cn'
 
@@ -16,6 +17,7 @@ export interface DashboardLayoutProps {
 
 export function DashboardLayout({ roleLabel, navItems }: DashboardLayoutProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const { user, logout } = useAuth()
 
   return (
     <div className="flex min-h-svh bg-slate-50">
@@ -77,6 +79,17 @@ export function DashboardLayout({ roleLabel, navItems }: DashboardLayoutProps) {
             <Menu className="size-5" />
           </button>
           <span className="text-sm font-medium text-slate-500">{roleLabel}</span>
+          <div className="ml-auto flex items-center gap-3">
+            {user && <span className="hidden text-sm text-slate-600 sm:inline">{user.full_name}</span>}
+            <button
+              type="button"
+              onClick={logout}
+              className="inline-flex h-8 items-center gap-1.5 rounded-lg px-3 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100"
+            >
+              <LogOut className="size-4" aria-hidden="true" />
+              Logout
+            </button>
+          </div>
         </header>
         <main className="flex-1 p-4 sm:p-6 lg:p-8">
           <Outlet />

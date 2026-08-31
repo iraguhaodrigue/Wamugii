@@ -2,6 +2,8 @@ import { Route, Routes } from 'react-router-dom'
 import { PublicLayout } from '@/components/layout/PublicLayout'
 import { AuthLayout } from '@/components/layout/AuthLayout'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
+import { ProtectedRoute } from '@/routes/ProtectedRoute'
+import { RoleProtectedRoute } from '@/routes/RoleProtectedRoute'
 import { paths } from '@/routes/paths'
 
 import { Home } from '@/pages/public/Home'
@@ -57,26 +59,35 @@ function App() {
         <Route path={paths.register} element={<Register />} />
       </Route>
 
-      {/* Client area */}
-      <Route element={<DashboardLayout roleLabel="Client" navItems={clientNavItems} />}>
-        <Route path={paths.client.dashboard} element={<ClientDashboard />} />
-        <Route path={paths.client.projects} element={<ClientProjects />} />
-        <Route path="/client/projects/:projectId" element={<ClientProjectDetail />} />
-      </Route>
+      {/* Authenticated areas — ProtectedRoute checks login, RoleProtectedRoute checks role */}
+      <Route element={<ProtectedRoute />}>
+        {/* Client area */}
+        <Route element={<RoleProtectedRoute allowedRoles={['CLIENT']} />}>
+          <Route element={<DashboardLayout roleLabel="Client" navItems={clientNavItems} />}>
+            <Route path={paths.client.dashboard} element={<ClientDashboard />} />
+            <Route path={paths.client.projects} element={<ClientProjects />} />
+            <Route path="/client/projects/:projectId" element={<ClientProjectDetail />} />
+          </Route>
+        </Route>
 
-      {/* Staff area */}
-      <Route element={<DashboardLayout roleLabel="Staff" navItems={staffNavItems} />}>
-        <Route path={paths.staff.overview} element={<StaffOverview />} />
-        <Route path={paths.staff.projects} element={<StaffProjects />} />
-        <Route path={paths.staff.quotes} element={<StaffQuotes />} />
-      </Route>
+        {/* Staff area */}
+        <Route element={<RoleProtectedRoute allowedRoles={['STAFF']} />}>
+          <Route element={<DashboardLayout roleLabel="Staff" navItems={staffNavItems} />}>
+            <Route path={paths.staff.overview} element={<StaffOverview />} />
+            <Route path={paths.staff.projects} element={<StaffProjects />} />
+            <Route path={paths.staff.quotes} element={<StaffQuotes />} />
+          </Route>
+        </Route>
 
-      {/* Admin area */}
-      <Route element={<DashboardLayout roleLabel="Admin" navItems={adminNavItems} />}>
-        <Route path={paths.admin.dashboard} element={<AdminDashboard />} />
-        <Route path={paths.admin.users} element={<AdminUsers />} />
-        <Route path={paths.admin.projects} element={<AdminProjects />} />
-        <Route path={paths.admin.quotes} element={<AdminQuotes />} />
+        {/* Admin area */}
+        <Route element={<RoleProtectedRoute allowedRoles={['ADMIN']} />}>
+          <Route element={<DashboardLayout roleLabel="Admin" navItems={adminNavItems} />}>
+            <Route path={paths.admin.dashboard} element={<AdminDashboard />} />
+            <Route path={paths.admin.users} element={<AdminUsers />} />
+            <Route path={paths.admin.projects} element={<AdminProjects />} />
+            <Route path={paths.admin.quotes} element={<AdminQuotes />} />
+          </Route>
+        </Route>
       </Route>
 
       <Route path="*" element={<NotFound />} />
