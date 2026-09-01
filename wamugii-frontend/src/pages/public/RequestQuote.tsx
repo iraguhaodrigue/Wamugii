@@ -71,7 +71,7 @@ export function RequestQuote() {
     return (
       <Container className="py-20">
         <div className="mx-auto max-w-lg rounded-xl border border-slate-200 bg-white p-8 text-center shadow-sm sm:p-10">
-          <div className="mx-auto flex size-14 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+          <div className="mx-auto flex size-14 items-center justify-center rounded-full bg-green-50 text-green-600">
             <CheckCircle2 className="size-7" aria-hidden="true" />
           </div>
           <h1 className="mt-6 text-2xl font-bold text-slate-900">Request received</h1>

@@ -7,7 +7,7 @@ export function Footer() {
 
   return (
     <footer className="border-t border-slate-200">
-      <div className="bg-gradient-to-br from-brand-900 via-brand-800 to-accent-900">
+      <div className="bg-gradient-to-br from-brand-900 to-brand-800">
         <div className="mx-auto flex max-w-7xl flex-col items-center gap-6 px-4 py-14 text-center sm:px-6 lg:flex-row lg:justify-between lg:text-left lg:px-8">
           <div>
             <h2 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">

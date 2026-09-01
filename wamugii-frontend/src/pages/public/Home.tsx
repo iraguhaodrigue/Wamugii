@@ -68,7 +68,7 @@ export function Home() {
 
   return (
     <>
-      <section className="relative overflow-hidden bg-gradient-to-br from-brand-950 via-brand-900 to-accent-900">
+      <section className="relative overflow-hidden bg-gradient-to-br from-brand-950 to-brand-900">
         <div
           className="pointer-events-none absolute inset-0 opacity-[0.15]"
           style={{
@@ -86,7 +86,7 @@ export function Home() {
             <h1 className="mt-6 text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
               WAMUGII TECH SOLUTIONS
             </h1>
-            <p className="mt-4 text-xl font-medium text-accent-100 sm:text-2xl">We Build. We Innovate. We Empower.</p>
+            <p className="mt-4 text-xl font-medium text-brand-100 sm:text-2xl">We Build. We Innovate. We Empower.</p>
             <p className="mx-auto mt-6 max-w-xl text-base text-brand-100/90">
               We design, build, and support the software, websites, and IT systems that power your business — end
               to end.
@@ -173,7 +173,7 @@ export function Home() {
           <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {valueProps.map(({ icon: Icon, title, description }) => (
               <div key={title} className="rounded-xl border border-white/10 bg-white/5 p-6">
-                <div className="flex size-10 items-center justify-center rounded-lg bg-accent-500/15 text-accent-400">
+                <div className="flex size-10 items-center justify-center rounded-lg bg-brand-500/15 text-brand-400">
                   <Icon className="size-5" aria-hidden="true" />
                 </div>
                 <h3 className="mt-4 text-base font-semibold text-white">{title}</h3>
