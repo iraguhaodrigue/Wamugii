@@ -29,7 +29,7 @@ export function DashboardLayout({ roleLabel, navItems }: DashboardLayoutProps) {
       >
         <div className="flex h-16 items-center justify-between border-b border-slate-200 px-4">
           <Link to={paths.home} className="text-base font-bold text-slate-900">
-            WAMUGII <span className="text-blue-600">TECH</span>
+            WAMUGII <span className="text-brand-600">TECH</span>
           </Link>
           <button
             type="button"
@@ -49,7 +49,7 @@ export function DashboardLayout({ roleLabel, navItems }: DashboardLayoutProps) {
               className={({ isActive }) =>
                 cn(
                   'rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-                  isActive ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-100',
+                  isActive ? 'bg-brand-50 text-brand-700' : 'text-slate-600 hover:bg-slate-100',
                 )
               }
               onClick={() => setIsSidebarOpen(false)}

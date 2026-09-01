@@ -13,7 +13,7 @@ const variantClasses: Record<BadgeVariant, string> = {
   warning: 'bg-amber-100 text-amber-800',
   danger: 'bg-red-100 text-red-700',
   info: 'bg-sky-100 text-sky-700',
-  brand: 'bg-blue-100 text-blue-700',
+  brand: 'bg-brand-100 text-brand-700',
 }
 
 export function Badge({ className, variant = 'neutral', children, ...props }: BadgeProps) {

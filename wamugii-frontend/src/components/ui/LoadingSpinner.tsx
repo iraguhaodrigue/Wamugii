@@ -16,7 +16,7 @@ const sizeClasses = {
 export function LoadingSpinner({ size = 'md', label = 'Loading', className }: LoadingSpinnerProps) {
   return (
     <div className={cn('flex items-center justify-center', className)} role="status">
-      <Loader2 className={cn('animate-spin text-blue-600', sizeClasses[size])} aria-hidden="true" />
+      <Loader2 className={cn('animate-spin text-brand-600', sizeClasses[size])} aria-hidden="true" />
       <span className="sr-only">{label}</span>
     </div>
   )

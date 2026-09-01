@@ -31,7 +31,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           className={cn(
             'h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900',
             'placeholder:text-slate-400',
-            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-blue-500',
+            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:border-brand-500',
             'disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500',
             error && 'border-red-500 focus-visible:ring-red-500 focus-visible:border-red-500',
             className,
