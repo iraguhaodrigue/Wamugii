@@ -88,7 +88,7 @@ export function ClientDashboard() {
               data.recent_quotes.map((quote) => (
                 <div
                   key={quote.id}
-                  className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+                  className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-panel p-4 shadow-sm"
                 >
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium text-slate-900">{quote.project_title}</p>
@@ -103,7 +103,7 @@ export function ClientDashboard() {
 
         <section>
           <h2 className="text-lg font-semibold text-slate-900">Recent Activity</h2>
-          <div className="mt-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="mt-4 rounded-xl border border-slate-200 bg-panel p-4 shadow-sm">
             {data.recent_activity.length === 0 ? (
               <p className="py-6 text-center text-sm text-slate-500">No recent activity.</p>
             ) : (

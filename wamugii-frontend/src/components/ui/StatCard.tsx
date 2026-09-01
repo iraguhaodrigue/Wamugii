@@ -14,7 +14,7 @@ export interface StatCardProps {
 const accentClasses: Record<StatCardAccent, string> = {
   brand: 'bg-brand-50 text-brand-600',
   accent: 'bg-accent-50 text-accent-600',
-  success: 'bg-emerald-50 text-emerald-600',
+  success: 'bg-green-50 text-green-600',
   warning: 'bg-amber-50 text-amber-600',
 }
 
@@ -22,7 +22,7 @@ export function StatCard({ icon: Icon, label, value, accent = 'brand', className
   return (
     <div
       className={cn(
-        'flex items-center gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md',
+        'flex items-center gap-4 rounded-xl border border-slate-200 bg-panel p-5 shadow-sm transition-shadow hover:shadow-md',
         className,
       )}
     >

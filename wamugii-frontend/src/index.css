@@ -4,32 +4,46 @@
   --font-sans:
     'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 
-  /* Brand — primary. Every "brand" reference in the app reads from this scale,
-     so a rebrand is a one-file change. */
-  --color-brand-50: #eff6ff;
-  --color-brand-100: #dbeafe;
-  --color-brand-200: #bfdbfe;
-  --color-brand-300: #93c5fd;
-  --color-brand-400: #60a5fa;
-  --color-brand-500: #3b82f6;
-  --color-brand-600: #2563eb;
-  --color-brand-700: #1d4ed8;
-  --color-brand-800: #1e40af;
-  --color-brand-900: #1e3a8a;
-  --color-brand-950: #172554;
+  /* Brand — purple, the primary action color. Every "brand" reference in the
+     app reads from this scale, so a rebrand is a one-file change. 600/700 are
+     the specified primary/hover; the rest of the scale is Tailwind's own
+     violet ramp, which lines up with those two anchors exactly. */
+  --color-brand-50: #f3e8ff;
+  --color-brand-100: #ede9fe;
+  --color-brand-200: #ddd6fe;
+  --color-brand-300: #c4b5fd;
+  --color-brand-400: #a78bfa;
+  --color-brand-500: #8b5cf6;
+  --color-brand-600: #7c3aed;
+  --color-brand-700: #6d28d9;
+  --color-brand-800: #5b21b6;
+  --color-brand-900: #4c1d95;
+  --color-brand-950: #2e1065;
 
-  /* Accent — technology/innovation highlight, used sparingly for gradients and icons. */
-  --color-accent-50: #ecfeff;
-  --color-accent-100: #cffafe;
-  --color-accent-200: #a5f3fc;
-  --color-accent-300: #67e8f9;
-  --color-accent-400: #22d3ee;
-  --color-accent-500: #06b6d4;
-  --color-accent-600: #0891b2;
-  --color-accent-700: #0e7490;
-  --color-accent-800: #155e75;
-  --color-accent-900: #164e63;
-  --color-accent-950: #083344;
+  /* Accent — rose, a light touch only (borders, small highlights). Never used
+     for primary actions, so it does not need a dark-mode remap: like the
+     Badge status colors, it always renders as a self-contained light tint. */
+  --color-accent-50: #fdf5f6;
+  --color-accent-100: #fbe9eb;
+  --color-accent-200: #f5cdd2;
+  --color-accent-300: #e8a0a8;
+  --color-accent-400: #dd8891;
+  --color-accent-500: #cc6875;
+  --color-accent-600: #b34e5c;
+  --color-accent-700: #94394a;
+  --color-accent-800: #762d3b;
+  --color-accent-900: #5c2530;
+  --color-accent-950: #33141a;
+
+  /* Panel — card/table/modal background. Its own token instead of literal
+     `white`, because `white` is also used app-wide for text/overlays that
+     must stay pure white on a saturated background (primary button labels,
+     CTA text) regardless of theme — those must NOT flip dark. */
+  --color-panel: #ffffff;
+
+  /* Sidebar — its own token because in dark mode it sits at a third distinct
+     depth between the page background and cards (bg < sidebar < panel). */
+  --color-sidebar: #ffffff;
 }
 
 :root {
@@ -62,4 +76,52 @@ body {
 :focus-visible {
   outline: 2px solid var(--color-brand-500);
   outline-offset: 2px;
+}
+
+/*
+ * Logged-in dark theme — scoped to a class toggled on <body> by whichever
+ * shell is mounted (AdminLayout for staff/admin, DashboardLayout for
+ * clients), driven by ThemeContext. Not a wrapper div: Modal/ConfirmDialog
+ * portal straight onto document.body, so the scope has to live above the
+ * portal target for dialogs to pick it up too. Public marketing pages never
+ * toggle this class, so they stay light regardless of the user's preference.
+ *
+ * This is a pure token remap: every component still writes the exact same
+ * `bg-panel` / `text-slate-500` / `border-slate-200` utility classes it
+ * always did. Only the CSS variables those utilities resolve to change
+ * inside this scope, so no component is hand-colored for dark mode.
+ *
+ * `white`/`black` are intentionally never remapped — see the --color-panel
+ * comment above, and it's why overlay scrims use `bg-black/50` instead of a
+ * slate token (slate-900 flips to a *light* color in here).
+ *
+ * brand-50..400 are also intentionally left unremapped: badges and the
+ * sidebar's active-nav pill use them as a self-contained light-tint + dark-
+ * text pairing (like the status Badge colors), so they read the same
+ * "soft purple chip" in both themes rather than needing to invert.
+ * brand-600/700/800 are the ones used as solid fills (buttons, focus
+ * surfaces) where white text sits on top, so those are re-tuned here to
+ * keep white-on-fill contrast at AA in the dark surroundings.
+ */
+.dark {
+  color-scheme: dark;
+
+  --color-panel: #1e293b;
+  --color-sidebar: #111827;
+
+  --color-brand-600: #8455ea;
+  --color-brand-700: #7440d6;
+  --color-brand-800: #6830bd;
+
+  --color-slate-50: #0b1120;
+  --color-slate-100: #2a3b52;
+  --color-slate-200: #334155;
+  --color-slate-300: #475569;
+  --color-slate-400: #8094ac;
+  --color-slate-500: #94a3b8;
+  --color-slate-600: #cbd5e1;
+  --color-slate-700: #e2e8f0;
+  --color-slate-800: #e2e8f0;
+  --color-slate-900: #f8fafc;
+  --color-slate-950: #f8fafc;
 }

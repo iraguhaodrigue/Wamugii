@@ -1,7 +1,9 @@
 import { Route, Routes } from 'react-router-dom'
+import { LayoutDashboard, FolderKanban, MessageSquare, Users } from 'lucide-react'
 import { PublicLayout } from '@/components/layout/PublicLayout'
 import { AuthLayout } from '@/components/layout/AuthLayout'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
+import { AdminLayout } from '@/components/layout/AdminLayout'
 import { ProtectedRoute } from '@/routes/ProtectedRoute'
 import { RoleProtectedRoute } from '@/routes/RoleProtectedRoute'
 import { paths } from '@/routes/paths'
@@ -17,11 +19,16 @@ import { ClientProjects } from '@/pages/client/Projects'
 import { ClientProjectDetail } from '@/pages/client/ProjectDetail'
 import { StaffOverview } from '@/pages/staff/Overview'
 import { StaffProjects } from '@/pages/staff/Projects'
+import { StaffProjectDetail } from '@/pages/staff/ProjectDetail'
 import { StaffQuotes } from '@/pages/staff/Quotes'
+import { StaffQuoteDetail } from '@/pages/staff/QuoteDetail'
 import { AdminDashboard } from '@/pages/admin/Dashboard'
 import { AdminUsers } from '@/pages/admin/Users'
+import { AdminUserDetail } from '@/pages/admin/UserDetail'
 import { AdminProjects } from '@/pages/admin/Projects'
+import { AdminProjectDetail } from '@/pages/admin/ProjectDetail'
 import { AdminQuotes } from '@/pages/admin/Quotes'
+import { AdminQuoteDetail } from '@/pages/admin/QuoteDetail'
 import { NotFound } from '@/pages/NotFound'
 
 const clientNavItems = [
@@ -30,16 +37,16 @@ const clientNavItems = [
 ]
 
 const staffNavItems = [
-  { label: 'Overview', to: paths.staff.overview },
-  { label: 'Projects', to: paths.staff.projects },
-  { label: 'Quote Requests', to: paths.staff.quotes },
+  { label: 'Overview', to: paths.staff.overview, icon: LayoutDashboard, end: true },
+  { label: 'Projects', to: paths.staff.projects, icon: FolderKanban },
+  { label: 'Quote Requests', to: paths.staff.quotes, icon: MessageSquare },
 ]
 
 const adminNavItems = [
-  { label: 'Dashboard', to: paths.admin.dashboard },
-  { label: 'Users', to: paths.admin.users },
-  { label: 'Projects', to: paths.admin.projects },
-  { label: 'Quote Requests', to: paths.admin.quotes },
+  { label: 'Dashboard', to: paths.admin.dashboard, icon: LayoutDashboard },
+  { label: 'Users', to: paths.admin.users, icon: Users },
+  { label: 'Projects', to: paths.admin.projects, icon: FolderKanban },
+  { label: 'Quote Requests', to: paths.admin.quotes, icon: MessageSquare },
 ]
 
 function App() {
@@ -72,20 +79,25 @@ function App() {
 
         {/* Staff area */}
         <Route element={<RoleProtectedRoute allowedRoles={['STAFF']} />}>
-          <Route element={<DashboardLayout roleLabel="Staff" navItems={staffNavItems} />}>
+          <Route element={<AdminLayout navItems={staffNavItems} />}>
             <Route path={paths.staff.overview} element={<StaffOverview />} />
             <Route path={paths.staff.projects} element={<StaffProjects />} />
+            <Route path="/staff/projects/:projectId" element={<StaffProjectDetail />} />
             <Route path={paths.staff.quotes} element={<StaffQuotes />} />
+            <Route path="/staff/quotes/:quoteId" element={<StaffQuoteDetail />} />
           </Route>
         </Route>
 
         {/* Admin area */}
         <Route element={<RoleProtectedRoute allowedRoles={['ADMIN']} />}>
-          <Route element={<DashboardLayout roleLabel="Admin" navItems={adminNavItems} />}>
+          <Route element={<AdminLayout navItems={adminNavItems} />}>
             <Route path={paths.admin.dashboard} element={<AdminDashboard />} />
             <Route path={paths.admin.users} element={<AdminUsers />} />
+            <Route path="/admin/users/:userId" element={<AdminUserDetail />} />
             <Route path={paths.admin.projects} element={<AdminProjects />} />
+            <Route path="/admin/projects/:projectId" element={<AdminProjectDetail />} />
             <Route path={paths.admin.quotes} element={<AdminQuotes />} />
+            <Route path="/admin/quotes/:quoteId" element={<AdminQuoteDetail />} />
           </Route>
         </Route>
       </Route>

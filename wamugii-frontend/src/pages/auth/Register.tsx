@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
-import { paths } from '@/routes/paths'
+import { paths, roleHomePath } from '@/routes/paths'
 import { Button, Input } from '@/components/ui'
 import type { ApiError } from '@/lib/apiClient'
 
@@ -16,12 +16,6 @@ const schema = z.object({
 })
 
 type FormValues = z.infer<typeof schema>
-
-const roleRedirect: Record<string, string> = {
-  ADMIN: paths.admin.dashboard,
-  STAFF: paths.staff.overview,
-  CLIENT: paths.client.dashboard,
-}
 
 export function Register() {
   const { register: registerUser } = useAuth()
@@ -43,7 +37,7 @@ export function Register() {
         phone: values.phone || null,
         password: values.password,
       })
-      navigate(roleRedirect[user.role] ?? paths.home, { replace: true })
+      navigate(roleHomePath[user.role], { replace: true })
     } catch (err) {
       setFormError((err as ApiError).message ?? 'Unable to create your account. Please try again.')
     }

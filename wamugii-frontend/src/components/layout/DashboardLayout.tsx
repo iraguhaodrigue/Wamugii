@@ -2,7 +2,9 @@ import { useState } from 'react'
 import { Link, NavLink, Outlet } from 'react-router-dom'
 import { LogOut, Menu, X } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
+import { useAppShellTheme } from '@/context/ThemeContext'
 import { paths } from '@/routes/paths'
+import { Avatar, ThemeToggle } from '@/components/ui'
 import { cn } from '@/utils/cn'
 
 export interface DashboardNavItem {
@@ -18,12 +20,13 @@ export interface DashboardLayoutProps {
 export function DashboardLayout({ roleLabel, navItems }: DashboardLayoutProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const { user, logout } = useAuth()
+  useAppShellTheme()
 
   return (
     <div className="flex min-h-svh bg-slate-50">
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-40 w-64 shrink-0 transform border-r border-slate-200 bg-white transition-transform duration-200 md:static md:translate-x-0',
+          'fixed inset-y-0 left-0 z-40 w-64 shrink-0 transform border-r border-slate-200 bg-sidebar transition-transform duration-200 md:static md:translate-x-0',
           isSidebarOpen ? 'translate-x-0' : '-translate-x-full',
         )}
       >
@@ -62,14 +65,14 @@ export function DashboardLayout({ roleLabel, navItems }: DashboardLayoutProps) {
 
       {isSidebarOpen && (
         <div
-          className="fixed inset-0 z-30 bg-slate-900/40 md:hidden"
+          className="fixed inset-0 z-30 bg-black/40 md:hidden"
           aria-hidden="true"
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex h-16 items-center gap-3 border-b border-slate-200 bg-white px-4">
+        <header className="flex h-16 items-center gap-3 border-b border-slate-200 bg-panel px-4">
           <button
             type="button"
             className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 md:hidden"
@@ -80,7 +83,9 @@ export function DashboardLayout({ roleLabel, navItems }: DashboardLayoutProps) {
           </button>
           <span className="text-sm font-medium text-slate-500">{roleLabel}</span>
           <div className="ml-auto flex items-center gap-3">
+            <ThemeToggle />
             {user && <span className="hidden text-sm text-slate-600 sm:inline">{user.full_name}</span>}
+            {user && <Avatar name={user.full_name} size="sm" />}
             <button
               type="button"
               onClick={logout}

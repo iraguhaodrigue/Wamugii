@@ -29,7 +29,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           aria-invalid={Boolean(error)}
           aria-describedby={error ? errorId : hint ? hintId : undefined}
           className={cn(
-            'h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900',
+            'h-10 w-full rounded-lg border border-slate-300 bg-panel px-3 text-sm text-slate-900',
             'placeholder:text-slate-400',
             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:border-brand-500',
             'disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500',

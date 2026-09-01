@@ -89,12 +89,12 @@ export function ClientProjectDetail() {
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
-          <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="rounded-xl border border-slate-200 bg-panel p-6 shadow-sm">
             <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400">Description</h2>
             <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-slate-600">{project.description}</p>
           </div>
 
-          <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="rounded-xl border border-slate-200 bg-panel p-6 shadow-sm">
             <div className="flex items-center gap-2">
               <ListChecks className="size-4 text-brand-600" aria-hidden="true" />
               <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400">Milestones</h2>
@@ -151,7 +151,7 @@ export function ClientProjectDetail() {
         </div>
 
         <aside className="space-y-6">
-          <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="rounded-xl border border-slate-200 bg-panel p-6 shadow-sm">
             <div className="flex items-center justify-between text-sm">
               <span className="text-slate-500">Progress</span>
               <span className="font-semibold text-slate-900">{Math.round(project.progress_percentage)}%</span>
@@ -159,7 +159,7 @@ export function ClientProjectDetail() {
             <ProgressBar value={project.progress_percentage} className="mt-2" />
           </div>
 
-          <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="space-y-4 rounded-xl border border-slate-200 bg-panel p-6 shadow-sm">
             <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400">Details</h2>
             <dl className="space-y-3 text-sm">
               <div className="flex items-center justify-between gap-3">

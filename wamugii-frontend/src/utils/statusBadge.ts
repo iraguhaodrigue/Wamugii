@@ -5,6 +5,7 @@ type ProjectStatus = components['schemas']['ProjectStatus']
 type ProjectPriority = components['schemas']['ProjectPriority']
 type MilestoneStatus = components['schemas']['MilestoneStatus']
 type QuoteStatus = components['schemas']['QuoteStatus']
+type Role = components['schemas']['Role']
 
 export const projectStatusVariant: Record<ProjectStatus, BadgeVariant> = {
   PENDING: 'neutral',
@@ -39,4 +40,10 @@ export const quoteStatusVariant: Record<QuoteStatus, BadgeVariant> = {
   ACCEPTED: 'success',
   REJECTED: 'danger',
   CANCELLED: 'neutral',
+}
+
+export const roleVariant: Record<Role, BadgeVariant> = {
+  ADMIN: 'brand',
+  STAFF: 'info',
+  CLIENT: 'neutral',
 }

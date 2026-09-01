@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
-import { paths } from '@/routes/paths'
+import { isPathAllowedForRole, paths, roleHomePath } from '@/routes/paths'
 import { Button, Input } from '@/components/ui'
 import type { ApiError } from '@/lib/apiClient'
 
@@ -14,12 +14,6 @@ const schema = z.object({
 })
 
 type FormValues = z.infer<typeof schema>
-
-const roleRedirect: Record<string, string> = {
-  ADMIN: paths.admin.dashboard,
-  STAFF: paths.staff.overview,
-  CLIENT: paths.client.dashboard,
-}
 
 export function Login() {
   const { login } = useAuth()
@@ -38,7 +32,8 @@ export function Login() {
     try {
       const user = await login(values.email, values.password)
       const from = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname
-      navigate(from ?? roleRedirect[user.role] ?? paths.home, { replace: true })
+      const destination = from && isPathAllowedForRole(from, user.role) ? from : roleHomePath[user.role]
+      navigate(destination, { replace: true })
     } catch (err) {
       setFormError((err as ApiError).message ?? 'Unable to log in. Please try again.')
     }
