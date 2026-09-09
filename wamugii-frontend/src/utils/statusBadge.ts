@@ -5,6 +5,7 @@ type ProjectStatus = components['schemas']['ProjectStatus']
 type ProjectPriority = components['schemas']['ProjectPriority']
 type MilestoneStatus = components['schemas']['MilestoneStatus']
 type QuoteStatus = components['schemas']['QuoteStatus']
+type InvoiceStatus = components['schemas']['InvoiceStatus']
 type Role = components['schemas']['Role']
 
 export const projectStatusVariant: Record<ProjectStatus, BadgeVariant> = {
@@ -39,6 +40,15 @@ export const quoteStatusVariant: Record<QuoteStatus, BadgeVariant> = {
   QUOTED: 'warning',
   ACCEPTED: 'success',
   REJECTED: 'danger',
+  CANCELLED: 'neutral',
+}
+
+export const invoiceStatusVariant: Record<InvoiceStatus, BadgeVariant> = {
+  DRAFT: 'neutral',
+  SENT: 'info',
+  PARTIALLY_PAID: 'warning',
+  PAID: 'success',
+  OVERDUE: 'danger',
   CANCELLED: 'neutral',
 }
 

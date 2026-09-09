@@ -1,5 +1,5 @@
 import { Route, Routes } from 'react-router-dom'
-import { LayoutDashboard, FolderKanban, MessageSquare, Users } from 'lucide-react'
+import { LayoutDashboard, FolderKanban, MessageSquare, Receipt, Users } from 'lucide-react'
 import { PublicLayout } from '@/components/layout/PublicLayout'
 import { AuthLayout } from '@/components/layout/AuthLayout'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
@@ -17,11 +17,15 @@ import { Register } from '@/pages/auth/Register'
 import { ClientDashboard } from '@/pages/client/Dashboard'
 import { ClientProjects } from '@/pages/client/Projects'
 import { ClientProjectDetail } from '@/pages/client/ProjectDetail'
+import { ClientInvoices } from '@/pages/client/Invoices'
+import { ClientInvoiceDetail } from '@/pages/client/InvoiceDetail'
 import { StaffOverview } from '@/pages/staff/Overview'
 import { StaffProjects } from '@/pages/staff/Projects'
 import { StaffProjectDetail } from '@/pages/staff/ProjectDetail'
 import { StaffQuotes } from '@/pages/staff/Quotes'
 import { StaffQuoteDetail } from '@/pages/staff/QuoteDetail'
+import { StaffInvoices } from '@/pages/staff/Invoices'
+import { StaffInvoiceDetail } from '@/pages/staff/InvoiceDetail'
 import { AdminDashboard } from '@/pages/admin/Dashboard'
 import { AdminUsers } from '@/pages/admin/Users'
 import { AdminUserDetail } from '@/pages/admin/UserDetail'
@@ -29,17 +33,21 @@ import { AdminProjects } from '@/pages/admin/Projects'
 import { AdminProjectDetail } from '@/pages/admin/ProjectDetail'
 import { AdminQuotes } from '@/pages/admin/Quotes'
 import { AdminQuoteDetail } from '@/pages/admin/QuoteDetail'
+import { AdminInvoices } from '@/pages/admin/Invoices'
+import { AdminInvoiceDetail } from '@/pages/admin/InvoiceDetail'
 import { NotFound } from '@/pages/NotFound'
 
 const clientNavItems = [
   { label: 'Dashboard', to: paths.client.dashboard, icon: LayoutDashboard },
   { label: 'My Projects', to: paths.client.projects, icon: FolderKanban },
+  { label: 'My Invoices', to: paths.client.invoices, icon: Receipt },
 ]
 
 const staffNavItems = [
   { label: 'Overview', to: paths.staff.overview, icon: LayoutDashboard, end: true },
   { label: 'Projects', to: paths.staff.projects, icon: FolderKanban },
   { label: 'Quote Requests', to: paths.staff.quotes, icon: MessageSquare },
+  { label: 'Invoices', to: paths.staff.invoices, icon: Receipt },
 ]
 
 const adminNavItems = [
@@ -47,6 +55,7 @@ const adminNavItems = [
   { label: 'Users', to: paths.admin.users, icon: Users },
   { label: 'Projects', to: paths.admin.projects, icon: FolderKanban },
   { label: 'Quote Requests', to: paths.admin.quotes, icon: MessageSquare },
+  { label: 'Invoices', to: paths.admin.invoices, icon: Receipt },
 ]
 
 function App() {
@@ -74,6 +83,8 @@ function App() {
             <Route path={paths.client.dashboard} element={<ClientDashboard />} />
             <Route path={paths.client.projects} element={<ClientProjects />} />
             <Route path="/client/projects/:projectId" element={<ClientProjectDetail />} />
+            <Route path={paths.client.invoices} element={<ClientInvoices />} />
+            <Route path="/client/invoices/:invoiceId" element={<ClientInvoiceDetail />} />
           </Route>
         </Route>
 
@@ -85,6 +96,8 @@ function App() {
             <Route path="/staff/projects/:projectId" element={<StaffProjectDetail />} />
             <Route path={paths.staff.quotes} element={<StaffQuotes />} />
             <Route path="/staff/quotes/:quoteId" element={<StaffQuoteDetail />} />
+            <Route path={paths.staff.invoices} element={<StaffInvoices />} />
+            <Route path="/staff/invoices/:invoiceId" element={<StaffInvoiceDetail />} />
           </Route>
         </Route>
 
@@ -98,6 +111,8 @@ function App() {
             <Route path="/admin/projects/:projectId" element={<AdminProjectDetail />} />
             <Route path={paths.admin.quotes} element={<AdminQuotes />} />
             <Route path="/admin/quotes/:quoteId" element={<AdminQuoteDetail />} />
+            <Route path={paths.admin.invoices} element={<AdminInvoices />} />
+            <Route path="/admin/invoices/:invoiceId" element={<AdminInvoiceDetail />} />
           </Route>
         </Route>
       </Route>

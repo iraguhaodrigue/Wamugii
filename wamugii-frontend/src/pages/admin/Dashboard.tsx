@@ -4,6 +4,7 @@ import {
   Clock,
   FolderKanban,
   HeadphonesIcon,
+  Receipt,
   Server,
   ShoppingBag,
   Sparkles,
@@ -14,11 +15,11 @@ import { getAdminDashboard } from '@/api/adminDashboard'
 import { useAuth } from '@/context/AuthContext'
 import { usePageTitle } from '@/context/PageTitleContext'
 import { Avatar, ErrorState, Skeleton, StatCard } from '@/components/ui'
+import { formatMoney } from '@/utils/format'
 
 const comingSoonTiles = [
   { label: 'Hosting', icon: Server },
   { label: 'Store', icon: ShoppingBag },
-  { label: 'Invoices', icon: Wallet },
   { label: 'Support', icon: HeadphonesIcon },
 ]
 
@@ -79,7 +80,7 @@ export function AdminDashboard() {
 
       <div>
         <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400">Platform overview</h2>
-        <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <StatCard icon={Users} label="Total Users" value={data.users.total} accent="brand" />
           <StatCard
             icon={Boxes}
@@ -94,6 +95,18 @@ export function AdminDashboard() {
             accent="success"
           />
           <StatCard icon={Clock} label="Pending Quotes" value={data.quotes.pending} accent="warning" />
+          <StatCard
+            icon={Wallet}
+            label="Outstanding Payments"
+            value={formatMoney(data.invoices.outstanding) ?? '—'}
+            accent="brand"
+          />
+          <StatCard
+            icon={Receipt}
+            label="Unpaid Invoices"
+            value={data.invoices.pending}
+            accent="accent"
+          />
         </div>
         <p className="mt-3 text-xs text-slate-400">
           Users: {data.users.clients} clients · {data.users.staff} staff · {data.users.admins} admins

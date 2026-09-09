@@ -13,6 +13,8 @@ export const paths = {
     dashboard: '/client/dashboard',
     projects: '/client/projects',
     projectDetail: (id: string | number) => `/client/projects/${id}`,
+    invoices: '/client/invoices',
+    invoiceDetail: (id: string | number) => `/client/invoices/${id}`,
   },
   staff: {
     overview: '/staff',
@@ -20,6 +22,8 @@ export const paths = {
     projectDetail: (id: string | number) => `/staff/projects/${id}`,
     quotes: '/staff/quotes',
     quoteDetail: (id: string | number) => `/staff/quotes/${id}`,
+    invoices: '/staff/invoices',
+    invoiceDetail: (id: string | number) => `/staff/invoices/${id}`,
   },
   admin: {
     dashboard: '/admin/dashboard',
@@ -29,6 +33,8 @@ export const paths = {
     projectDetail: (id: string | number) => `/admin/projects/${id}`,
     quotes: '/admin/quotes',
     quoteDetail: (id: string | number) => `/admin/quotes/${id}`,
+    invoices: '/admin/invoices',
+    invoiceDetail: (id: string | number) => `/admin/invoices/${id}`,
   },
 } as const
 

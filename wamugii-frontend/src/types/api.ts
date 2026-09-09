@@ -506,6 +506,47 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/client/invoices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List the authenticated client's invoices
+         * @description Invoices belonging to this client, including standalone invoices with no
+         *     project. Staff-facing notes are never included.
+         */
+        get: operations["list_invoices_api_v1_client_invoices_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/client/invoices/{invoice_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get one of the authenticated client's invoices
+         * @description 404 (not 403) for anything that isn't this client's — same as projects.
+         */
+        get: operations["get_invoice_api_v1_client_invoices__invoice_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/client/quotes": {
         parameters: {
             query?: never;
@@ -574,6 +615,65 @@ export interface paths {
         put?: never;
         /** Convert an ACCEPTED quote request into a project (ADMIN or STAFF only) */
         post: operations["create_project_from_quote_api_v1_quote_requests__quote_id__create_project_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/invoices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List invoices (ADMIN or STAFF) */
+        get: operations["list_invoices_api_v1_invoices_get"];
+        put?: never;
+        /** Create an invoice (ADMIN or STAFF) */
+        post: operations["create_invoice_api_v1_invoices_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/invoices/{invoice_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get an invoice (ADMIN or STAFF) */
+        get: operations["get_invoice_api_v1_invoices__invoice_id__get"];
+        put?: never;
+        post?: never;
+        /** Deactivate an invoice (ADMIN only, soft delete) */
+        delete: operations["deactivate_invoice_api_v1_invoices__invoice_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update an invoice (ADMIN or STAFF) */
+        patch: operations["update_invoice_api_v1_invoices__invoice_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/invoices/{invoice_id}/payments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List payments on an invoice (ADMIN or STAFF) */
+        get: operations["list_payments_api_v1_invoices__invoice_id__payments_get"];
+        put?: never;
+        /**
+         * Record a manual payment against an invoice (ADMIN or STAFF)
+         * @description Records money already received out-of-band (mobile money, bank transfer,
+         *     cash). This is bookkeeping only — no payment is processed here.
+         */
+        post: operations["record_payment_api_v1_invoices__invoice_id__payments_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -678,6 +778,106 @@ export interface components {
             pending_quotes: number;
         };
         /**
+         * ClientInvoiceDetail
+         * @description Full invoice detail for the client — still no staff-facing `notes`.
+         */
+        ClientInvoiceDetail: {
+            /** Id */
+            id: number;
+            /** Invoice Number */
+            invoice_number: string;
+            /** Project Id */
+            project_id: number | null;
+            /**
+             * Issue Date
+             * Format: date-time
+             */
+            issue_date: string;
+            /** Due Date */
+            due_date: string | null;
+            /** Subtotal */
+            subtotal: string;
+            /** Tax */
+            tax: string | null;
+            /** Discount */
+            discount: string | null;
+            /** Total */
+            total: string;
+            /** Amount Paid */
+            amount_paid: string;
+            /** Balance Due */
+            balance_due: string;
+            status: components["schemas"]["InvoiceStatus"];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /**
+             * Items
+             * @default []
+             */
+            items: components["schemas"]["ClientInvoiceItemRead"][];
+            /**
+             * Payments
+             * @default []
+             */
+            payments: components["schemas"]["ClientPaymentRead"][];
+        };
+        /**
+         * ClientInvoiceItemRead
+         * @description A billed line on the client's own invoice.
+         */
+        ClientInvoiceItemRead: {
+            /** Id */
+            id: number;
+            /** Description */
+            description: string;
+            /** Quantity */
+            quantity: string;
+            /** Unit Price */
+            unit_price: string;
+            /** Line Total */
+            line_total: string;
+        };
+        /**
+         * ClientInvoiceListItem
+         * @description Invoice summary for the client's own view. Deliberately omits `notes`,
+         *     which is staff-facing.
+         */
+        ClientInvoiceListItem: {
+            /** Id */
+            id: number;
+            /** Invoice Number */
+            invoice_number: string;
+            /** Project Id */
+            project_id: number | null;
+            /**
+             * Issue Date
+             * Format: date-time
+             */
+            issue_date: string;
+            /** Due Date */
+            due_date: string | null;
+            /** Total */
+            total: string;
+            /** Amount Paid */
+            amount_paid: string;
+            /** Balance Due */
+            balance_due: string;
+            status: components["schemas"]["InvoiceStatus"];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /**
          * ClientMilestoneListItem
          * @description Milestone info for client view.
          */
@@ -695,6 +895,25 @@ export interface components {
             due_date: string | null;
             /** Completed At */
             completed_at: string | null;
+        };
+        /**
+         * ClientPaymentRead
+         * @description A payment on the client's own invoice. Omits `notes` and `recorded_by` —
+         *     both are internal.
+         */
+        ClientPaymentRead: {
+            /** Id */
+            id: number;
+            /** Amount */
+            amount: string;
+            /**
+             * Payment Date
+             * Format: date-time
+             */
+            payment_date: string;
+            method: components["schemas"]["PaymentMethod"];
+            /** Reference */
+            reference: string | null;
         };
         /**
          * ClientProjectDetail
@@ -805,7 +1024,8 @@ export interface components {
             quotes: components["schemas"]["QuoteStats"];
             /**
              * @default {
-             *       "pending": 0
+             *       "pending": 0,
+             *       "outstanding": "0.00"
              *     }
              */
             invoices: components["schemas"]["InvoiceStats"];
@@ -847,6 +1067,150 @@ export interface components {
              */
             active: number;
         };
+        /** InvoiceCreate */
+        InvoiceCreate: {
+            /** Client Id */
+            client_id: number;
+            /** Project Id */
+            project_id?: number | null;
+            /** Issue Date */
+            issue_date?: string | null;
+            /** Due Date */
+            due_date?: string | null;
+            /**
+             * Subtotal
+             * @default 0
+             */
+            subtotal: number | string;
+            /** Tax */
+            tax?: number | string | null;
+            /** Discount */
+            discount?: number | string | null;
+            /** @default DRAFT */
+            status: components["schemas"]["InvoiceStatus"];
+            /** Notes */
+            notes?: string | null;
+            /** Items */
+            items?: components["schemas"]["InvoiceItemCreate"][] | null;
+        };
+        /** InvoiceItemCreate */
+        InvoiceItemCreate: {
+            /** Description */
+            description: string;
+            /**
+             * Quantity
+             * @default 1
+             */
+            quantity: number | string;
+            /**
+             * Unit Price
+             * @default 0
+             */
+            unit_price: number | string;
+        };
+        /** InvoiceItemRead */
+        InvoiceItemRead: {
+            /** Id */
+            id: number;
+            /** Description */
+            description: string;
+            /** Quantity */
+            quantity: string;
+            /** Unit Price */
+            unit_price: string;
+            /** Line Total */
+            line_total: string;
+        };
+        /** InvoiceListItem */
+        InvoiceListItem: {
+            /** Id */
+            id: number;
+            /** Invoice Number */
+            invoice_number: string;
+            /** Client Id */
+            client_id: number;
+            /** Project Id */
+            project_id: number | null;
+            /**
+             * Issue Date
+             * Format: date-time
+             */
+            issue_date: string;
+            /** Due Date */
+            due_date: string | null;
+            /** Total */
+            total: string;
+            /** Amount Paid */
+            amount_paid: string;
+            /** Balance Due */
+            balance_due: string;
+            status: components["schemas"]["InvoiceStatus"];
+            /** Is Active */
+            is_active: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /**
+         * InvoiceRead
+         * @description Full staff-facing invoice, including internal notes.
+         */
+        InvoiceRead: {
+            /** Id */
+            id: number;
+            /** Invoice Number */
+            invoice_number: string;
+            /** Client Id */
+            client_id: number;
+            /** Project Id */
+            project_id: number | null;
+            /**
+             * Issue Date
+             * Format: date-time
+             */
+            issue_date: string;
+            /** Due Date */
+            due_date: string | null;
+            /** Subtotal */
+            subtotal: string;
+            /** Tax */
+            tax: string | null;
+            /** Discount */
+            discount: string | null;
+            /** Total */
+            total: string;
+            /** Amount Paid */
+            amount_paid: string;
+            /** Balance Due */
+            balance_due: string;
+            status: components["schemas"]["InvoiceStatus"];
+            /** Notes */
+            notes: string | null;
+            /** Is Active */
+            is_active: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /**
+             * Items
+             * @default []
+             */
+            items: components["schemas"]["InvoiceItemRead"][];
+            /**
+             * Payments
+             * @default []
+             */
+            payments: components["schemas"]["PaymentRead"][];
+        };
         /** InvoiceStats */
         InvoiceStats: {
             /**
@@ -854,6 +1218,36 @@ export interface components {
              * @default 0
              */
             pending: number;
+            /**
+             * Outstanding
+             * @default 0.00
+             */
+            outstanding: string;
+        };
+        /**
+         * InvoiceStatus
+         * @enum {string}
+         */
+        InvoiceStatus: "DRAFT" | "SENT" | "PARTIALLY_PAID" | "PAID" | "OVERDUE" | "CANCELLED";
+        /** InvoiceUpdate */
+        InvoiceUpdate: {
+            /** Project Id */
+            project_id?: number | null;
+            /** Issue Date */
+            issue_date?: string | null;
+            /** Due Date */
+            due_date?: string | null;
+            /** Subtotal */
+            subtotal?: number | string | null;
+            /** Tax */
+            tax?: number | string | null;
+            /** Discount */
+            discount?: number | string | null;
+            status?: components["schemas"]["InvoiceStatus"] | null;
+            /** Notes */
+            notes?: string | null;
+            /** Items */
+            items?: components["schemas"]["InvoiceItemCreate"][] | null;
         };
         /** MilestoneReorderItem */
         MilestoneReorderItem: {
@@ -872,6 +1266,49 @@ export interface components {
          * @enum {string}
          */
         MilestoneStatus: "PENDING" | "IN_PROGRESS" | "COMPLETED" | "ON_HOLD" | "CANCELLED";
+        /** PaymentCreate */
+        PaymentCreate: {
+            /** Amount */
+            amount: number | string;
+            /** Payment Date */
+            payment_date?: string | null;
+            method: components["schemas"]["PaymentMethod"];
+            /** Reference */
+            reference?: string | null;
+            /** Notes */
+            notes?: string | null;
+        };
+        /**
+         * PaymentMethod
+         * @enum {string}
+         */
+        PaymentMethod: "MOBILE_MONEY" | "BANK_TRANSFER" | "CASH" | "OTHER";
+        /** PaymentRead */
+        PaymentRead: {
+            /** Id */
+            id: number;
+            /** Invoice Id */
+            invoice_id: number;
+            /** Amount */
+            amount: string;
+            /**
+             * Payment Date
+             * Format: date-time
+             */
+            payment_date: string;
+            method: components["schemas"]["PaymentMethod"];
+            /** Reference */
+            reference: string | null;
+            /** Notes */
+            notes: string | null;
+            /** Recorded By */
+            recorded_by: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
         /** ProjectCreate */
         ProjectCreate: {
             /** Client Id */
@@ -2747,6 +3184,70 @@ export interface operations {
             };
         };
     };
+    list_invoices_api_v1_client_invoices_get: {
+        parameters: {
+            query?: {
+                status?: components["schemas"]["InvoiceStatus"] | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClientInvoiceListItem"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_invoice_api_v1_client_invoices__invoice_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                invoice_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClientInvoiceDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_quotes_api_v1_client_quotes_get: {
         parameters: {
             query?: {
@@ -2967,6 +3468,239 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProjectRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_invoices_api_v1_invoices_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+                status?: components["schemas"]["InvoiceStatus"] | null;
+                client_id?: number | null;
+                project_id?: number | null;
+                search?: string | null;
+                include_inactive?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InvoiceListItem"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_invoice_api_v1_invoices_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InvoiceCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InvoiceRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_invoice_api_v1_invoices__invoice_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                invoice_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InvoiceRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    deactivate_invoice_api_v1_invoices__invoice_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                invoice_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InvoiceRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_invoice_api_v1_invoices__invoice_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                invoice_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InvoiceUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InvoiceRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_payments_api_v1_invoices__invoice_id__payments_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                invoice_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaymentRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    record_payment_api_v1_invoices__invoice_id__payments_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                invoice_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PaymentCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaymentRead"];
                 };
             };
             /** @description Validation Error */
