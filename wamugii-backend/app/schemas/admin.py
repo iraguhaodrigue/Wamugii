@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from pydantic import BaseModel
 
 
@@ -23,7 +25,12 @@ class QuoteStats(BaseModel):
 
 
 class InvoiceStats(BaseModel):
+    # `pending` predates the invoices module and keeps its name/meaning:
+    # invoices still awaiting full payment (SENT / PARTIALLY_PAID / OVERDUE).
     pending: int = 0
+    # Added with the invoices module — there was no slot for the money owed.
+    # Decimal string (e.g. "1500.00") to match every other money field.
+    outstanding: Decimal = Decimal("0.00")
 
 
 class HostingStats(BaseModel):

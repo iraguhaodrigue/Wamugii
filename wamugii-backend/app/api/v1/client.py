@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from app.api.deps import ActiveUser, DbDep, require_roles
 from app.crud import client as client_crud
 from app.crud import project_milestone as milestone_crud
+from app.models.invoice import InvoiceStatus
 from app.models.project import ProjectStatus
 from app.models.quote_request import QuoteStatus
 from app.models.user import Role, User
@@ -14,6 +15,8 @@ from app.schemas.client import (
     ClientActivityItem,
     ClientDashboardRead,
     ClientDashboardSummary,
+    ClientInvoiceDetail,
+    ClientInvoiceListItem,
     ClientMilestoneListItem,
     ClientProjectDetail,
     ClientProjectListItem,
@@ -150,6 +153,41 @@ def get_milestones(project_id: int, db: DbDep, current_user: ClientOnly):
 
     milestones = client_crud.get_client_milestones(db, project_id)
     return [ClientMilestoneListItem.model_validate(m) for m in milestones]
+
+
+@router.get(
+    "/invoices",
+    response_model=list[ClientInvoiceListItem],
+    summary="List the authenticated client's invoices",
+)
+def list_invoices(
+    db: DbDep,
+    current_user: ClientOnly,
+    status: InvoiceStatus | None = None,
+    limit: int = Query(20, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+):
+    """
+    Invoices belonging to this client, including standalone invoices with no
+    project. Staff-facing notes are never included.
+    """
+    invoices = client_crud.get_client_invoices(
+        db, current_user.id, limit=limit, offset=offset, status=status
+    )
+    return [ClientInvoiceListItem.model_validate(inv) for inv in invoices]
+
+
+@router.get(
+    "/invoices/{invoice_id}",
+    response_model=ClientInvoiceDetail,
+    summary="Get one of the authenticated client's invoices",
+)
+def get_invoice(invoice_id: int, db: DbDep, current_user: ClientOnly):
+    """404 (not 403) for anything that isn't this client's — same as projects."""
+    invoice = client_crud.get_client_invoice_by_id(db, invoice_id, current_user.id)
+    if not invoice:
+        raise HTTPException(status_code=404, detail="Invoice not found")
+    return ClientInvoiceDetail.model_validate(invoice)
 
 
 @router.get("/quotes", response_model=list[ClientQuoteListItem], summary="List client quotes")

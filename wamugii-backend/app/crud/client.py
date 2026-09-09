@@ -3,6 +3,7 @@ from sqlalchemy import and_, func, select
 from sqlalchemy.orm import Session
 
 from app.crud import project_milestone as milestone_crud
+from app.models.invoice import Invoice, InvoiceStatus, Payment
 from app.models.project import Project, ProjectStatus
 from app.models.project_milestone import ProjectMilestone, MilestoneStatus
 from app.models.quote_request import QuoteRequest, QuoteStatus
@@ -132,6 +133,57 @@ def get_client_milestones(
         .order_by(ProjectMilestone.created_at.asc())
     )
     return list(db.scalars(query).all())
+
+
+def get_client_invoices(
+    db: Session,
+    client_id: int,
+    *,
+    limit: int = 100,
+    offset: int = 0,
+    status: InvoiceStatus | None = None,
+) -> list[Invoice]:
+    """
+    Invoices belonging to a client. Scoped by client_id exactly like projects —
+    note this deliberately does NOT join projects, because a standalone invoice
+    has no project and must still be visible to its client.
+    """
+    query = select(Invoice).where(
+        and_(
+            Invoice.client_id == client_id,
+            Invoice.is_active.is_(True),
+        )
+    )
+
+    if status is not None:
+        query = query.where(Invoice.status == status)
+
+    query = query.order_by(Invoice.issue_date.desc(), Invoice.id.desc()).offset(offset).limit(limit)
+    return list(db.scalars(query).all())
+
+
+def get_client_invoice_by_id(db: Session, invoice_id: int, client_id: int) -> Invoice | None:
+    """Get an invoice only if it belongs to this client (else None → 404)."""
+    return db.scalar(
+        select(Invoice).where(
+            and_(
+                Invoice.id == invoice_id,
+                Invoice.client_id == client_id,
+                Invoice.is_active.is_(True),
+            )
+        )
+    )
+
+
+def get_client_invoice_payments(db: Session, invoice_id: int) -> list[Payment]:
+    """Payment history for an invoice the caller has already been scoped to."""
+    return list(
+        db.scalars(
+            select(Payment)
+            .where(and_(Payment.invoice_id == invoice_id, Payment.is_active.is_(True)))
+            .order_by(Payment.payment_date.asc(), Payment.id.asc())
+        ).all()
+    )
 
 
 def get_dashboard_summary(db: Session, client_id: int, client_email: str) -> dict:

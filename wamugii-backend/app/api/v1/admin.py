@@ -4,12 +4,20 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from app.api.deps import DbDep, require_roles
+from app.crud import invoice as invoice_crud
 from app.crud import project as project_crud
 from app.crud import quote_request as quote_crud
 from app.crud import service as service_crud
 from app.crud import user as user_crud
 from app.models.user import Role, User
-from app.schemas.admin import DashboardStats, ProjectStats, QuoteStats, ServiceStats, UserStats
+from app.schemas.admin import (
+    DashboardStats,
+    InvoiceStats,
+    ProjectStats,
+    QuoteStats,
+    ServiceStats,
+    UserStats,
+)
 from app.schemas.user import UserAdminUpdate, UserRead
 
 router = APIRouter(prefix="/admin", tags=["admin"])
@@ -45,7 +53,10 @@ def dashboard(db: DbDep, admin: CurrentAdmin):
             total=project_crud.count_total(db),
             active=project_crud.count_active(db),
         ),
-        # TODO: invoices module not built yet
+        invoices=InvoiceStats(
+            pending=invoice_crud.count_outstanding(db),
+            outstanding=invoice_crud.sum_outstanding(db),
+        ),
         # TODO: hosting module not built yet
         # TODO: store module not built yet
         # TODO: support module not built yet

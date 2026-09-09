@@ -3,6 +3,7 @@ from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from app.models.invoice import InvoiceStatus, PaymentMethod
 from app.models.project import ProjectPriority, ProjectStatus
 from app.models.project_milestone import MilestoneStatus
 from app.models.quote_request import QuoteStatus
@@ -85,6 +86,76 @@ class ClientQuoteListItem(BaseModel):
     status: QuoteStatus
     created_at: datetime
     updated_at: datetime
+
+
+class ClientInvoiceListItem(BaseModel):
+    """
+    Invoice summary for the client's own view. Deliberately omits `notes`,
+    which is staff-facing.
+    """
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    invoice_number: str
+    project_id: int | None
+    issue_date: datetime
+    due_date: datetime | None
+    total: Decimal
+    amount_paid: Decimal
+    balance_due: Decimal
+    status: InvoiceStatus
+    created_at: datetime
+
+
+class ClientInvoiceItemRead(BaseModel):
+    """A billed line on the client's own invoice."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    description: str
+    quantity: Decimal
+    unit_price: Decimal
+    line_total: Decimal
+
+
+class ClientPaymentRead(BaseModel):
+    """
+    A payment on the client's own invoice. Omits `notes` and `recorded_by` —
+    both are internal.
+    """
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    amount: Decimal
+    payment_date: datetime
+    method: PaymentMethod
+    reference: str | None
+
+
+class ClientInvoiceDetail(BaseModel):
+    """Full invoice detail for the client — still no staff-facing `notes`."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    invoice_number: str
+    project_id: int | None
+    issue_date: datetime
+    due_date: datetime | None
+    subtotal: Decimal
+    tax: Decimal | None
+    discount: Decimal | None
+    total: Decimal
+    amount_paid: Decimal
+    balance_due: Decimal
+    status: InvoiceStatus
+    created_at: datetime
+    updated_at: datetime
+    items: list[ClientInvoiceItemRead] = []
+    payments: list[ClientPaymentRead] = []
 
 
 class ClientActivityItem(BaseModel):
