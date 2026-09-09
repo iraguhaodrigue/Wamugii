@@ -22,6 +22,7 @@ from app.schemas.quote_request import (
     QuoteRequestPublicRead,
     QuoteRequestRead,
 )
+from app.services import notifications
 
 router = APIRouter(prefix="/quote-requests", tags=["quote-requests"])
 logger = logging.getLogger(__name__)
@@ -43,7 +44,11 @@ def create_quote_request(data: QuoteRequestCreate, db: DbDep):
             raise HTTPException(
                 status_code=422, detail="service_id does not reference an active service"
             )
-    return quote_crud.create(db, data)
+    quote = quote_crud.create(db, data)
+    # After the commit, and non-fatal: a notification failure must not turn a
+    # successfully submitted quote into an error for the public submitter.
+    notifications.notify_quote_submitted(db, quote)
+    return quote
 
 
 @router.get(
@@ -95,6 +100,8 @@ def update_quote_request(
     quote = quote_crud.get_by_id(db, quote_id)
     if not quote:
         raise HTTPException(status_code=404, detail="Quote request not found")
+    # Captured before the update mutates the row in place.
+    old_status = quote.status
     updated = quote_crud.update_admin_fields(db, quote, data)
     logger.info(
         "staff %s updated quote %s: %s",
@@ -102,6 +109,9 @@ def update_quote_request(
         quote_id,
         data.model_dump(exclude_unset=True),
     )
+    # Only a real transition is worth notifying about — a notes-only edit isn't.
+    if updated.status != old_status:
+        notifications.notify_quote_status_changed(db, updated, old_status.value)
     return updated
 
 
@@ -174,4 +184,5 @@ def create_project_from_quote(
     logger.info(
         "staff %s converted quote %s into project %s", current_user.id, quote_id, project.id
     )
+    notifications.notify_project_created(db, project)
     return project

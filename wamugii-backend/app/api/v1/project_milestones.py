@@ -17,6 +17,7 @@ from app.schemas.project_milestone import (
     ProjectMilestoneUpdate,
     ProjectProgressRead,
 )
+from app.services import notifications
 
 router = APIRouter(prefix="/projects", tags=["project-milestones"])
 logger = logging.getLogger(__name__)
@@ -228,6 +229,8 @@ def update_milestone(
         raise HTTPException(status_code=404, detail="Milestone not found")
 
     _validate_milestone_for_update_dates(milestone, data)
+    # Captured before the update mutates the row in place.
+    was_completed = milestone.status == MilestoneStatus.COMPLETED
     updated = milestone_crud.update(db, milestone, data)
 
     logger.info(
@@ -237,6 +240,12 @@ def update_milestone(
         project_id,
         data.model_dump(exclude_unset=True),
     )
+    # Only the transition *into* COMPLETED is an event; re-saving an already
+    # completed milestone shouldn't notify the client again.
+    if updated.status == MilestoneStatus.COMPLETED and not was_completed:
+        project = project_crud.get_by_id(db, project_id)
+        if project is not None:
+            notifications.notify_milestone_completed(db, updated, project)
     return updated
 
 

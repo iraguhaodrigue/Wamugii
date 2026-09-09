@@ -5,6 +5,7 @@ from app.api.v1 import (
     auth,
     client,
     invoices,
+    notifications,
     projects,
     project_files,
     project_milestones,
@@ -24,3 +25,4 @@ api_router.include_router(project_files.router)
 api_router.include_router(client.router)
 api_router.include_router(quote_requests.router)
 api_router.include_router(invoices.router)
+api_router.include_router(notifications.router)

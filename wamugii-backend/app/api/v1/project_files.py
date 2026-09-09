@@ -13,7 +13,7 @@ from app.models.project import Project
 from app.models.project_file import FileCategory
 from app.models.user import Role, User
 from app.schemas.project_file import ProjectFileListItem, ProjectFileRead, ProjectFileUpdate
-from app.services import storage
+from app.services import notifications, storage
 
 router = APIRouter(prefix="/projects", tags=["project-files"])
 logger = logging.getLogger(__name__)
@@ -81,7 +81,7 @@ def upload_file(
     description: str | None = Form(None),
 ):
     """Upload a file to a project. CLIENT may only upload to their own active project."""
-    _project_access(db, project_id, current_user)
+    project = _project_access(db, project_id, current_user)
     extension = _validate_upload(file)
 
     max_size_bytes = settings.MAX_UPLOAD_SIZE_MB * 1024 * 1024
@@ -108,6 +108,9 @@ def upload_file(
     )
     logger.info(
         "user %s uploaded file %s to project %s", current_user.id, project_file.id, project_id
+    )
+    notifications.notify_file_uploaded(
+        db, project, project_file.original_filename, current_user
     )
     return project_file
 

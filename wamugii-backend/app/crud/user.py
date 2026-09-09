@@ -54,6 +54,17 @@ def count_active_admins(db: Session) -> int:
     )
 
 
+def list_active_staff_and_admin_ids(db: Session) -> list[int]:
+    """Recipients for system notifications that concern the whole team."""
+    return list(
+        db.scalars(
+            select(User.id).where(
+                User.role.in_([Role.ADMIN, Role.STAFF]), User.is_active.is_(True)
+            )
+        ).all()
+    )
+
+
 def list_admin(
     db: Session,
     *,

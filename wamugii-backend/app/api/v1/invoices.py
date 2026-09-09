@@ -19,6 +19,7 @@ from app.schemas.invoice import (
     PaymentCreate,
     PaymentRead,
 )
+from app.services import notifications
 
 router = APIRouter(prefix="/invoices", tags=["invoices"])
 logger = logging.getLogger(__name__)
@@ -85,6 +86,10 @@ def create_invoice(data: InvoiceCreate, db: DbDep, current_user: StaffOrAdmin):
         invoice.invoice_number,
         data.client_id,
     )
+    # A DRAFT invoice hasn't been issued to the client yet, so notifying them
+    # would announce a bill they aren't meant to see. Only issued ones notify.
+    if invoice.status != InvoiceStatus.DRAFT:
+        notifications.notify_invoice_created(db, invoice)
     return invoice
 
 
@@ -196,6 +201,7 @@ def record_payment(invoice_id: int, data: PaymentCreate, db: DbDep, current_user
         payment.amount,
         invoice_id,
     )
+    notifications.notify_payment_recorded(db, invoice, str(payment.amount))
     return payment
 
 

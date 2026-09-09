@@ -5,6 +5,7 @@ from app.models.invoice import (  # noqa: F401
     Payment,
     PaymentMethod,
 )
+from app.models.notification import Notification, NotificationType  # noqa: F401
 from app.models.project import Project  # noqa: F401
 from app.models.project_file import FileCategory, ProjectFile  # noqa: F401
 from app.models.project_milestone import MilestoneStatus, ProjectMilestone  # noqa: F401

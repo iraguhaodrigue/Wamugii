@@ -12,6 +12,7 @@ from app.models.project import Project, ProjectPriority, ProjectStatus
 from app.models.quote_request import QuoteRequest, QuoteStatus
 from app.models.user import Role, User
 from app.schemas.project import ProjectCreate, ProjectListItem, ProjectRead, ProjectUpdate
+from app.services import notifications
 
 router = APIRouter(prefix="/projects", tags=["projects"])
 logger = logging.getLogger(__name__)
@@ -88,6 +89,7 @@ def create_project(data: ProjectCreate, db: DbDep, current_user: StaffOrAdmin):
     logger.info(
         "staff %s created project %s for client %s", current_user.id, project.id, data.client_id
     )
+    notifications.notify_project_created(db, project)
     return project
 
 
@@ -140,6 +142,8 @@ def update_project(project_id: int, data: ProjectUpdate, db: DbDep, current_user
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
     _validate_update_dates(project, data)
+    # Captured before the update mutates the row in place.
+    old_status = project.status
     updated = project_crud.update(db, project, data)
     logger.info(
         "staff %s updated project %s: %s",
@@ -147,6 +151,8 @@ def update_project(project_id: int, data: ProjectUpdate, db: DbDep, current_user
         project_id,
         data.model_dump(exclude_unset=True),
     )
+    if updated.status != old_status:
+        notifications.notify_project_status_changed(db, updated, old_status.value)
     return updated
 
 
