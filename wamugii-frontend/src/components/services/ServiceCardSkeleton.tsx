@@ -2,7 +2,7 @@ import { Skeleton } from '@/components/ui'
 
 export function ServiceCardSkeleton() {
   return (
-    <div className="flex h-full flex-col rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div className="flex h-full flex-col rounded-xl border border-slate-200 bg-panel p-6 shadow-[var(--shadow-card)]">
       <Skeleton className="size-11 rounded-lg" />
       <Skeleton className="mt-4 h-5 w-3/4" />
       <Skeleton className="mt-2 h-4 w-full" />

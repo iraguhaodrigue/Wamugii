@@ -49,10 +49,10 @@ function AdminLayoutChrome({ navItems }: AdminLayoutProps) {
   }, [isCollapsed])
 
   return (
-    <div className="flex min-h-svh bg-slate-50">
+    <div className="app-atmosphere flex min-h-svh">
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-40 flex shrink-0 transform flex-col border-r border-slate-200 bg-sidebar transition-[transform,width] duration-200 md:static md:translate-x-0',
+          'fixed inset-y-0 left-0 z-40 flex shrink-0 transform flex-col border-r border-slate-200 bg-sidebar backdrop-blur-xl transition-[transform,width] duration-200 md:static md:translate-x-0',
           isSidebarOpen ? 'translate-x-0' : '-translate-x-full',
           isCollapsed ? 'w-64 md:w-[72px]' : 'w-64',
         )}
@@ -62,7 +62,7 @@ function AdminLayoutChrome({ navItems }: AdminLayoutProps) {
             to={paths.home}
             className={cn('flex items-center gap-2 text-base font-bold text-slate-900', isCollapsed && 'md:justify-center')}
           >
-            <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-brand-600 text-sm font-bold text-white">
+            <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[var(--color-brand-solid)] to-[var(--color-accent-solid)] text-sm font-bold text-white shadow-[var(--shadow-glow-brand)]">
               W
             </span>
             <span className={cn(isCollapsed && 'md:hidden')}>
@@ -89,11 +89,11 @@ function AdminLayoutChrome({ navItems }: AdminLayoutProps) {
               title={isCollapsed ? item.label : undefined}
               className={({ isActive }) =>
                 cn(
-                  'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
+                  'flex items-center gap-3 rounded-lg border-l-2 px-3 py-2.5 text-sm font-medium transition-colors',
                   isCollapsed && 'md:justify-center',
                   isActive
-                    ? 'bg-brand-50 text-brand-700'
-                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
+                    ? 'border-[var(--color-brand-solid)] bg-gradient-to-r from-brand-500/15 to-accent-500/10 text-brand-600'
+                    : 'border-transparent text-slate-600 hover:bg-slate-100 hover:text-slate-900',
                 )
               }
             >
@@ -131,7 +131,7 @@ function AdminLayoutChrome({ navItems }: AdminLayoutProps) {
       )}
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-20 flex h-16 shrink-0 items-center gap-3 border-b border-slate-200 bg-panel px-4 sm:px-6">
+        <header className="sticky top-0 z-20 flex h-16 shrink-0 items-center gap-3 border-b border-slate-200 bg-panel px-4 backdrop-blur-xl sm:px-6">
           <button
             type="button"
             className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 md:hidden"

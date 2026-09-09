@@ -47,7 +47,7 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalPr
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div
-        className="fixed inset-0 bg-black/50"
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm"
         aria-hidden="true"
         onClick={onClose}
       />
@@ -58,7 +58,7 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalPr
         aria-labelledby={title ? 'modal-title' : undefined}
         tabIndex={-1}
         className={cn(
-          'relative w-full rounded-xl bg-panel shadow-xl focus:outline-none',
+          'relative w-full rounded-xl border border-slate-200 bg-panel shadow-[var(--shadow-card)] backdrop-blur-md focus:outline-none',
           sizeClasses[size],
         )}
       >

@@ -5,6 +5,7 @@ import { listServices } from '@/api/services'
 import { Container, EmptyState, ErrorState, Input } from '@/components/ui'
 import { ServiceCard } from '@/components/services/ServiceCard'
 import { ServiceCardSkeleton } from '@/components/services/ServiceCardSkeleton'
+import { AnimatedTechBackground } from '@/components/common/AnimatedTechBackground'
 
 export function Services() {
   const [search, setSearch] = useState('')
@@ -32,7 +33,9 @@ export function Services() {
   }, [services, search])
 
   return (
-    <Container className="py-16 sm:py-20">
+    <div className="relative overflow-hidden">
+      <AnimatedTechBackground intensity="medium" />
+      <Container className="relative py-16 sm:py-20">
       <div className="mx-auto max-w-2xl text-center">
         <h1 className="text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">Our Services</h1>
         <p className="mt-4 text-base text-slate-500">
@@ -86,6 +89,7 @@ export function Services() {
           </div>
         )}
       </div>
-    </Container>
+      </Container>
+    </div>
   )
 }

@@ -96,12 +96,12 @@ export function ServiceDetail() {
         </div>
 
         <aside className="lg:col-span-1">
-          <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="rounded-xl border border-slate-200 bg-panel p-6 shadow-[var(--shadow-card)] backdrop-blur-sm">
             <p className="text-sm font-medium text-slate-500">Starting from</p>
             <p className="mt-1 text-2xl font-bold text-slate-900">{price ?? 'Contact for pricing'}</p>
             <Link
               to={`${paths.requestQuote}?service=${service.id}`}
-              className="mt-6 inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-brand-600 px-5 text-sm font-semibold text-white shadow-sm shadow-brand-900/10 transition-colors hover:bg-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
+              className="mt-6 inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-[var(--color-brand-solid)] to-[var(--color-accent-solid)] px-5 text-sm font-semibold text-white shadow-[var(--shadow-glow-brand)] transition-[filter] hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
             >
               Request a Quote
               <ArrowRight className="size-4" aria-hidden="true" />

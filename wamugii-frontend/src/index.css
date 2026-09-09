@@ -4,36 +4,50 @@
   --font-sans:
     'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 
-  /* Brand — purple, the primary action color. Every "brand" reference in the
-     app reads from this scale, so a rebrand is a one-file change. 600/700 are
-     the specified primary/hover; the rest of the scale is Tailwind's own
-     violet ramp, which lines up with those two anchors exactly. */
-  --color-brand-50: #f3e8ff;
-  --color-brand-100: #ede9fe;
-  --color-brand-200: #ddd6fe;
-  --color-brand-300: #c4b5fd;
-  --color-brand-400: #a78bfa;
-  --color-brand-500: #8b5cf6;
-  --color-brand-600: #7c3aed;
-  --color-brand-700: #6d28d9;
-  --color-brand-800: #5b21b6;
-  --color-brand-900: #4c1d95;
-  --color-brand-950: #2e1065;
+  /* Brand — teal/cyan, the primary action color. Every "brand" reference in
+     the app reads from this scale, so a rebrand is a one-file change.
+     50-300 are light tints (chip backgrounds); 400-500 are the vivid
+     decorative tone (icons, rings, gradients); 600-800 are tuned for AA
+     contrast under white text (buttons, links, active states); 900-950 are
+     near-black, used for deep gradient backdrops. */
+  --color-brand-50: #ecfeff;
+  --color-brand-100: #cffafe;
+  --color-brand-200: #a5f3fc;
+  --color-brand-300: #67e8f9;
+  --color-brand-400: #22d3ee;
+  --color-brand-500: #06b6d4;
+  --color-brand-600: #0e7490;
+  --color-brand-700: #155e75;
+  --color-brand-800: #164e63;
+  --color-brand-900: #0b3b49;
+  --color-brand-950: #052730;
 
-  /* Accent — rose, a light touch only (borders, small highlights). Never used
-     for primary actions, so it does not need a dark-mode remap: like the
-     Badge status colors, it always renders as a self-contained light tint. */
-  --color-accent-50: #fdf5f6;
-  --color-accent-100: #fbe9eb;
-  --color-accent-200: #f5cdd2;
-  --color-accent-300: #e8a0a8;
-  --color-accent-400: #dd8891;
-  --color-accent-500: #cc6875;
-  --color-accent-600: #b34e5c;
-  --color-accent-700: #94394a;
-  --color-accent-800: #762d3b;
-  --color-accent-900: #5c2530;
-  --color-accent-950: #33141a;
+  /* Accent — purple, the gradient partner to brand teal. Used at the far end
+     of gradients, decorative glow, and secondary highlights — never as the
+     primary action color. Same tiering convention as brand above. */
+  --color-accent-50: #f3e8ff;
+  --color-accent-100: #ede9fe;
+  --color-accent-200: #ddd6fe;
+  --color-accent-300: #c4b5fd;
+  --color-accent-400: #a78bfa;
+  --color-accent-500: #8b5cf6;
+  --color-accent-600: #7c3aed;
+  --color-accent-700: #6d28d9;
+  --color-accent-800: #5b21b6;
+  --color-accent-900: #4c1d95;
+  --color-accent-950: #2e1065;
+
+  /* Solid-fill anchors — deliberately NOT remapped in dark mode. Anything
+     that paints white text/icons directly on a brand-colored fill (buttons,
+     avatars, progress bars) reads from these instead of brand-600/accent-600,
+     because those two get brightened under `.dark` for on-dark-surface text
+     legibility, which would ruin white-on-fill contrast if buttons shared
+     the same token. Keeping one pair of constants avoids that collision. */
+  --color-brand-solid: #0e7490;
+  --color-accent-solid: #6d28d9;
+
+  /* Background — page backdrop, sits behind sidebar/panel for layered depth. */
+  --color-bg: #f5f7fb;
 
   /* Panel — card/table/modal background. Its own token instead of literal
      `white`, because `white` is also used app-wide for text/overlays that
@@ -48,6 +62,25 @@
 
 :root {
   color-scheme: light;
+
+  /* Atmosphere — the soft gradient wash behind dashboard/public shells.
+     Static by design (no continuous animation) so it stays lightweight; see
+     `.app-atmosphere` below. Barely-there in light mode, a real glow in dark
+     mode (see the `.dark` block). */
+  --gradient-atmosphere: radial-gradient(
+      1100px circle at 10% 10%,
+      rgb(6 182 212 / 5%),
+      transparent 55%
+    ),
+    radial-gradient(1100px circle at 90% 90%, rgb(124 58 237 / 4%), transparent 55%);
+
+  /* Glow — selective, theme-aware box-shadow tokens. Subtle in light mode,
+     a real halo in dark mode. Applied via `shadow-[var(--shadow-glow-brand)]`
+     sparingly (primary buttons, active nav, a hero/featured card) — never on
+     every surface. */
+  --shadow-glow-brand: 0 1px 2px rgb(15 23 42 / 6%);
+  --shadow-glow-accent: 0 1px 2px rgb(15 23 42 / 6%);
+  --shadow-card: 0 1px 2px rgb(15 23 42 / 4%), 0 1px 1px rgb(15 23 42 / 3%);
 }
 
 * {
@@ -57,7 +90,7 @@
 body {
   margin: 0;
   font-family: var(--font-sans);
-  background-color: #f8fafc;
+  background-color: var(--color-bg);
   color: #0f172a;
   -webkit-font-smoothing: antialiased;
 }
@@ -78,50 +111,217 @@ body {
   outline-offset: 2px;
 }
 
+/* Tailwind's ring-offset utilities default to white, which would punch a
+   bright white gap around every focused control on the new near-black dark
+   surfaces. Point the default at the page background instead; components
+   that explicitly set their own `ring-offset-*` (e.g. the Home hero CTAs on
+   a colored section) still win, since that's set directly on the element. */
+:root {
+  --tw-ring-offset-color: var(--color-bg);
+}
+.dark {
+  --tw-ring-offset-color: var(--color-bg);
+}
+
+/* Applied to the root wrapper of every shell (AdminLayout, DashboardLayout,
+   PublicLayout, AuthLayout) in place of a flat `bg-slate-50`/`bg-white`. One
+   centralized class instead of repeating the gradient wash in four places. */
+.app-atmosphere {
+  background-color: var(--color-bg);
+  background-image: var(--gradient-atmosphere);
+  background-attachment: fixed;
+}
+
 /*
  * Logged-in dark theme — scoped to a class toggled on <body> by whichever
  * shell is mounted (AdminLayout for staff/admin, DashboardLayout for
  * clients), driven by ThemeContext. Not a wrapper div: Modal/ConfirmDialog
  * portal straight onto document.body, so the scope has to live above the
- * portal target for dialogs to pick it up too. Public marketing pages never
- * toggle this class, so they stay light regardless of the user's preference.
+ * portal target for dialogs to pick it up too. PublicLayout and AuthLayout
+ * apply this same class unconditionally on their own root element (the
+ * public site and auth pages are permanently dark, matching the reference's
+ * always-dark marketing site — see PublicLayout/AuthLayout for that).
  *
  * This is a pure token remap: every component still writes the exact same
  * `bg-panel` / `text-slate-500` / `border-slate-200` utility classes it
  * always did. Only the CSS variables those utilities resolve to change
- * inside this scope, so no component is hand-colored for dark mode.
+ * inside this scope, so no component is hand-colored for dark mode, and no
+ * `dark:` utility variants are used anywhere in the app.
  *
  * `white`/`black` are intentionally never remapped — see the --color-panel
  * comment above, and it's why overlay scrims use `bg-black/50` instead of a
  * slate token (slate-900 flips to a *light* color in here).
  *
- * brand-50..400 are also intentionally left unremapped: badges and the
- * sidebar's active-nav pill use them as a self-contained light-tint + dark-
- * text pairing (like the status Badge colors), so they read the same
- * "soft purple chip" in both themes rather than needing to invert.
- * brand-600/700/800 are the ones used as solid fills (buttons, focus
- * surfaces) where white text sits on top, so those are re-tuned here to
- * keep white-on-fill contrast at AA in the dark surroundings.
+ * brand-50..300 / accent-50..300 flip from near-white tints to translucent
+ * on-brand washes (badges' green/amber/red/blue stay literal light tints in
+ * both themes on purpose — see Badge.tsx — this only applies to the
+ * teal/purple scales). brand-600..800 / accent-600..800 are brightened for
+ * legibility as text/icons/borders directly on the new near-black surfaces.
+ * Solid-fill components (Button primary, Avatar, ProgressBar) deliberately
+ * read from --color-brand-solid/--color-accent-solid instead, which are
+ * NOT remapped here, so white-on-fill contrast never regresses.
  */
 .dark {
   color-scheme: dark;
 
-  --color-panel: #1e293b;
-  --color-sidebar: #111827;
+  --color-bg: #05070d;
+  /* Translucent, not opaque — every `bg-panel` surface (cards, tables,
+     modals, inputs) picks this up automatically, so the atmosphere gradient
+     behind the shell shows through faintly without touching each page. */
+  --color-panel: rgb(13 20 36 / 82%);
+  --color-sidebar: rgb(9 14 26 / 90%);
 
-  --color-brand-600: #8455ea;
-  --color-brand-700: #7440d6;
-  --color-brand-800: #6830bd;
+  --color-brand-50: rgb(34 211 238 / 10%);
+  --color-brand-100: rgb(34 211 238 / 16%);
+  --color-brand-200: rgb(34 211 238 / 24%);
+  --color-brand-300: rgb(34 211 238 / 34%);
+  --color-brand-600: #22d3ee;
+  --color-brand-700: #06b6d4;
+  --color-brand-800: #0e7490;
 
-  --color-slate-50: #0b1120;
-  --color-slate-100: #2a3b52;
-  --color-slate-200: #334155;
-  --color-slate-300: #475569;
-  --color-slate-400: #8094ac;
-  --color-slate-500: #94a3b8;
-  --color-slate-600: #cbd5e1;
-  --color-slate-700: #e2e8f0;
-  --color-slate-800: #e2e8f0;
+  --color-accent-50: rgb(167 139 250 / 10%);
+  --color-accent-100: rgb(167 139 250 / 16%);
+  --color-accent-200: rgb(167 139 250 / 24%);
+  --color-accent-300: rgb(167 139 250 / 34%);
+  --color-accent-600: #a78bfa;
+  --color-accent-700: #8b5cf6;
+  --color-accent-800: #7c3aed;
+
+  --color-slate-50: rgb(255 255 255 / 4%);
+  --color-slate-100: rgb(255 255 255 / 6%);
+  --color-slate-200: rgb(255 255 255 / 10%);
+  --color-slate-300: rgb(255 255 255 / 16%);
+  --color-slate-400: #8a96ad;
+  --color-slate-500: #98a4ba;
+  --color-slate-600: #b8c2d6;
+  --color-slate-700: #d8dfec;
+  --color-slate-800: #e8ecf5;
   --color-slate-900: #f8fafc;
   --color-slate-950: #f8fafc;
+
+  --gradient-atmosphere: radial-gradient(
+      900px circle at 8% 8%,
+      rgb(6 182 212 / 22%),
+      transparent 48%
+    ),
+    radial-gradient(1000px circle at 92% 92%, rgb(124 58 237 / 20%), transparent 50%),
+    radial-gradient(700px circle at 78% 12%, rgb(34 211 238 / 10%), transparent 45%);
+
+  --shadow-glow-brand: 0 0 0 1px rgb(34 211 238 / 8%), 0 16px 40px -14px rgb(6 182 212 / 45%);
+  --shadow-glow-accent: 0 0 0 1px rgb(167 139 250 / 8%), 0 16px 40px -14px rgb(124 58 237 / 45%);
+  --shadow-card: 0 1px 0 rgb(255 255 255 / 4%) inset, 0 12px 28px -16px rgb(0 0 0 / 60%);
+}
+
+/*
+ * AnimatedTechBackground support styles (src/components/common/AnimatedTechBackground.tsx).
+ * The grid + light streaks are plain CSS layers so they composite on the GPU
+ * (`transform`/`opacity`/`background-position` only — never box-shadow/filter);
+ * the particle network itself is drawn on a <canvas> by the component. Motion
+ * is opt-in via the `no-preference` media query below, so `prefers-reduced-
+ * motion: reduce` users get the same layers fully static with zero JS changes
+ * needed — the component's own rAF loop separately checks the same setting.
+ */
+/*
+ * Scroll-reveal — driven by the Reveal component (IntersectionObserver adds
+ * `.reveal-in` once, then disconnects). Only opacity/transform animate, so
+ * every reveal composites on the GPU. Stagger comes from an inline
+ * transition-delay, not from extra classes.
+ */
+.reveal {
+  opacity: 0;
+  transform: translateY(18px) scale(0.985);
+  transition:
+    opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal-in {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* Teal→purple text gradient for the one or two words per page that carry the
+   headline's emphasis. Needs a background-clip fallback colour for browsers
+   that drop the clip, hence the explicit transparent text. */
+.text-gradient-brand {
+  background-image: linear-gradient(100deg, var(--color-brand-400), var(--color-accent-400));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Decorative light pools for sections that don't carry a full canvas layer —
+   cheaper than another AnimatedTechBackground instance, and lets section
+   rhythm alternate between "lit" and "calm". */
+.glow-pool-teal {
+  background: radial-gradient(620px circle at 15% 0%, rgb(6 182 212 / 12%), transparent 62%);
+}
+.glow-pool-purple {
+  background: radial-gradient(620px circle at 85% 100%, rgb(124 58 237 / 12%), transparent 62%);
+}
+
+.tech-grid {
+  background-image:
+    linear-gradient(rgb(103 232 249 / 60%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(103 232 249 / 60%) 1px, transparent 1px);
+  background-size: 44px 44px;
+}
+
+.tech-streak {
+  position: absolute;
+  top: -15%;
+  bottom: -15%;
+  width: 160px;
+  opacity: 0;
+  background: linear-gradient(180deg, transparent, rgb(34 211 238 / 16%), transparent);
+  will-change: transform, opacity;
+}
+.tech-streak-accent {
+  background: linear-gradient(180deg, transparent, rgb(167 139 250 / 14%), transparent);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .tech-grid {
+    animation: tech-grid-pan 70s linear infinite;
+  }
+  .tech-streak-a {
+    animation: tech-streak-sweep 10s ease-in-out infinite;
+    animation-delay: 0.5s;
+  }
+  .tech-streak-b {
+    animation: tech-streak-sweep 13s ease-in-out infinite;
+    animation-delay: 4s;
+  }
+}
+
+@keyframes tech-grid-pan {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 220px 220px;
+  }
+}
+
+@keyframes tech-streak-sweep {
+  0% {
+    transform: translateX(-15%) rotate(10deg);
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  55% {
+    opacity: 0.7;
+  }
+  100% {
+    transform: translateX(130%) rotate(10deg);
+    opacity: 0;
+  }
 }

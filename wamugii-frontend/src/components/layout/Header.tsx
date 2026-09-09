@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
 import { LogOut, Menu, X } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
@@ -18,12 +18,40 @@ const roleDashboardPath: Record<string, string> = {
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isScrolled, setIsScrolled] = useState(false)
   const { user, isAuthenticated, logout } = useAuth()
 
+  // Tightens the floating bar once the page scrolls, so it reads as a nav
+  // rail rather than part of the hero. Passive listener, single boolean —
+  // React only re-renders on the transition, not on every scroll event.
+  useEffect(() => {
+    function onScroll() {
+      setIsScrolled(window.scrollY > 12)
+    }
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
   return (
-    <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/85 backdrop-blur supports-[backdrop-filter]:bg-white/70">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        <Link to={paths.home} className="text-lg font-bold text-slate-900">
+    <header
+      className={cn(
+        'sticky top-0 z-40 transition-[padding] duration-300',
+        isScrolled ? 'px-3 pt-2 sm:px-6 sm:pt-2' : 'px-3 pt-3 sm:px-6 sm:pt-4',
+      )}
+    >
+      <div
+        className={cn(
+          'mx-auto flex max-w-6xl items-center justify-between rounded-2xl border bg-panel px-4 backdrop-blur-xl transition-[height,box-shadow,border-color] duration-300 sm:px-5',
+          isScrolled
+            ? 'h-12 border-brand-400/20 shadow-[var(--shadow-glow-brand)]'
+            : 'h-14 border-slate-200 shadow-[var(--shadow-card)]',
+        )}
+      >
+        <Link to={paths.home} className="flex items-center gap-2 text-base font-bold text-slate-900">
+          <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[var(--color-brand-solid)] to-[var(--color-accent-solid)] text-sm font-bold text-white shadow-[var(--shadow-glow-brand)]">
+            W
+          </span>
           WAMUGII <span className="text-brand-600">TECH</span>
         </Link>
 
@@ -35,8 +63,8 @@ export function Header() {
               end={link.to === paths.home}
               className={({ isActive }) =>
                 cn(
-                  'text-sm font-medium transition-colors hover:text-brand-600',
-                  isActive ? 'text-brand-600' : 'text-slate-600',
+                  'text-sm font-medium transition-colors hover:text-brand-400',
+                  isActive ? 'text-brand-400' : 'text-slate-400',
                 )
               }
             >
@@ -50,14 +78,14 @@ export function Header() {
             <>
               <Link
                 to={(user && roleDashboardPath[user.role]) || paths.home}
-                className="inline-flex h-9 items-center rounded-lg px-3 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100"
+                className="inline-flex h-9 items-center rounded-lg px-3 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-100 hover:text-white"
               >
                 Dashboard
               </Link>
               <button
                 type="button"
                 onClick={logout}
-                className="inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100"
+                className="inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-100 hover:text-white"
               >
                 <LogOut className="size-4" aria-hidden="true" />
                 Logout
@@ -66,14 +94,14 @@ export function Header() {
           ) : (
             <Link
               to={paths.login}
-              className="inline-flex h-9 items-center rounded-lg px-3 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100"
+              className="inline-flex h-9 items-center rounded-lg px-3 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-100 hover:text-white"
             >
               Login
             </Link>
           )}
           <Link
             to={paths.requestQuote}
-            className="inline-flex h-9 items-center justify-center rounded-lg bg-brand-600 px-4 text-sm font-medium text-white shadow-sm shadow-brand-900/10 transition-colors hover:bg-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
+            className="inline-flex h-9 items-center justify-center rounded-lg bg-gradient-to-r from-[var(--color-brand-solid)] to-[var(--color-accent-solid)] px-4 text-sm font-medium text-white shadow-[var(--shadow-glow-brand)] transition-[filter] hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
           >
             Request a Quote
           </Link>
@@ -81,7 +109,7 @@ export function Header() {
 
         <button
           type="button"
-          className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 md:hidden"
+          className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 md:hidden"
           aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
           aria-expanded={isMenuOpen}
           onClick={() => setIsMenuOpen((open) => !open)}
@@ -91,7 +119,10 @@ export function Header() {
       </div>
 
       {isMenuOpen && (
-        <nav className="border-t border-slate-200 px-4 py-3 md:hidden" aria-label="Mobile navigation">
+        <nav
+          className="mx-auto mt-2 max-w-6xl rounded-2xl border border-slate-200 bg-panel px-4 py-3 shadow-[var(--shadow-card)] backdrop-blur-xl md:hidden"
+          aria-label="Mobile navigation"
+        >
           <div className="flex flex-col gap-3">
             {navLinks.map((link) => (
               <NavLink
@@ -100,7 +131,7 @@ export function Header() {
                 end={link.to === paths.home}
                 onClick={() => setIsMenuOpen(false)}
                 className={({ isActive }) =>
-                  cn('text-sm font-medium', isActive ? 'text-brand-600' : 'text-slate-600')
+                  cn('text-sm font-medium', isActive ? 'text-brand-400' : 'text-slate-400')
                 }
               >
                 {link.label}
@@ -109,7 +140,7 @@ export function Header() {
             <Link
               to={paths.requestQuote}
               onClick={() => setIsMenuOpen(false)}
-              className="text-sm font-medium text-slate-600"
+              className="text-sm font-medium text-slate-400"
             >
               Request a Quote
             </Link>
@@ -118,7 +149,7 @@ export function Header() {
                 <Link
                   to={(user && roleDashboardPath[user.role]) || paths.home}
                   onClick={() => setIsMenuOpen(false)}
-                  className="text-sm font-medium text-slate-600"
+                  className="text-sm font-medium text-slate-400"
                 >
                   Dashboard
                 </Link>
@@ -128,7 +159,7 @@ export function Header() {
                     setIsMenuOpen(false)
                     logout()
                   }}
-                  className="text-left text-sm font-medium text-slate-600"
+                  className="text-left text-sm font-medium text-slate-400"
                 >
                   Logout
                 </button>
@@ -137,7 +168,7 @@ export function Header() {
               <Link
                 to={paths.login}
                 onClick={() => setIsMenuOpen(false)}
-                className="text-sm font-medium text-slate-600"
+                className="text-sm font-medium text-slate-400"
               >
                 Login
               </Link>

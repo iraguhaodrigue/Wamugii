@@ -18,11 +18,19 @@ const accentClasses: Record<StatCardAccent, string> = {
   warning: 'bg-amber-50 text-amber-600',
 }
 
+const glowClasses: Record<StatCardAccent, string> = {
+  brand: 'hover:shadow-[var(--shadow-glow-brand)]',
+  accent: 'hover:shadow-[var(--shadow-glow-accent)]',
+  success: 'hover:shadow-[var(--shadow-card)]',
+  warning: 'hover:shadow-[var(--shadow-card)]',
+}
+
 export function StatCard({ icon: Icon, label, value, accent = 'brand', className }: StatCardProps) {
   return (
     <div
       className={cn(
-        'flex items-center gap-4 rounded-xl border border-slate-200 bg-panel p-5 shadow-sm transition-shadow hover:shadow-md',
+        'flex items-center gap-4 rounded-xl border border-slate-200 bg-panel p-5 shadow-[var(--shadow-card)] transition-shadow',
+        glowClasses[accent],
         className,
       )}
     >

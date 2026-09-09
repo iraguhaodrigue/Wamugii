@@ -77,7 +77,7 @@ export function Login() {
 
       <p className="text-center text-sm text-slate-500">
         Don&apos;t have an account?{' '}
-        <Link to={paths.register} className="font-medium text-blue-600 hover:underline">
+        <Link to={paths.register} className="font-medium text-brand-400 hover:text-brand-300 hover:underline">
           Create one
         </Link>
       </p>

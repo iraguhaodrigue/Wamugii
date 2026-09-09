@@ -70,7 +70,7 @@ export function RequestQuote() {
   if (mutation.isSuccess) {
     return (
       <Container className="py-20">
-        <div className="mx-auto max-w-lg rounded-xl border border-slate-200 bg-white p-8 text-center shadow-sm sm:p-10">
+        <div className="mx-auto max-w-lg rounded-xl border border-slate-200 bg-panel p-8 text-center shadow-[var(--shadow-card)] backdrop-blur-sm sm:p-10">
           <div className="mx-auto flex size-14 items-center justify-center rounded-full bg-green-50 text-green-600">
             <CheckCircle2 className="size-7" aria-hidden="true" />
           </div>
@@ -83,13 +83,13 @@ export function RequestQuote() {
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
             <Link
               to={paths.home}
-              className="inline-flex h-11 items-center justify-center rounded-lg bg-brand-600 px-5 text-sm font-semibold text-white shadow-sm shadow-brand-900/10 hover:bg-brand-700"
+              className="inline-flex h-11 items-center justify-center rounded-lg bg-gradient-to-r from-[var(--color-brand-solid)] to-[var(--color-accent-solid)] px-5 text-sm font-semibold text-white shadow-[var(--shadow-glow-brand)] transition-[filter] hover:brightness-110"
             >
               Back to Home
             </Link>
             <Link
               to={paths.services}
-              className="inline-flex h-11 items-center justify-center rounded-lg border border-slate-300 px-5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+              className="inline-flex h-11 items-center justify-center rounded-lg border border-slate-300 px-5 text-sm font-semibold text-slate-400 hover:bg-slate-100"
             >
               Explore Services
             </Link>
@@ -116,7 +116,7 @@ export function RequestQuote() {
 
         <form
           onSubmit={handleSubmit((values) => mutation.mutate(values))}
-          className="mt-12 space-y-8 rounded-xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8"
+          className="mt-12 space-y-8 rounded-xl border border-slate-200 bg-panel p-6 shadow-[var(--shadow-card)] backdrop-blur-sm sm:p-8"
           noValidate
         >
           <div className="space-y-5">

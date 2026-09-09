@@ -1,17 +1,28 @@
 import type { HTMLAttributes, ReactNode } from 'react'
 import { cn } from '@/utils/cn'
 
+export type CardGlow = 'none' | 'brand' | 'accent'
+
 export interface CardProps extends HTMLAttributes<HTMLDivElement> {
   title?: string
   description?: string
   footer?: ReactNode
+  /** Selective glow for hierarchy — use sparingly, not on every card. */
+  glow?: CardGlow
 }
 
-export function Card({ className, title, description, footer, children, ...props }: CardProps) {
+const glowClasses: Record<CardGlow, string> = {
+  none: 'shadow-[var(--shadow-card)]',
+  brand: 'shadow-[var(--shadow-glow-brand)]',
+  accent: 'shadow-[var(--shadow-glow-accent)]',
+}
+
+export function Card({ className, title, description, footer, glow = 'none', children, ...props }: CardProps) {
   return (
     <div
       className={cn(
-        'rounded-xl border border-slate-200 bg-panel shadow-sm',
+        'rounded-xl border border-slate-200 bg-panel backdrop-blur-sm',
+        glowClasses[glow],
         className,
       )}
       {...props}

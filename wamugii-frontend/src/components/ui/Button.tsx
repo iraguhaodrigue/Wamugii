@@ -14,7 +14,8 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantClasses: Record<ButtonVariant, string> = {
-  primary: 'bg-brand-600 text-white shadow-sm shadow-brand-900/10 hover:bg-brand-700 active:bg-brand-800',
+  primary:
+    'bg-gradient-to-r from-[var(--color-brand-solid)] to-[var(--color-accent-solid)] text-white shadow-[var(--shadow-glow-brand)] hover:brightness-110 active:brightness-95',
   secondary: 'bg-slate-100 text-slate-900 hover:bg-slate-200 active:bg-slate-300',
   outline:
     'border border-slate-300 text-slate-700 bg-panel hover:border-brand-300 hover:bg-brand-600/10 active:bg-brand-600/15',
@@ -48,7 +49,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         ref={ref}
         disabled={disabled || isLoading}
         className={cn(
-          'inline-flex items-center justify-center rounded-lg font-medium transition-colors',
+          'inline-flex items-center justify-center rounded-lg font-medium transition-[background-color,filter,box-shadow]',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2',
           'disabled:opacity-50 disabled:cursor-not-allowed',
           variantClasses[variant],

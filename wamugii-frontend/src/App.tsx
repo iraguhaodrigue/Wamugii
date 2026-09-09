@@ -32,8 +32,8 @@ import { AdminQuoteDetail } from '@/pages/admin/QuoteDetail'
 import { NotFound } from '@/pages/NotFound'
 
 const clientNavItems = [
-  { label: 'Dashboard', to: paths.client.dashboard },
-  { label: 'My Projects', to: paths.client.projects },
+  { label: 'Dashboard', to: paths.client.dashboard, icon: LayoutDashboard },
+  { label: 'My Projects', to: paths.client.projects, icon: FolderKanban },
 ]
 
 const staffNavItems = [
