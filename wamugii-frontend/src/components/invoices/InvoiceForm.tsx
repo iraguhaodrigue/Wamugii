@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useFieldArray, useForm } from 'react-hook-form'
 import { Plus, Trash2 } from 'lucide-react'
 import { listProjects } from '@/api/projects'
-import { SETTABLE_INVOICE_STATUSES, type InvoiceStatus } from '@/api/invoices'
+import { SETTABLE_INVOICE_STATUSES, VAT_RATE, type InvoiceStatus } from '@/api/invoices'
 import type { UserRead } from '@/api/users'
 import { Button, Input, Select, Textarea } from '@/components/ui'
 import { formatEnumLabel, formatMoney } from '@/utils/format'
@@ -13,6 +13,8 @@ export interface InvoiceFormValues {
   issue_date: string
   due_date: string
   status: InvoiceStatus
+  /** When on, tax is VAT at VAT_RATE and the manual amount is ignored. */
+  vat_enabled: boolean
   tax: string
   discount: string
   notes: string
@@ -65,6 +67,7 @@ export function InvoiceForm({
       issue_date: '',
       due_date: '',
       status: 'DRAFT',
+      vat_enabled: false,
       tax: '',
       discount: '',
       notes: '',
@@ -79,6 +82,7 @@ export function InvoiceForm({
   const items = watch('items')
   const tax = watch('tax')
   const discount = watch('discount')
+  const vatEnabled = watch('vat_enabled')
 
   // Projects are scoped to the chosen client: the backend rejects an invoice
   // whose project belongs to a different client (422), so never offer one.
@@ -92,7 +96,11 @@ export function InvoiceForm({
     (sum, item) => sum + toNumber(item.quantity) * toNumber(item.unit_price),
     0,
   )
-  const total = Math.max(subtotal - toNumber(discount) + toNumber(tax), 0)
+  // Preview only — the server recomputes both of these on save and its value
+  // is what gets stored, so the two can never drift in the saved record.
+  const vatAmount = Math.round(((subtotal * Number(VAT_RATE)) / 100) * 100) / 100
+  const effectiveTax = vatEnabled ? vatAmount : toNumber(tax)
+  const total = Math.max(subtotal + effectiveTax - toNumber(discount), 0)
 
   const clientOptions = [
     { value: '', label: 'Select a client' },
@@ -222,7 +230,52 @@ export function InvoiceForm({
       </div>
 
       <div className="grid gap-4 border-t border-slate-100 pt-5 sm:grid-cols-2">
-        <Input label="Tax" type="number" step="0.01" min="0" hint="Optional" disabled={disabled} {...register('tax')} />
+        <div className="flex flex-col gap-1.5">
+          <div className="flex items-center justify-between gap-3">
+            <label htmlFor="invoice-tax" className="text-sm font-medium text-slate-700">
+              {vatEnabled ? `VAT (${VAT_RATE}%)` : 'Tax'}
+            </label>
+            {/* The toggle picks the mode, so a rate and a manual amount can
+                never both be in play at once. */}
+            <label className="inline-flex cursor-pointer items-center gap-2 text-xs font-medium text-slate-500">
+              <input
+                type="checkbox"
+                disabled={disabled}
+                className="size-4 rounded border-slate-300 accent-[var(--color-brand-solid)] disabled:cursor-not-allowed"
+                {...register('vat_enabled')}
+              />
+              Charge VAT {VAT_RATE}%
+            </label>
+          </div>
+          {vatEnabled ? (
+            <>
+              <input
+                id="invoice-tax"
+                readOnly
+                aria-label={`VAT at ${VAT_RATE} percent`}
+                value={vatAmount.toFixed(2)}
+                className="h-10 w-full cursor-not-allowed rounded-lg border border-slate-300 bg-slate-50 px-3 text-sm text-slate-900"
+              />
+              <p className="text-sm text-slate-500">
+                {VAT_RATE}% of {formatMoney(subtotal.toFixed(2))} — calculated by the server and
+                updates as line items change.
+              </p>
+            </>
+          ) : (
+            <>
+              <input
+                id="invoice-tax"
+                type="number"
+                step="0.01"
+                min="0"
+                disabled={disabled}
+                className="h-10 w-full rounded-lg border border-slate-300 bg-panel px-3 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:border-brand-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500"
+                {...register('tax')}
+              />
+              <p className="text-sm text-slate-500">Optional — a manual tax amount.</p>
+            </>
+          )}
+        </div>
         <Input
           label="Discount"
           type="number"
@@ -241,16 +294,23 @@ export function InvoiceForm({
           <dt className="text-slate-500">Subtotal</dt>
           <dd className="font-medium text-slate-900">{formatMoney(subtotal.toFixed(2))}</dd>
         </div>
+        {vatEnabled ? (
+          <div className="flex justify-between">
+            <dt className="text-slate-500">VAT ({VAT_RATE}%)</dt>
+            <dd className="font-medium text-slate-900">{formatMoney(vatAmount.toFixed(2))}</dd>
+          </div>
+        ) : (
+          toNumber(tax) > 0 && (
+            <div className="flex justify-between">
+              <dt className="text-slate-500">Tax</dt>
+              <dd className="font-medium text-slate-900">{formatMoney(toNumber(tax).toFixed(2))}</dd>
+            </div>
+          )
+        )}
         {toNumber(discount) > 0 && (
           <div className="flex justify-between">
             <dt className="text-slate-500">Discount</dt>
             <dd className="font-medium text-slate-900">−{formatMoney(toNumber(discount).toFixed(2))}</dd>
-          </div>
-        )}
-        {toNumber(tax) > 0 && (
-          <div className="flex justify-between">
-            <dt className="text-slate-500">Tax</dt>
-            <dd className="font-medium text-slate-900">{formatMoney(toNumber(tax).toFixed(2))}</dd>
           </div>
         )}
         <div className="flex justify-between border-t border-slate-200 pt-1.5">
@@ -293,6 +353,22 @@ export function toItemsPayload(values: InvoiceFormValues) {
       quantity: item.quantity || '1',
       unit_price: item.unit_price || '0',
     }))
+}
+
+/**
+ * The tax half of the payload. The two modes are mutually exclusive: with VAT
+ * on we send only the rate and let the server derive the amount (it ignores a
+ * client-sent tax anyway); with VAT off we send an explicit null rate so the
+ * server switches back to the manual amount.
+ */
+export function toTaxPayload(values: InvoiceFormValues): {
+  tax_rate: string | null
+  tax: string | null
+} {
+  if (values.vat_enabled) {
+    return { tax_rate: VAT_RATE, tax: null }
+  }
+  return { tax_rate: null, tax: values.tax || null }
 }
 
 /** Dates come out of `<input type="date">` as YYYY-MM-DD; the API wants ISO. */

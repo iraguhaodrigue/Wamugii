@@ -49,6 +49,12 @@ class Invoice(Base):
     due_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     subtotal: Mapped[Decimal] = mapped_column(Numeric(12, 2), default=0)
+    # VAT percentage (e.g. 18.00 for Rwanda's 18% VAT), or NULL.
+    # NULL means "manual tax mode": `tax` is whatever a staff member typed in,
+    # exactly as it behaved before VAT support existed. When a rate IS set,
+    # `tax` becomes derived — recomputed from subtotal × rate on every write and
+    # never taken from the request body. See crud/invoice.compute_tax.
+    tax_rate: Mapped[Decimal | None] = mapped_column(Numeric(5, 2), nullable=True)
     tax: Mapped[Decimal | None] = mapped_column(Numeric(12, 2), nullable=True)
     discount: Mapped[Decimal | None] = mapped_column(Numeric(12, 2), nullable=True)
     total: Mapped[Decimal] = mapped_column(Numeric(12, 2), default=0)

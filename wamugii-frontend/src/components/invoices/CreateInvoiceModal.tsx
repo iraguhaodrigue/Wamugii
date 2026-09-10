@@ -4,7 +4,13 @@ import { createInvoice, type InvoiceRead } from '@/api/invoices'
 import type { UserRead } from '@/api/users'
 import type { ApiError } from '@/lib/apiClient'
 import { Modal } from '@/components/ui'
-import { InvoiceForm, toIsoDate, toItemsPayload, type InvoiceFormValues } from './InvoiceForm'
+import {
+  InvoiceForm,
+  toIsoDate,
+  toItemsPayload,
+  toTaxPayload,
+  type InvoiceFormValues,
+} from './InvoiceForm'
 
 export interface CreateInvoiceModalProps {
   isOpen: boolean
@@ -27,7 +33,7 @@ export function CreateInvoiceModal({ isOpen, onClose, clients, onCreated }: Crea
         // The backend recomputes subtotal from the items; this is only the
         // required field placeholder for the generated type.
         subtotal: '0',
-        tax: values.tax || null,
+        ...toTaxPayload(values),
         discount: values.discount || null,
         status: values.status,
         notes: values.notes || null,

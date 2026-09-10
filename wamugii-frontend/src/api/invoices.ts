@@ -25,6 +25,25 @@ export const SETTABLE_INVOICE_STATUSES: InvoiceStatus[] = ['DRAFT', 'SENT', 'CAN
 
 export const PAYMENT_METHODS: PaymentMethod[] = ['MOBILE_MONEY', 'BANK_TRANSFER', 'CASH', 'OTHER']
 
+/**
+ * Rwanda's standard VAT rate. WAMUGII is VAT-registered with RRA, so invoices
+ * carry this as a formal rate rather than a hand-typed amount. Sent as a
+ * decimal string like every other money/rate field; the server derives the
+ * actual tax amount from it and never trusts a client-sent tax figure.
+ */
+export const VAT_RATE = '18'
+
+/** True when the invoice charges VAT at a formal rate rather than a manual amount. */
+export function hasVatRate(taxRate: string | null | undefined): boolean {
+  return taxRate !== null && taxRate !== undefined && Number(taxRate) > 0
+}
+
+/** "18.00" -> "18" for display in labels like "VAT (18%)". */
+export function formatRateLabel(taxRate: string): string {
+  const numeric = Number(taxRate)
+  return Number.isFinite(numeric) ? String(numeric) : taxRate
+}
+
 /** Statuses the backend locks against edits (notes excepted) — see 409 handling. */
 export function isInvoiceLocked(status: InvoiceStatus): boolean {
   return status === 'PAID' || status === 'CANCELLED'

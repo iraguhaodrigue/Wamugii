@@ -35,6 +35,9 @@ class InvoiceCreate(BaseModel):
     due_date: datetime | None = None
     # Ignored when `items` is supplied — subtotal is then the sum of the lines.
     subtotal: Decimal = Field(default=Decimal("0"), ge=0)
+    # VAT percentage, e.g. "18". Set it and `tax` below is ignored: the server
+    # derives the amount from subtotal × rate. Leave it null for manual tax.
+    tax_rate: Decimal | None = Field(default=None, ge=0, le=100)
     tax: Decimal | None = Field(default=None, ge=0)
     discount: Decimal | None = Field(default=None, ge=0)
     status: InvoiceStatus = InvoiceStatus.DRAFT
@@ -48,6 +51,9 @@ class InvoiceUpdate(BaseModel):
     issue_date: datetime | None = None
     due_date: datetime | None = None
     subtotal: Decimal | None = Field(default=None, ge=0)
+    # Send a rate to switch the invoice onto derived VAT; send an explicit null
+    # to switch it back to manual tax entry.
+    tax_rate: Decimal | None = Field(default=None, ge=0, le=100)
     tax: Decimal | None = Field(default=None, ge=0)
     discount: Decimal | None = Field(default=None, ge=0)
     status: InvoiceStatus | None = None
@@ -91,6 +97,7 @@ class InvoiceRead(BaseModel):
     issue_date: datetime
     due_date: datetime | None
     subtotal: Decimal
+    tax_rate: Decimal | None
     tax: Decimal | None
     discount: Decimal | None
     total: Decimal

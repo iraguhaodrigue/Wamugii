@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from decimal import Decimal
+from decimal import ROUND_HALF_UP, Decimal
 
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
@@ -24,8 +24,47 @@ def _quantize(value: Decimal) -> Decimal:
     return Decimal(value).quantize(Decimal("0.01"))
 
 
+def _quantize_tax(value: Decimal) -> Decimal:
+    """
+    2dp with half-up rounding, which is what RRA expects on a VAT amount: half a
+    cent always rounds up (180.045 -> 180.05), never to the nearest even digit
+    like Python's default ROUND_HALF_EVEN would (-> 180.04).
+
+    Deliberately scoped to tax only — see compute_tax. The rest of the money
+    math keeps `_quantize`, which is safe there because subtotal/tax/discount
+    are already exact 2dp values by the time `compute_total` adds them up, so
+    no rounding decision actually occurs.
+    """
+    return Decimal(value).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
+
+def compute_tax(
+    subtotal: Decimal,
+    tax_rate: Decimal | None,
+    manual_tax: Decimal | None,
+) -> Decimal | None:
+    """
+    The one place a tax amount is decided.
+
+    With a `tax_rate` set the amount is derived — subtotal × rate / 100, rounded
+    half-up to 2dp — and any tax amount supplied by the caller is ignored
+    outright. That keeps a VAT invoice honest: the charge always matches the
+    rate printed next to it.
+
+    With `tax_rate` NULL this is the pre-VAT behaviour untouched: whatever
+    amount was passed in stands, including None.
+
+    Both branches round half-up: a tax figure is a tax figure whether it was
+    derived from a rate or typed in by hand, and RRA expects the same treatment
+    either way.
+    """
+    if tax_rate is not None:
+        return _quantize_tax(Decimal(subtotal or 0) * Decimal(tax_rate) / Decimal(100))
+    return _quantize_tax(Decimal(manual_tax)) if manual_tax is not None else None
+
+
 def compute_total(subtotal: Decimal, tax: Decimal | None, discount: Decimal | None) -> Decimal:
-    """total = subtotal - discount + tax, floored at zero."""
+    """total = subtotal + tax - discount, floored at zero."""
     total = Decimal(subtotal or 0) - Decimal(discount or 0) + Decimal(tax or 0)
     return _quantize(max(total, ZERO))
 
@@ -140,7 +179,10 @@ def list_invoices(
 def create(db: Session, data: InvoiceCreate) -> Invoice:
     items = data.items or []
     subtotal = _sum_items(items) if items else _quantize(Decimal(data.subtotal or 0))
-    total = compute_total(subtotal, data.tax, data.discount)
+    tax_rate = _quantize(Decimal(data.tax_rate)) if data.tax_rate is not None else None
+    # Derived when a rate is set, so data.tax is deliberately not trusted here.
+    tax = compute_tax(subtotal, tax_rate, data.tax)
+    total = compute_total(subtotal, tax, data.discount)
     issue_date = data.issue_date or datetime.now(timezone.utc)
     status = derive_status(
         total=total,
@@ -159,7 +201,8 @@ def create(db: Session, data: InvoiceCreate) -> Invoice:
             issue_date=issue_date,
             due_date=data.due_date,
             subtotal=subtotal,
-            tax=_quantize(Decimal(data.tax)) if data.tax is not None else None,
+            tax_rate=tax_rate,
+            tax=tax,
             discount=_quantize(Decimal(data.discount)) if data.discount is not None else None,
             total=total,
             amount_paid=ZERO,
@@ -185,7 +228,7 @@ def update(db: Session, invoice: Invoice, data: InvoiceUpdate) -> Invoice:
     new_items = updates.pop("items", None)
 
     for field, value in updates.items():
-        if field in ("tax", "discount", "subtotal") and value is not None:
+        if field in ("tax", "discount", "subtotal", "tax_rate") and value is not None:
             value = _quantize(Decimal(value))
         setattr(invoice, field, value)
 
@@ -194,6 +237,11 @@ def update(db: Session, invoice: Invoice, data: InvoiceUpdate) -> Invoice:
         parsed = [InvoiceItemCreate(**item) for item in new_items]
         invoice.items = _build_items(parsed)
         invoice.subtotal = _sum_items(parsed)
+
+    # Runs after the subtotal is final, so editing line items re-derives VAT.
+    # On a rated invoice this overwrites any `tax` the caller sent; with no rate
+    # it leaves the manual amount exactly as set above.
+    invoice.tax = compute_tax(invoice.subtotal, invoice.tax_rate, invoice.tax)
 
     invoice.total = compute_total(invoice.subtotal, invoice.tax, invoice.discount)
     invoice.status = derive_status(

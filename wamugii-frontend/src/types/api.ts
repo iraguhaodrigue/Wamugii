@@ -680,6 +680,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List your own notifications */
+        get: operations["list_notifications_api_v1_notifications_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/notifications/unread-count": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Count your unread notifications (for the bell badge) */
+        get: operations["unread_count_api_v1_notifications_unread_count_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/notifications/read-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Mark all of your notifications read */
+        patch: operations["mark_all_read_api_v1_notifications_read_all_patch"];
+        trace?: never;
+    };
+    "/api/v1/notifications/{notification_id}/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Mark one of your notifications read */
+        patch: operations["mark_read_api_v1_notifications__notification_id__read_patch"];
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -797,6 +865,8 @@ export interface components {
             due_date: string | null;
             /** Subtotal */
             subtotal: string;
+            /** Tax Rate */
+            tax_rate: string | null;
             /** Tax */
             tax: string | null;
             /** Discount */
@@ -1082,6 +1152,8 @@ export interface components {
              * @default 0
              */
             subtotal: number | string;
+            /** Tax Rate */
+            tax_rate?: number | string | null;
             /** Tax */
             tax?: number | string | null;
             /** Discount */
@@ -1175,6 +1247,8 @@ export interface components {
             due_date: string | null;
             /** Subtotal */
             subtotal: string;
+            /** Tax Rate */
+            tax_rate: string | null;
             /** Tax */
             tax: string | null;
             /** Discount */
@@ -1239,6 +1313,8 @@ export interface components {
             due_date?: string | null;
             /** Subtotal */
             subtotal?: number | string | null;
+            /** Tax Rate */
+            tax_rate?: number | string | null;
             /** Tax */
             tax?: number | string | null;
             /** Discount */
@@ -1248,6 +1324,14 @@ export interface components {
             notes?: string | null;
             /** Items */
             items?: components["schemas"]["InvoiceItemCreate"][] | null;
+        };
+        /**
+         * MarkAllReadResponse
+         * @description How many of the caller's notifications this request flipped to read.
+         */
+        MarkAllReadResponse: {
+            /** Updated */
+            updated: number;
         };
         /** MilestoneReorderItem */
         MilestoneReorderItem: {
@@ -1266,6 +1350,38 @@ export interface components {
          * @enum {string}
          */
         MilestoneStatus: "PENDING" | "IN_PROGRESS" | "COMPLETED" | "ON_HOLD" | "CANCELLED";
+        /**
+         * NotificationRead
+         * @description A notification as its own recipient sees it. There is no Create schema on
+         *     purpose — notifications are emitted by the system, never posted by a client.
+         */
+        NotificationRead: {
+            /** Id */
+            id: number;
+            type: components["schemas"]["NotificationType"];
+            /** Title */
+            title: string;
+            /** Message */
+            message: string;
+            /** Is Read */
+            is_read: boolean;
+            /** Read At */
+            read_at: string | null;
+            /** Related Type */
+            related_type: string | null;
+            /** Related Id */
+            related_id: number | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /**
+         * NotificationType
+         * @enum {string}
+         */
+        NotificationType: "QUOTE_SUBMITTED" | "QUOTE_STATUS_CHANGED" | "PROJECT_CREATED" | "PROJECT_STATUS_CHANGED" | "MILESTONE_COMPLETED" | "FILE_UPLOADED" | "INVOICE_CREATED" | "INVOICE_DUE" | "PAYMENT_RECORDED";
         /** PaymentCreate */
         PaymentCreate: {
             /** Amount */
@@ -1858,6 +1974,14 @@ export interface components {
              * @default bearer
              */
             token_type: string;
+        };
+        /**
+         * UnreadCountRead
+         * @description Payload for the bell badge.
+         */
+        UnreadCountRead: {
+            /** Unread */
+            unread: number;
         };
         /** UserAdminUpdate */
         UserAdminUpdate: {
@@ -3701,6 +3825,110 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PaymentRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_notifications_api_v1_notifications_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+                unread_only?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    unread_count_api_v1_notifications_unread_count_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnreadCountRead"];
+                };
+            };
+        };
+    };
+    mark_all_read_api_v1_notifications_read_all_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MarkAllReadResponse"];
+                };
+            };
+        };
+    };
+    mark_read_api_v1_notifications__notification_id__read_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                notification_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationRead"];
                 };
             };
             /** @description Validation Error */

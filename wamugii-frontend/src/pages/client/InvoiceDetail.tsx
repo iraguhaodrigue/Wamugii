@@ -1,7 +1,12 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link, useParams } from 'react-router-dom'
 import { ArrowLeft, Printer, SearchX } from 'lucide-react'
-import { getClientInvoice, type ClientInvoiceDetail as ClientInvoiceDetailType } from '@/api/invoices'
+import {
+  formatRateLabel,
+  getClientInvoice,
+  hasVatRate,
+  type ClientInvoiceDetail as ClientInvoiceDetailType,
+} from '@/api/invoices'
 import type { ApiError } from '@/lib/apiClient'
 import { paths } from '@/routes/paths'
 import { Badge, Button, EmptyState, ErrorState, Skeleton } from '@/components/ui'
@@ -123,16 +128,22 @@ export function ClientInvoiceDetail() {
                 <dt className="text-slate-500">Subtotal</dt>
                 <dd className="font-medium text-slate-900">{formatMoney(invoice.subtotal)}</dd>
               </div>
+              {/* VAT is money the client is paying, so it gets its own labelled
+                  line with the rate spelled out — never folded into the total. */}
+              {invoice.tax && (
+                <div className="flex justify-between">
+                  <dt className="text-slate-500">
+                    {hasVatRate(invoice.tax_rate)
+                      ? `VAT (${formatRateLabel(invoice.tax_rate!)}%)`
+                      : 'Tax'}
+                  </dt>
+                  <dd className="font-medium text-slate-900">{formatMoney(invoice.tax)}</dd>
+                </div>
+              )}
               {invoice.discount && (
                 <div className="flex justify-between">
                   <dt className="text-slate-500">Discount</dt>
                   <dd className="font-medium text-slate-900">−{formatMoney(invoice.discount)}</dd>
-                </div>
-              )}
-              {invoice.tax && (
-                <div className="flex justify-between">
-                  <dt className="text-slate-500">Tax</dt>
-                  <dd className="font-medium text-slate-900">{formatMoney(invoice.tax)}</dd>
                 </div>
               )}
               <div className="flex justify-between border-t border-slate-200 pt-2">

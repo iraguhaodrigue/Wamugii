@@ -4,7 +4,9 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, Pencil, Plus, SearchX, Trash2 } from 'lucide-react'
 import {
   deactivateInvoice,
+  formatRateLabel,
   getInvoice,
+  hasVatRate,
   isInvoiceLocked,
   updateInvoice,
   type InvoiceRead,
@@ -16,7 +18,13 @@ import { usePageTitle } from '@/context/PageTitleContext'
 import type { ApiError } from '@/lib/apiClient'
 import { paths } from '@/routes/paths'
 import { Badge, Button, ConfirmDialog, EmptyState, ErrorState, Skeleton } from '@/components/ui'
-import { InvoiceForm, toIsoDate, toItemsPayload, type InvoiceFormValues } from '@/components/invoices/InvoiceForm'
+import {
+  InvoiceForm,
+  toIsoDate,
+  toItemsPayload,
+  toTaxPayload,
+  type InvoiceFormValues,
+} from '@/components/invoices/InvoiceForm'
 import { RecordPaymentModal } from '@/components/invoices/RecordPaymentModal'
 import { formatDate, formatEnumLabel, formatMoney } from '@/utils/format'
 import { invoiceStatusVariant } from '@/utils/statusBadge'
@@ -69,7 +77,7 @@ export function InvoiceDetail() {
         project_id: values.project_id ? Number(values.project_id) : null,
         issue_date: toIsoDate(values.issue_date),
         due_date: toIsoDate(values.due_date),
-        tax: values.tax || null,
+        ...toTaxPayload(values),
         discount: values.discount || null,
         status: values.status,
         notes: values.notes || null,
@@ -214,6 +222,7 @@ export function InvoiceDetail() {
                   : invoice.status === 'DRAFT'
                     ? 'DRAFT'
                     : 'SENT',
+              vat_enabled: hasVatRate(invoice.tax_rate),
               tax: invoice.tax ?? '',
               discount: invoice.discount ?? '',
               notes: invoice.notes ?? '',
@@ -262,16 +271,20 @@ export function InvoiceDetail() {
                   <dt className="text-slate-500">Subtotal</dt>
                   <dd className="font-medium text-slate-900">{formatMoney(invoice.subtotal)}</dd>
                 </div>
+                {invoice.tax && (
+                  <div className="flex justify-between">
+                    <dt className="text-slate-500">
+                      {hasVatRate(invoice.tax_rate)
+                        ? `VAT (${formatRateLabel(invoice.tax_rate!)}%)`
+                        : 'Tax'}
+                    </dt>
+                    <dd className="font-medium text-slate-900">{formatMoney(invoice.tax)}</dd>
+                  </div>
+                )}
                 {invoice.discount && (
                   <div className="flex justify-between">
                     <dt className="text-slate-500">Discount</dt>
                     <dd className="font-medium text-slate-900">−{formatMoney(invoice.discount)}</dd>
-                  </div>
-                )}
-                {invoice.tax && (
-                  <div className="flex justify-between">
-                    <dt className="text-slate-500">Tax</dt>
-                    <dd className="font-medium text-slate-900">{formatMoney(invoice.tax)}</dd>
                   </div>
                 )}
                 <div className="flex justify-between border-t border-slate-200 pt-2">

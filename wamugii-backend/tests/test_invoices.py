@@ -496,3 +496,201 @@ def test_dashboard_shape_is_unchanged(client, admin_headers):
         "store",
         "support",
     }
+
+
+# --- VAT (18%) --------------------------------------------------------------
+
+
+def test_vat_rate_computes_tax_and_total(client, admin_headers):
+    c = _create_client("inv_vat_basic@example.com")
+    resp = _create_invoice(client, admin_headers, client_id=c.id, subtotal="1000.00", tax_rate="18")
+    assert resp.status_code == 201
+    body = resp.json()
+    assert body["tax_rate"] == "18.00"
+    assert body["tax"] == "180.00"
+    assert body["total"] == "1180.00"
+
+
+def test_vat_applies_after_discount_line(client, admin_headers):
+    """VAT is charged on the subtotal; the discount comes off the total."""
+    c = _create_client("inv_vat_discount@example.com")
+    body = _create_invoice(
+        client, admin_headers, client_id=c.id, subtotal="1000.00", tax_rate="18", discount="100.00"
+    ).json()
+    assert body["tax"] == "180.00"
+    # 1000 + 180 - 100
+    assert body["total"] == "1080.00"
+
+
+def test_vat_ignores_a_client_supplied_tax_amount(client, admin_headers):
+    """A rate is authoritative — a forged tax amount must not survive."""
+    c = _create_client("inv_vat_forge@example.com")
+    body = _create_invoice(
+        client, admin_headers, client_id=c.id, subtotal="1000.00", tax_rate="18", tax="1.00"
+    ).json()
+    assert body["tax"] == "180.00"
+    assert body["total"] == "1180.00"
+
+
+def test_vat_recomputes_when_line_items_change(client, admin_headers):
+    c = _create_client("inv_vat_items@example.com")
+    invoice = _create_invoice(
+        client,
+        admin_headers,
+        client_id=c.id,
+        tax_rate="18",
+        items=[{"description": "Build", "quantity": "1", "unit_price": "1000.00"}],
+    ).json()
+    assert invoice["subtotal"] == "1000.00"
+    assert invoice["tax"] == "180.00"
+
+    updated = client.patch(
+        f"/api/v1/invoices/{invoice['id']}",
+        json={"items": [{"description": "Build", "quantity": "2", "unit_price": "1000.00"}]},
+        headers=admin_headers,
+    ).json()
+    assert updated["subtotal"] == "2000.00"
+    assert updated["tax"] == "360.00"
+    assert updated["total"] == "2360.00"
+
+
+def test_manual_tax_path_is_unchanged_without_a_rate(client, admin_headers):
+    """The pre-VAT behaviour: no rate, tax is exactly what was typed."""
+    c = _create_client("inv_manual_tax@example.com")
+    body = _create_invoice(
+        client, admin_headers, client_id=c.id, subtotal="1000.00", tax="55.00"
+    ).json()
+    assert body["tax_rate"] is None
+    assert body["tax"] == "55.00"
+    assert body["total"] == "1055.00"
+
+    # Editing line items leaves a manual amount alone.
+    updated = client.patch(
+        f"/api/v1/invoices/{body['id']}",
+        json={"items": [{"description": "Work", "quantity": "1", "unit_price": "400.00"}]},
+        headers=admin_headers,
+    ).json()
+    assert updated["tax_rate"] is None
+    assert updated["tax"] == "55.00"
+    assert updated["total"] == "455.00"
+
+
+def test_no_tax_at_all_still_works(client, admin_headers):
+    c = _create_client("inv_no_tax@example.com")
+    body = _create_invoice(client, admin_headers, client_id=c.id, subtotal="800.00").json()
+    assert body["tax_rate"] is None
+    assert body["tax"] is None
+    assert body["total"] == "800.00"
+
+
+def test_switching_between_vat_and_manual_modes(client, admin_headers):
+    c = _create_client("inv_vat_toggle@example.com")
+    invoice = _create_invoice(client, admin_headers, client_id=c.id, subtotal="1000.00").json()
+    assert invoice["tax_rate"] is None
+
+    # Manual -> VAT
+    on = client.patch(
+        f"/api/v1/invoices/{invoice['id']}", json={"tax_rate": "18"}, headers=admin_headers
+    ).json()
+    assert on["tax"] == "180.00"
+    assert on["total"] == "1180.00"
+
+    # VAT -> manual: an explicit null hands control back to the typed amount.
+    off = client.patch(
+        f"/api/v1/invoices/{invoice['id']}",
+        json={"tax_rate": None, "tax": "20.00"},
+        headers=admin_headers,
+    ).json()
+    assert off["tax_rate"] is None
+    assert off["tax"] == "20.00"
+    assert off["total"] == "1020.00"
+
+
+def test_client_invoice_view_shows_vat_rate_and_amount(client, admin_headers):
+    """VAT is a charge the client pays, so it must be visible to them."""
+    c = _create_client("inv_vat_client@example.com")
+    invoice = _create_invoice(
+        client,
+        admin_headers,
+        client_id=c.id,
+        subtotal="1000.00",
+        tax_rate="18",
+        status="SENT",
+        notes="internal only",
+    ).json()
+
+    body = client.get(
+        f"/api/v1/client/invoices/{invoice['id']}", headers=_client_auth_headers(c)
+    ).json()
+    assert body["tax_rate"] == "18.00"
+    assert body["tax"] == "180.00"
+    assert body["total"] == "1180.00"
+    # Staff notes stay hidden even though VAT is now exposed.
+    assert "notes" not in body
+
+
+def test_vat_rate_is_validated(client, admin_headers):
+    c = _create_client("inv_vat_invalid@example.com")
+    over = _create_invoice(client, admin_headers, client_id=c.id, tax_rate="150")
+    assert over.status_code == 422
+    negative = _create_invoice(client, admin_headers, client_id=c.id, tax_rate="-5")
+    assert negative.status_code == 422
+
+
+def test_vat_half_cent_rounds_up_not_to_even(client, admin_headers):
+    """
+    RRA expects half-up rounding on VAT. 1000.25 x 18% is exactly 180.045 —
+    a half-cent tie. Half-up gives 180.05; Python's default banker's rounding
+    would give 180.04, which is what this guards against.
+    """
+    c = _create_client("inv_vat_rounding@example.com")
+    body = _create_invoice(
+        client, admin_headers, client_id=c.id, subtotal="1000.25", tax_rate="18"
+    ).json()
+    assert body["tax"] == "180.05"
+    assert body["total"] == "1180.30"
+
+
+def test_vat_rounding_ties_always_go_up(client, admin_headers):
+    """
+    Both parities of the preceding digit must round up — that is the difference
+    between half-up and half-even, which only diverges on one of them.
+    """
+    c = _create_client("inv_vat_rounding2@example.com")
+
+    # 1000.75 x 18% = 180.135 -> 180.14 under both modes (3 is odd).
+    odd = _create_invoice(
+        client, admin_headers, client_id=c.id, subtotal="1000.75", tax_rate="18"
+    ).json()
+    assert odd["tax"] == "180.14"
+
+    # 1000.25 x 18% = 180.045 -> half-up 180.05, half-even would be 180.04.
+    even = _create_invoice(
+        client, admin_headers, client_id=c.id, subtotal="1000.25", tax_rate="18"
+    ).json()
+    assert even["tax"] == "180.05"
+
+
+def test_vat_rounding_survives_a_line_item_edit(client, admin_headers):
+    """The half-up rule applies on recompute, not just on create."""
+    c = _create_client("inv_vat_rounding3@example.com")
+    invoice = _create_invoice(
+        client,
+        admin_headers,
+        client_id=c.id,
+        tax_rate="18",
+        items=[{"description": "Service", "quantity": "1", "unit_price": "500.00"}],
+    ).json()
+    assert invoice["tax"] == "90.00"
+
+    updated = client.patch(
+        f"/api/v1/invoices/{invoice['id']}",
+        json={
+            "tax_rate": "18",
+            "items": [{"description": "Service", "quantity": "1", "unit_price": "1000.25"}],
+        },
+        headers=admin_headers,
+    ).json()
+    assert updated["subtotal"] == "1000.25"
+    assert updated["tax"] == "180.05"
+    assert updated["total"] == "1180.30"

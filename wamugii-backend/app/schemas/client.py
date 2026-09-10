@@ -146,6 +146,9 @@ class ClientInvoiceDetail(BaseModel):
     issue_date: datetime
     due_date: datetime | None
     subtotal: Decimal
+    # VAT is a charge the client is actually paying, so the rate and amount are
+    # both shown to them — this is not staff-only information like `notes`.
+    tax_rate: Decimal | None
     tax: Decimal | None
     discount: Decimal | None
     total: Decimal
