@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from app.core.security import create_access_token
 from app.crud import user as user_crud
 from app.models.user import Role
@@ -694,3 +696,81 @@ def test_vat_rounding_survives_a_line_item_edit(client, admin_headers):
     assert updated["subtotal"] == "1000.25"
     assert updated["tax"] == "180.05"
     assert updated["total"] == "1180.30"
+
+
+def test_fractional_line_items_reconcile_to_the_subtotal(client, admin_headers):
+    """
+    Two lines of 0.05 x 1.10: each exact product is 0.055, which prints as 0.06.
+    The subtotal must be the sum of what is printed (0.12), not the sum of the
+    raw products (0.11) — otherwise the invoice visibly fails to add up.
+    """
+    c = _create_client("inv_reconcile@example.com")
+    body = _create_invoice(
+        client,
+        admin_headers,
+        client_id=c.id,
+        items=[
+            {"description": "Cable", "quantity": "0.05", "unit_price": "1.10"},
+            {"description": "Clip", "quantity": "0.05", "unit_price": "1.10"},
+        ],
+    ).json()
+
+    line_totals = [i["line_total"] for i in body["items"]]
+    assert line_totals == ["0.06", "0.06"]
+    assert body["subtotal"] == "0.12"
+    assert body["total"] == "0.12"
+    # The property that matters: printed lines add up to the printed subtotal.
+    assert sum(Decimal(t) for t in line_totals) == Decimal(body["subtotal"])
+
+
+def test_line_total_matches_the_printed_quantity_and_price(client, admin_headers):
+    """A reader multiplying the two printed figures must get the printed total."""
+    c = _create_client("inv_line_match@example.com")
+    body = _create_invoice(
+        client,
+        admin_headers,
+        client_id=c.id,
+        items=[{"description": "Odd unit", "quantity": "0.05", "unit_price": "1.10"}],
+    ).json()
+    line = body["items"][0]
+    assert Decimal(line["quantity"]) * Decimal(line["unit_price"]) == Decimal("0.0550")
+    assert line["line_total"] == "0.06"  # half-up, matching the tax rounding
+
+
+def test_many_fractional_lines_still_reconcile(client, admin_headers):
+    """The invariant has to hold as lines accumulate, not just for a lucky pair."""
+    c = _create_client("inv_reconcile_many@example.com")
+    body = _create_invoice(
+        client,
+        admin_headers,
+        client_id=c.id,
+        items=[
+            {"description": f"Line {n}", "quantity": "0.05", "unit_price": "1.10"}
+            for n in range(5)
+        ],
+    ).json()
+    line_totals = [Decimal(i["line_total"]) for i in body["items"]]
+    assert sum(line_totals) == Decimal(body["subtotal"]) == Decimal("0.30")
+
+
+def test_line_reconciliation_holds_after_an_edit(client, admin_headers):
+    c = _create_client("inv_reconcile_edit@example.com")
+    invoice = _create_invoice(
+        client,
+        admin_headers,
+        client_id=c.id,
+        items=[{"description": "One", "quantity": "1", "unit_price": "10.00"}],
+    ).json()
+
+    updated = client.patch(
+        f"/api/v1/invoices/{invoice['id']}",
+        json={
+            "items": [
+                {"description": "Cable", "quantity": "0.05", "unit_price": "1.10"},
+                {"description": "Clip", "quantity": "0.05", "unit_price": "1.10"},
+            ]
+        },
+        headers=admin_headers,
+    ).json()
+    line_totals = [Decimal(i["line_total"]) for i in updated["items"]]
+    assert sum(line_totals) == Decimal(updated["subtotal"]) == Decimal("0.12")

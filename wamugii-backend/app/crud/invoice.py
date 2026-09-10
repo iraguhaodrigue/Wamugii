@@ -24,16 +24,17 @@ def _quantize(value: Decimal) -> Decimal:
     return Decimal(value).quantize(Decimal("0.01"))
 
 
-def _quantize_tax(value: Decimal) -> Decimal:
+def _quantize_half_up(value: Decimal) -> Decimal:
     """
-    2dp with half-up rounding, which is what RRA expects on a VAT amount: half a
-    cent always rounds up (180.045 -> 180.05), never to the nearest even digit
-    like Python's default ROUND_HALF_EVEN would (-> 180.04).
+    2dp with half-up rounding: half a cent always rounds up (180.045 -> 180.05),
+    never to the nearest even digit like Python's default ROUND_HALF_EVEN would
+    (-> 180.04). This is what RRA expects on a VAT amount, and it is used for
+    every figure a reader can see and re-add by hand — tax amounts (compute_tax)
+    and line totals (_line_figures).
 
-    Deliberately scoped to tax only — see compute_tax. The rest of the money
-    math keeps `_quantize`, which is safe there because subtotal/tax/discount
-    are already exact 2dp values by the time `compute_total` adds them up, so
-    no rounding decision actually occurs.
+    `compute_total` keeps plain `_quantize`, which is safe there because
+    subtotal/tax/discount are already exact 2dp values by the time it adds them
+    up, so no rounding decision actually occurs.
     """
     return Decimal(value).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
@@ -59,8 +60,8 @@ def compute_tax(
     either way.
     """
     if tax_rate is not None:
-        return _quantize_tax(Decimal(subtotal or 0) * Decimal(tax_rate) / Decimal(100))
-    return _quantize_tax(Decimal(manual_tax)) if manual_tax is not None else None
+        return _quantize_half_up(Decimal(subtotal or 0) * Decimal(tax_rate) / Decimal(100))
+    return _quantize_half_up(Decimal(manual_tax)) if manual_tax is not None else None
 
 
 def compute_total(subtotal: Decimal, tax: Decimal | None, discount: Decimal | None) -> Decimal:
@@ -107,20 +108,47 @@ def derive_status(
     return base
 
 
+def _line_figures(item: InvoiceItemCreate) -> tuple[Decimal, Decimal, Decimal]:
+    """
+    The three numbers printed on one invoice line, all on the 2dp grid.
+
+    `line_total` is derived from the *rounded* quantity and unit price, so a
+    reader who multiplies the two figures in front of them lands exactly on the
+    line total in front of them. Both `_build_items` and `_sum_items` go through
+    here, which is what makes the lines reconcile: the subtotal is the sum of
+    these same rounded totals, never of the raw products.
+    """
+    quantity = _quantize(Decimal(item.quantity))
+    unit_price = _quantize(Decimal(item.unit_price))
+    return quantity, unit_price, _quantize_half_up(quantity * unit_price)
+
+
 def _sum_items(items: list[InvoiceItemCreate]) -> Decimal:
-    return _quantize(sum((Decimal(i.quantity) * Decimal(i.unit_price) for i in items), ZERO))
+    """
+    Sum of the rounded line totals — the printed lines are the source of truth.
+
+    Summing the raw products instead would let a cent go missing: two lines of
+    0.05 x 1.10 each print 0.06, but their exact products total 0.11, so the
+    invoice would show lines adding to 0.12 above a subtotal of 0.11. Each value
+    added here is already exactly 2dp, so the sum is too and `_quantize` below
+    is a no-op guard rather than another rounding decision.
+    """
+    return _quantize(sum((_line_figures(item)[2] for item in items), ZERO))
 
 
 def _build_items(items: list[InvoiceItemCreate]) -> list[InvoiceItem]:
-    return [
-        InvoiceItem(
-            description=item.description,
-            quantity=_quantize(Decimal(item.quantity)),
-            unit_price=_quantize(Decimal(item.unit_price)),
-            line_total=_quantize(Decimal(item.quantity) * Decimal(item.unit_price)),
+    built = []
+    for item in items:
+        quantity, unit_price, line_total = _line_figures(item)
+        built.append(
+            InvoiceItem(
+                description=item.description,
+                quantity=quantity,
+                unit_price=unit_price,
+                line_total=line_total,
+            )
         )
-        for item in items
-    ]
+    return built
 
 
 def generate_invoice_number(db: Session, *, year: int | None = None) -> str:
