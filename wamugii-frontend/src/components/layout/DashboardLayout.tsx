@@ -5,6 +5,7 @@ import { useAuth } from '@/context/AuthContext'
 import { useAppShellTheme } from '@/context/ThemeContext'
 import { paths } from '@/routes/paths'
 import { Avatar, ThemeToggle } from '@/components/ui'
+import { NotificationBell } from '@/components/notifications/NotificationBell'
 import { cn } from '@/utils/cn'
 
 export interface DashboardNavItem {
@@ -90,6 +91,7 @@ export function DashboardLayout({ roleLabel, navItems }: DashboardLayoutProps) {
           </button>
           <span className="text-sm font-medium text-slate-500">{roleLabel}</span>
           <div className="ml-auto flex items-center gap-3">
+            <NotificationBell />
             <ThemeToggle />
             {user && <span className="hidden text-sm text-slate-600 sm:inline">{user.full_name}</span>}
             {user && <Avatar name={user.full_name} size="sm" />}

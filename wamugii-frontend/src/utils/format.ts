@@ -40,6 +40,32 @@ export function formatDateTime(value: string | null | undefined): string {
   return dateTimeFormatter.format(date)
 }
 
+/**
+ * "just now" / "5m ago" / "3h ago" / "2d ago", falling back to `formatDate`
+ * past a week — recency is what matters on a notification, but an old one
+ * should still read as a real date rather than "63d ago".
+ */
+export function formatRelativeTime(value: string | null | undefined): string {
+  if (!value) return '—'
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return '—'
+
+  const seconds = Math.floor((Date.now() - date.getTime()) / 1000)
+  if (seconds < 0) return formatDate(value) // clock skew — don't say "in -3m"
+  if (seconds < 60) return 'just now'
+
+  const minutes = Math.floor(seconds / 60)
+  if (minutes < 60) return `${minutes}m ago`
+
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `${hours}h ago`
+
+  const days = Math.floor(hours / 24)
+  if (days < 7) return `${days}d ago`
+
+  return formatDate(value)
+}
+
 /** "IN_PROGRESS" -> "In Progress" */
 export function formatEnumLabel(value: string): string {
   return value

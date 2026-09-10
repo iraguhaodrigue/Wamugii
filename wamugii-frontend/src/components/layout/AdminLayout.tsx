@@ -6,6 +6,7 @@ import { useAppShellTheme } from '@/context/ThemeContext'
 import { PageTitleProvider, useAdminPageTitle } from '@/context/PageTitleContext'
 import { paths } from '@/routes/paths'
 import { Avatar, ThemeToggle } from '@/components/ui'
+import { NotificationBell } from '@/components/notifications/NotificationBell'
 import { cn } from '@/utils/cn'
 
 const SIDEBAR_COLLAPSED_KEY = 'wamugii_sidebar_collapsed'
@@ -141,6 +142,7 @@ function AdminLayoutChrome({ navItems }: AdminLayoutProps) {
             <Menu className="size-5" />
           </button>
           <h1 className="min-w-0 flex-1 truncate text-lg font-semibold text-slate-900">{title}</h1>
+          <NotificationBell />
           <ThemeToggle />
           <div className="hidden items-center gap-3 sm:flex">
             <div className="text-right">
