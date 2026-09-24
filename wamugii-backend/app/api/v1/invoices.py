@@ -201,7 +201,7 @@ def record_payment(invoice_id: int, data: PaymentCreate, db: DbDep, current_user
         payment.amount,
         invoice_id,
     )
-    notifications.notify_payment_recorded(db, invoice, str(payment.amount))
+    notifications.notify_payment_recorded(db, invoice, payment)
     return payment
 
 

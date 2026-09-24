@@ -27,5 +27,17 @@ class Settings(BaseSettings):
     UPLOAD_DIR: str = "uploads"
     MAX_UPLOAD_SIZE_MB: int = 10
 
+    # Brevo transactional email. Both optional: with either missing, email
+    # sending is skipped with a warning so local dev and tests run without a
+    # Brevo account. See app/services/email_service.py.
+    BREVO_API_KEY: str | None = None
+    BREVO_FROM_EMAIL: str | None = None
+    BREVO_FROM_NAME: str = "WAMUGII TECH SOLUTIONS"
+
+    # Public URL of the frontend, used to build call-to-action links in emails.
+    # Unset means emails are sent without a CTA button rather than linking to
+    # a localhost URL the recipient cannot open.
+    FRONTEND_URL: str | None = None
+
 
 settings = Settings()

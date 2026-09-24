@@ -9,6 +9,11 @@ turn a successful quote/project/invoice/payment into an error for the caller.
 There is deliberately no public "create notification" endpoint — notifications
 describe things the system did, so letting a client post one would let them
 fabricate history.
+
+Some events also send an email (see `_send_email` and the per-event wiring
+below). Email is strictly secondary: it goes out only after the in-app
+notification has been written, and a mail failure is swallowed the same way, so
+neither the notification nor the action that triggered it can be affected.
 """
 
 import logging
@@ -17,12 +22,13 @@ from sqlalchemy.orm import Session
 
 from app.crud import notification as notification_crud
 from app.crud import user as user_crud
-from app.models.invoice import Invoice
+from app.models.invoice import Invoice, Payment
 from app.models.notification import NotificationType
 from app.models.project import Project
 from app.models.project_milestone import ProjectMilestone
 from app.models.quote_request import QuoteRequest
 from app.models.user import User
+from app.services import email_service, email_templates
 
 logger = logging.getLogger(__name__)
 
@@ -65,16 +71,56 @@ def _emit(
         )
 
 
-def _emit_to_staff(db: Session, **kwargs) -> None:
-    """Fan out one notification per active ADMIN/STAFF user."""
+def _emit_to_staff(db: Session, **kwargs) -> list[User]:
+    """
+    Fan out one notification per active ADMIN/STAFF user. Returns the
+    recipients so a caller that also emails them doesn't repeat the query.
+    """
     try:
-        recipient_ids = user_crud.list_active_staff_and_admin_ids(db)
+        recipients = user_crud.list_active_staff_and_admins(db)
     except Exception:
         db.rollback()
         logger.exception("failed to resolve staff recipients for a notification")
-        return
-    for user_id in recipient_ids:
-        _emit(db, user_id=user_id, **kwargs)
+        return []
+    for recipient in recipients:
+        _emit(db, user_id=recipient.id, **kwargs)
+    return recipients
+
+
+def _send_email(recipient: User, built: tuple[str, str, str]) -> None:
+    """
+    Best-effort email for a recipient we already hold.
+
+    `email_service.send_email` swallows its own failures, but building a
+    template can still raise (a missing attribute, a bad date), so the whole
+    step is wrapped. Nothing here touches the DB session, so a failure cannot
+    disturb the notification that was just committed.
+    """
+    try:
+        subject, html, text = built
+        email_service.send_email(
+            to_email=recipient.email,
+            to_name=recipient.full_name,
+            subject=subject,
+            html_content=html,
+            text_content=text,
+        )
+    except Exception:
+        logger.exception(
+            "failed to send notification email to %s — the in-app notification "
+            "and the triggering action were not affected",
+            getattr(recipient, "email", "<unknown>"),
+        )
+
+
+def _recipient(db: Session, user_id: int) -> User | None:
+    """The user row behind a client_id, for emails that need a real address."""
+    try:
+        return user_crud.get_by_id(db, user_id)
+    except Exception:
+        db.rollback()
+        logger.exception("failed to resolve recipient %s for a notification email", user_id)
+        return None
 
 
 def _client_for_quote(db: Session, quote: QuoteRequest) -> User | None:
@@ -94,7 +140,7 @@ def _client_for_quote(db: Session, quote: QuoteRequest) -> User | None:
 
 
 def notify_quote_submitted(db: Session, quote: QuoteRequest) -> None:
-    _emit_to_staff(
+    recipients = _emit_to_staff(
         db,
         type=NotificationType.QUOTE_SUBMITTED,
         title="New quote request",
@@ -102,6 +148,8 @@ def notify_quote_submitted(db: Session, quote: QuoteRequest) -> None:
         related_type="quote",
         related_id=quote.id,
     )
+    for recipient in recipients:
+        _send_email(recipient, email_templates.quote_submitted_admin(quote))
 
 
 def notify_quote_status_changed(db: Session, quote: QuoteRequest, old_status: str) -> None:
@@ -150,6 +198,9 @@ def notify_project_status_changed(db: Session, project: Project, old_status: str
         related_type="project",
         related_id=project.id,
     )
+    client = _recipient(db, project.client_id)
+    if client is not None:
+        _send_email(client, email_templates.project_status_changed_client(project, client))
 
 
 def notify_milestone_completed(
@@ -165,6 +216,11 @@ def notify_milestone_completed(
         related_type="project",
         related_id=project.id,
     )
+    client = _recipient(db, project.client_id)
+    if client is not None:
+        _send_email(
+            client, email_templates.milestone_completed_client(milestone, project, client)
+        )
 
 
 def notify_file_uploaded(
@@ -205,18 +261,27 @@ def notify_invoice_created(db: Session, invoice: Invoice) -> None:
         related_type="invoice",
         related_id=invoice.id,
     )
+    # Callers only reach here for issued (non-DRAFT) invoices — see
+    # api/v1/invoices.create_invoice.
+    client = _recipient(db, invoice.client_id)
+    if client is not None:
+        _send_email(client, email_templates.invoice_created_client(invoice, client))
 
 
-def notify_payment_recorded(db: Session, invoice: Invoice, amount: str) -> None:
+def notify_payment_recorded(db: Session, invoice: Invoice, payment: Payment) -> None:
+    """Takes the Payment row rather than just an amount — the email names the method."""
     _emit(
         db,
         user_id=invoice.client_id,
         type=NotificationType.PAYMENT_RECORDED,
         title="Payment recorded",
         message=(
-            f"A payment of {amount} RWF was recorded against invoice "
+            f"A payment of {payment.amount} RWF was recorded against invoice "
             f"{invoice.invoice_number}. Balance due: {invoice.balance_due} RWF."
         ),
         related_type="invoice",
         related_id=invoice.id,
     )
+    client = _recipient(db, invoice.client_id)
+    if client is not None:
+        _send_email(client, email_templates.payment_recorded_client(payment, invoice, client))

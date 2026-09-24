@@ -65,6 +65,20 @@ def list_active_staff_and_admin_ids(db: Session) -> list[int]:
     )
 
 
+def list_active_staff_and_admins(db: Session) -> list[User]:
+    """
+    Same recipients as `list_active_staff_and_admin_ids`, but as full rows —
+    emailing them needs an address and a name, not just an id.
+    """
+    return list(
+        db.scalars(
+            select(User).where(
+                User.role.in_([Role.ADMIN, Role.STAFF]), User.is_active.is_(True)
+            )
+        ).all()
+    )
+
+
 def list_admin(
     db: Session,
     *,
