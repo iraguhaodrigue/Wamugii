@@ -1,8 +1,13 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 from app.models.user import Role
+
+# The one place the password rule lives. The reset schema imports this so
+# registration and password reset can never drift apart, and the Register /
+# Reset forms enforce the same number client-side.
+MIN_PASSWORD_LENGTH = 8
 
 
 class UserBase(BaseModel):
@@ -12,7 +17,7 @@ class UserBase(BaseModel):
 
 
 class UserCreate(UserBase):
-    password: str
+    password: str = Field(min_length=MIN_PASSWORD_LENGTH)
 
 
 class UserRead(UserBase):

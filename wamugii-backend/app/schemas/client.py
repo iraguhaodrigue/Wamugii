@@ -7,6 +7,7 @@ from app.models.invoice import InvoiceStatus, PaymentMethod
 from app.models.project import ProjectPriority, ProjectStatus
 from app.models.project_milestone import MilestoneStatus
 from app.models.quote_request import QuoteStatus
+from app.schemas.company_settings import InvoiceCompanyBlock
 
 
 class ClientUserRead(BaseModel):
@@ -159,6 +160,8 @@ class ClientInvoiceDetail(BaseModel):
     updated_at: datetime
     items: list[ClientInvoiceItemRead] = []
     payments: list[ClientPaymentRead] = []
+    # The client needs the issuer's details to have a valid VAT invoice.
+    company: InvoiceCompanyBlock | None = None
 
 
 class ClientActivityItem(BaseModel):

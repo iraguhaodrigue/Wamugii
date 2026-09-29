@@ -35,6 +35,14 @@ def authenticate(db: Session, email: str, password: str) -> User | None:
     return user
 
 
+def set_password(db: Session, user: User, new_password: str) -> User:
+    """Replace a user's password hash — used by the password reset flow."""
+    user.password_hash = hash_password(new_password)
+    db.commit()
+    db.refresh(user)
+    return user
+
+
 def count_all(db: Session) -> int:
     return db.scalar(select(func.count()).select_from(User)) or 0
 

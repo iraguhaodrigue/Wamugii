@@ -11,6 +11,7 @@ from app.api.v1 import (
     project_milestones,
     quote_requests,
     services,
+    settings,
     users,
 )
 
@@ -26,3 +27,4 @@ api_router.include_router(client.router)
 api_router.include_router(quote_requests.router)
 api_router.include_router(invoices.router)
 api_router.include_router(notifications.router)
+api_router.include_router(settings.router)

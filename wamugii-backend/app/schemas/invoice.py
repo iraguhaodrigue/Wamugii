@@ -4,6 +4,7 @@ from decimal import Decimal
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.models.invoice import InvoiceStatus, PaymentMethod
+from app.schemas.company_settings import InvoiceCompanyBlock
 
 # Statuses a client of the API may set directly. PAID / PARTIALLY_PAID / OVERDUE
 # are derived from the money and the due date, so accepting them from the
@@ -110,6 +111,9 @@ class InvoiceRead(BaseModel):
     updated_at: datetime
     items: list[InvoiceItemRead] = []
     payments: list[PaymentRead] = []
+    # Issuer details, attached at read time from company settings rather than
+    # stored per invoice -- see api/v1/invoices._with_company.
+    company: InvoiceCompanyBlock | None = None
 
 
 class InvoiceListItem(BaseModel):

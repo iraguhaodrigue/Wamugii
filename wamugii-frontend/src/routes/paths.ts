@@ -9,6 +9,8 @@ export const paths = {
   requestQuote: '/request-quote',
   login: '/login',
   register: '/register',
+  forgotPassword: '/forgot-password',
+  resetPassword: '/reset-password',
   client: {
     dashboard: '/client/dashboard',
     projects: '/client/projects',
@@ -35,6 +37,7 @@ export const paths = {
     quoteDetail: (id: string | number) => `/admin/quotes/${id}`,
     invoices: '/admin/invoices',
     invoiceDetail: (id: string | number) => `/admin/invoices/${id}`,
+    settings: '/admin/settings',
   },
 } as const
 

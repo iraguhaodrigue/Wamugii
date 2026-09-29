@@ -14,6 +14,7 @@ open.
 from decimal import Decimal
 
 from app.core.config import settings
+from app.models.password_reset_token import TOKEN_TTL_HOURS
 
 BRAND_NAME = "WAMUGII TECH SOLUTIONS"
 BRAND_SLOGAN = "We Build. We Innovate. We Empower."
@@ -232,6 +233,67 @@ def invoice_created_client(invoice, client) -> tuple[str, str, str]:
         + ["", "To arrange payment, get in touch and we'll confirm the details."],
         url,
         "View Invoice",
+    )
+    return subject, html, text
+
+
+def password_reset(user, reset_url: str | None) -> tuple[str, str, str]:
+    """
+    The reset link email.
+
+    `reset_url` is None when FRONTEND_URL isn't configured; there is then no
+    link to give, so the body says so rather than rendering a dead button. When
+    a URL is present it also appears as plain text beneath the button, because
+    some clients strip styled anchors.
+    """
+    subject = "Reset your WAMUGII password"
+    first_name = user.full_name.split(" ")[0] if user.full_name else "there"
+
+    intro = (
+        f"Hi {first_name}, we received a request to reset the password for your "
+        f"{BRAND_NAME} account."
+    )
+
+    if reset_url:
+        cta = _button(reset_url, "Reset My Password")
+        fallback = (
+            f'<p style="margin:16px 0 0 0;color:{MUTED};font-size:12px;line-height:1.6;'
+            f'word-break:break-all;">Or paste this link into your browser:<br>'
+            f'<span style="color:{INK};">{reset_url}</span></p>'
+        )
+    else:
+        cta = ""
+        fallback = (
+            f'<p style="margin:16px 0 0 0;color:{MUTED};font-size:13px;line-height:1.6;">'
+            "Open the password reset page in the WAMUGII app to continue.</p>"
+        )
+
+    hours = TOKEN_TTL_HOURS
+    expiry_text = f"{hours} hour" if hours == 1 else f"{hours} hours"
+    note = (
+        f'<p style="margin:18px 0 0 0;color:{MUTED};font-size:13px;line-height:1.6;">'
+        f"This link expires in {expiry_text}. If you didn&rsquo;t request a password reset, "
+        "you can ignore this email — your password won&rsquo;t change.</p>"
+    )
+
+    html = _shell(
+        heading="Reset your password",
+        intro=intro,
+        detail_rows="",
+        cta=cta,
+        footer_note=fallback + note,
+    )
+    text = _plain(
+        "Reset your password",
+        [
+            intro,
+            "",
+            f"This link expires in {expiry_text}.",
+            "If you didn't request a password reset, ignore this email — your "
+            "password won't change.",
+        ],
+        reset_url,
+        "Reset My Password",
     )
     return subject, html, text
 

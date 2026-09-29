@@ -20,6 +20,7 @@ import logging
 
 from sqlalchemy.orm import Session
 
+from app.crud import company_settings as settings_crud
 from app.crud import notification as notification_crud
 from app.crud import user as user_crud
 from app.models.invoice import Invoice, Payment
@@ -113,6 +114,28 @@ def _send_email(recipient: User, built: tuple[str, str, str]) -> None:
         )
 
 
+def _send_email_to_address(to_email: str, built: tuple[str, str, str]) -> None:
+    """
+    Same as `_send_email` but for a configured address with no user behind it
+    (the company's quote notification inbox).
+    """
+    try:
+        subject, html, text = built
+        email_service.send_email(
+            to_email=to_email,
+            to_name=email_templates.BRAND_NAME,
+            subject=subject,
+            html_content=html,
+            text_content=text,
+        )
+    except Exception:
+        logger.exception(
+            "failed to send notification email to the configured address %s — the "
+            "in-app notification and the triggering action were not affected",
+            to_email,
+        )
+
+
 def _recipient(db: Session, user_id: int) -> User | None:
     """The user row behind a client_id, for emails that need a real address."""
     try:
@@ -139,7 +162,26 @@ def _client_for_quote(db: Session, quote: QuoteRequest) -> User | None:
 # --- quote events -----------------------------------------------------------
 
 
+def _quote_notification_email(db: Session) -> str | None:
+    """
+    The configured single inbox for new-quote emails, or None for fan-out.
+
+    Non-fatal like everything else here: if settings can't be read we fall back
+    to the original behaviour rather than dropping the email entirely.
+    """
+    try:
+        return settings_crud.get_settings(db).notification_email
+    except Exception:
+        db.rollback()
+        logger.exception("failed to read company settings for quote email routing")
+        return None
+
+
 def notify_quote_submitted(db: Session, quote: QuoteRequest) -> None:
+    # The in-app notification always fans out to the whole team — everyone who
+    # can act on a quote should see it in their bell. Only the *email* is
+    # routed, so configuring one inbox reduces mail volume without hiding the
+    # quote from staff inside the app.
     recipients = _emit_to_staff(
         db,
         type=NotificationType.QUOTE_SUBMITTED,
@@ -148,8 +190,14 @@ def notify_quote_submitted(db: Session, quote: QuoteRequest) -> None:
         related_type="quote",
         related_id=quote.id,
     )
+
+    built = email_templates.quote_submitted_admin(quote)
+    configured = _quote_notification_email(db)
+    if configured:
+        _send_email_to_address(configured, built)
+        return
     for recipient in recipients:
-        _send_email(recipient, email_templates.quote_submitted_admin(quote))
+        _send_email(recipient, built)
 
 
 def notify_quote_status_changed(db: Session, quote: QuoteRequest, old_status: str) -> None:

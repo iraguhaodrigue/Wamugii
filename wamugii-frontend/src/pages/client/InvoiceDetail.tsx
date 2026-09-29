@@ -10,6 +10,7 @@ import {
 import type { ApiError } from '@/lib/apiClient'
 import { paths } from '@/routes/paths'
 import { Badge, Button, EmptyState, ErrorState, Skeleton } from '@/components/ui'
+import { InvoiceCompanyHeader } from '@/components/invoices/InvoiceCompanyHeader'
 import { formatDate, formatEnumLabel, formatMoney } from '@/utils/format'
 import { invoiceStatusVariant } from '@/utils/statusBadge'
 
@@ -98,6 +99,12 @@ export function ClientInvoiceDetail() {
           Print
         </Button>
       </div>
+
+      <InvoiceCompanyHeader
+        company={invoice.company}
+        invoiceNumber={invoice.invoice_number}
+        isVat={hasVatRate(invoice.tax_rate)}
+      />
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">

@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import ActiveUser, DbDep, require_roles
 from app.crud import client as client_crud
+from app.crud import company_settings as settings_crud
 from app.crud import project_milestone as milestone_crud
 from app.models.invoice import InvoiceStatus
 from app.models.project import ProjectStatus
@@ -187,6 +188,8 @@ def get_invoice(invoice_id: int, db: DbDep, current_user: ClientOnly):
     invoice = client_crud.get_client_invoice_by_id(db, invoice_id, current_user.id)
     if not invoice:
         raise HTTPException(status_code=404, detail="Invoice not found")
+    # Issuer details, so the client's copy is a complete VAT invoice.
+    invoice.company = settings_crud.get_settings(db)
     return ClientInvoiceDetail.model_validate(invoice)
 
 

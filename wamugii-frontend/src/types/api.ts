@@ -72,6 +72,53 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/auth/forgot-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Forgot Password
+         * @description Start a password reset.
+         *
+         *     Always answers with the same body, whether or not the address has an
+         *     account and whether or not the email actually went out — otherwise the
+         *     response becomes an account-enumeration oracle.
+         */
+        post: operations["forgot_password_api_v1_auth_forgot_password_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/reset-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reset Password
+         * @description Complete a password reset.
+         *
+         *     Every failure — unknown token, expired, already spent, deactivated user —
+         *     returns the same 400 so none of them can be told apart.
+         */
+        post: operations["reset_password_api_v1_auth_reset_password_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/logout": {
         parameters: {
             query?: never;
@@ -748,6 +795,46 @@ export interface paths {
         patch: operations["mark_read_api_v1_notifications__notification_id__read_patch"];
         trace?: never;
     };
+    "/api/v1/settings/public": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Public company info (no auth) — excludes TIN and notification routing
+         * @description Open endpoint for the marketing site's contact details. The response model
+         *     has no `tin` or `notification_email` field at all, so neither can escape
+         *     here even though the underlying row carries them.
+         */
+        get: operations["get_public_settings_api_v1_settings_public_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get company settings (ADMIN only) */
+        get: operations["get_settings_api_v1_settings_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update company settings (ADMIN only) */
+        patch: operations["update_settings_api_v1_settings_patch"];
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -898,6 +985,7 @@ export interface components {
              * @default []
              */
             payments: components["schemas"]["ClientPaymentRead"][];
+            company?: components["schemas"]["InvoiceCompanyBlock"] | null;
         };
         /**
          * ClientInvoiceItemRead
@@ -1075,6 +1163,81 @@ export interface components {
             /** Email */
             email: string;
         };
+        /**
+         * CompanySettingsPublicRead
+         * @description The safe subset, served unauthenticated.
+         *
+         *     `tin` and `notification_email` are deliberately absent from this model, not
+         *     merely blanked: the TIN belongs on an invoice rather than an open endpoint,
+         *     and the notification address is internal routing. Because the fields are
+         *     not declared here, they cannot leak even if someone later returns the whole
+         *     ORM row through this schema.
+         */
+        CompanySettingsPublicRead: {
+            /** Company Name */
+            company_name: string;
+            /** Slogan */
+            slogan: string;
+            /** Address */
+            address: string | null;
+            /** Phone */
+            phone: string | null;
+            /** Email */
+            email: string | null;
+            /** Website */
+            website: string | null;
+        };
+        /**
+         * CompanySettingsRead
+         * @description Full settings, ADMIN only — includes the TIN and notification routing.
+         */
+        CompanySettingsRead: {
+            /** Id */
+            id: number;
+            /** Company Name */
+            company_name: string;
+            /** Slogan */
+            slogan: string;
+            /** Tin */
+            tin: string | null;
+            /** Address */
+            address: string | null;
+            /** Phone */
+            phone: string | null;
+            /** Email */
+            email: string | null;
+            /** Website */
+            website: string | null;
+            /** Notification Email */
+            notification_email: string | null;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /**
+         * CompanySettingsUpdate
+         * @description Every field optional — this is a partial update.
+         */
+        CompanySettingsUpdate: {
+            /** Company Name */
+            company_name?: string | null;
+            /** Slogan */
+            slogan?: string | null;
+            /** Tin */
+            tin?: string | null;
+            /** Address */
+            address?: string | null;
+            /** Phone */
+            phone?: string | null;
+            /** Email */
+            email?: string | null;
+            /** Website */
+            website?: string | null;
+            /** Notification Email */
+            notification_email?: string | null;
+        };
         /** DashboardStats */
         DashboardStats: {
             users: components["schemas"]["UserStats"];
@@ -1124,6 +1287,14 @@ export interface components {
          * @enum {string}
          */
         FileCategory: "REQUIREMENT" | "PROPOSAL" | "DESIGN" | "DOCUMENT" | "REPORT" | "IMAGE" | "OTHER";
+        /** ForgotPasswordRequest */
+        ForgotPasswordRequest: {
+            /**
+             * Email
+             * Format: email
+             */
+            email: string;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -1136,6 +1307,26 @@ export interface components {
              * @default 0
              */
             active: number;
+        };
+        /**
+         * InvoiceCompanyBlock
+         * @description The issuer details printed at the top of an invoice.
+         *
+         *     Read from settings at render time rather than copied onto each invoice row:
+         *     correcting a typo in the address should fix every invoice, and the TIN is a
+         *     property of the company, not of one bill.
+         */
+        InvoiceCompanyBlock: {
+            /** Company Name */
+            company_name: string;
+            /** Tin */
+            tin: string | null;
+            /** Address */
+            address: string | null;
+            /** Phone */
+            phone: string | null;
+            /** Email */
+            email: string | null;
         };
         /** InvoiceCreate */
         InvoiceCreate: {
@@ -1284,6 +1475,7 @@ export interface components {
              * @default []
              */
             payments: components["schemas"]["PaymentRead"][];
+            company?: components["schemas"]["InvoiceCompanyBlock"] | null;
         };
         /** InvoiceStats */
         InvoiceStats: {
@@ -1332,6 +1524,17 @@ export interface components {
         MarkAllReadResponse: {
             /** Updated */
             updated: number;
+        };
+        /**
+         * MessageResponse
+         * @description Plain acknowledgement, matching the shape /auth/logout already returns.
+         *
+         *     Forgot-password deliberately answers with the same body whether or not the
+         *     address belongs to an account, so this response reveals nothing.
+         */
+        MessageResponse: {
+            /** Detail */
+            detail: string;
         };
         /** MilestoneReorderItem */
         MilestoneReorderItem: {
@@ -1837,6 +2040,13 @@ export interface components {
             /** Refresh Token */
             refresh_token: string;
         };
+        /** ResetPasswordRequest */
+        ResetPasswordRequest: {
+            /** Token */
+            token: string;
+            /** Password */
+            password: string;
+        };
         /**
          * Role
          * @enum {string}
@@ -2173,6 +2383,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UserRead"];
+                };
+            };
+        };
+    };
+    forgot_password_api_v1_auth_forgot_password_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ForgotPasswordRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MessageResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reset_password_api_v1_auth_reset_password_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResetPasswordRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MessageResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -3929,6 +4205,79 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["NotificationRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_public_settings_api_v1_settings_public_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanySettingsPublicRead"];
+                };
+            };
+        };
+    };
+    get_settings_api_v1_settings_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanySettingsRead"];
+                };
+            };
+        };
+    };
+    update_settings_api_v1_settings_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CompanySettingsUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanySettingsRead"];
                 };
             };
             /** @description Validation Error */

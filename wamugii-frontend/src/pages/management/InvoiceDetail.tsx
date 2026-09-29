@@ -26,6 +26,7 @@ import {
   type InvoiceFormValues,
 } from '@/components/invoices/InvoiceForm'
 import { RecordPaymentModal } from '@/components/invoices/RecordPaymentModal'
+import { InvoiceCompanyHeader } from '@/components/invoices/InvoiceCompanyHeader'
 import { formatDate, formatEnumLabel, formatMoney } from '@/utils/format'
 import { invoiceStatusVariant } from '@/utils/statusBadge'
 
@@ -199,6 +200,14 @@ export function InvoiceDetail() {
           )}
         </div>
       </div>
+
+      {!isEditing && (
+        <InvoiceCompanyHeader
+          company={invoice.company}
+          invoiceNumber={invoice.invoice_number}
+          isVat={hasVatRate(invoice.tax_rate)}
+        />
+      )}
 
       {isEditing ? (
         <div className="rounded-xl border border-slate-200 bg-panel p-6 shadow-sm">

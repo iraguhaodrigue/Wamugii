@@ -1,5 +1,5 @@
 import { Route, Routes } from 'react-router-dom'
-import { LayoutDashboard, FolderKanban, MessageSquare, Receipt, Users } from 'lucide-react'
+import { LayoutDashboard, FolderKanban, MessageSquare, Receipt, Settings, Users } from 'lucide-react'
 import { PublicLayout } from '@/components/layout/PublicLayout'
 import { AuthLayout } from '@/components/layout/AuthLayout'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
@@ -14,6 +14,8 @@ import { ServiceDetail } from '@/pages/public/ServiceDetail'
 import { RequestQuote } from '@/pages/public/RequestQuote'
 import { Login } from '@/pages/auth/Login'
 import { Register } from '@/pages/auth/Register'
+import { ForgotPassword } from '@/pages/auth/ForgotPassword'
+import { ResetPassword } from '@/pages/auth/ResetPassword'
 import { ClientDashboard } from '@/pages/client/Dashboard'
 import { ClientProjects } from '@/pages/client/Projects'
 import { ClientProjectDetail } from '@/pages/client/ProjectDetail'
@@ -34,6 +36,7 @@ import { AdminProjectDetail } from '@/pages/admin/ProjectDetail'
 import { AdminQuotes } from '@/pages/admin/Quotes'
 import { AdminQuoteDetail } from '@/pages/admin/QuoteDetail'
 import { AdminInvoices } from '@/pages/admin/Invoices'
+import { AdminSettings } from '@/pages/admin/Settings'
 import { AdminInvoiceDetail } from '@/pages/admin/InvoiceDetail'
 import { NotFound } from '@/pages/NotFound'
 
@@ -56,6 +59,7 @@ const adminNavItems = [
   { label: 'Projects', to: paths.admin.projects, icon: FolderKanban },
   { label: 'Quote Requests', to: paths.admin.quotes, icon: MessageSquare },
   { label: 'Invoices', to: paths.admin.invoices, icon: Receipt },
+  { label: 'Settings', to: paths.admin.settings, icon: Settings },
 ]
 
 function App() {
@@ -73,6 +77,9 @@ function App() {
       <Route element={<AuthLayout />}>
         <Route path={paths.login} element={<Login />} />
         <Route path={paths.register} element={<Register />} />
+        {/* Public: the user is locked out, so no auth guard. */}
+        <Route path={paths.forgotPassword} element={<ForgotPassword />} />
+        <Route path={paths.resetPassword} element={<ResetPassword />} />
       </Route>
 
       {/* Authenticated areas — ProtectedRoute checks login, RoleProtectedRoute checks role */}
@@ -113,6 +120,7 @@ function App() {
             <Route path="/admin/quotes/:quoteId" element={<AdminQuoteDetail />} />
             <Route path={paths.admin.invoices} element={<AdminInvoices />} />
             <Route path="/admin/invoices/:invoiceId" element={<AdminInvoiceDetail />} />
+            <Route path={paths.admin.settings} element={<AdminSettings />} />
           </Route>
         </Route>
       </Route>

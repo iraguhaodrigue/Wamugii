@@ -55,14 +55,22 @@ export function Login() {
           error={errors.email?.message}
           {...register('email')}
         />
-        <Input
-          label="Password"
-          type="password"
-          autoComplete="current-password"
-          required
-          error={errors.password?.message}
-          {...register('password')}
-        />
+        <div className="flex flex-col gap-1.5">
+          <Input
+            label="Password"
+            type="password"
+            autoComplete="current-password"
+            required
+            error={errors.password?.message}
+            {...register('password')}
+          />
+          <Link
+            to={paths.forgotPassword}
+            className="self-end text-sm font-medium text-brand-600 hover:underline"
+          >
+            Forgot password?
+          </Link>
+        </div>
 
         {formError && (
           <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">

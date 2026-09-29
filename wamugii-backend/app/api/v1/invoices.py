@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app.api.deps import DbDep, require_roles
+from app.crud import company_settings as settings_crud
 from app.crud import invoice as invoice_crud
 from app.crud import project as project_crud
 from app.crud import user as user_crud
@@ -60,6 +61,19 @@ def validate_project_for_invoice(db: Session, project_id: int, client_id: int) -
         )
 
 
+def _with_company(db: Session, invoice: Invoice) -> Invoice:
+    """
+    Attach the issuer block so InvoiceRead can serialize it.
+
+    Set as a plain attribute on the ORM instance rather than a column: it is
+    rendered from settings at read time, not stored per invoice, so a corrected
+    address or a newly entered TIN applies to every invoice at once. SQLAlchemy
+    ignores attributes it doesn't map, so nothing is persisted.
+    """
+    invoice.company = settings_crud.get_settings(db)
+    return invoice
+
+
 def validate_settable_status(status: InvoiceStatus | None) -> None:
     if status is not None and status not in SETTABLE_STATUSES:
         raise HTTPException(
@@ -90,7 +104,7 @@ def create_invoice(data: InvoiceCreate, db: DbDep, current_user: StaffOrAdmin):
     # would announce a bill they aren't meant to see. Only issued ones notify.
     if invoice.status != InvoiceStatus.DRAFT:
         notifications.notify_invoice_created(db, invoice)
-    return invoice
+    return _with_company(db, invoice)
 
 
 @router.get("", response_model=list[InvoiceListItem], summary="List invoices (ADMIN or STAFF)")
@@ -122,7 +136,7 @@ def get_invoice(invoice_id: int, db: DbDep, current_user: StaffOrAdmin):
     invoice = invoice_crud.get_by_id(db, invoice_id)
     if not invoice:
         raise HTTPException(status_code=404, detail="Invoice not found")
-    return invoice
+    return _with_company(db, invoice)
 
 
 @router.patch("/{invoice_id}", response_model=InvoiceRead, summary="Update an invoice (ADMIN or STAFF)")
@@ -154,7 +168,7 @@ def update_invoice(invoice_id: int, data: InvoiceUpdate, db: DbDep, current_user
         invoice_id,
         data.model_dump(exclude_unset=True),
     )
-    return updated
+    return _with_company(db, updated)
 
 
 @router.delete("/{invoice_id}", response_model=InvoiceRead, summary="Deactivate an invoice (ADMIN only, soft delete)")
@@ -164,7 +178,7 @@ def deactivate_invoice(invoice_id: int, db: DbDep, current_user: AdminOnly):
         raise HTTPException(status_code=404, detail="Invoice not found")
     updated = invoice_crud.deactivate(db, invoice)
     logger.info("admin %s deactivated invoice %s", current_user.id, invoice_id)
-    return updated
+    return _with_company(db, updated)
 
 
 @router.post(
