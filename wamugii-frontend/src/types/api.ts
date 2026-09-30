@@ -594,6 +594,47 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/client/hosting": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List the authenticated client's hosting accounts
+         * @description The client's own hosting. The response model carries no `server_notes`, so
+         *     internal provisioning detail cannot leak here.
+         */
+        get: operations["list_hosting_api_v1_client_hosting_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/client/hosting/{account_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get one of the authenticated client's hosting accounts
+         * @description 404 (not 403) for anything that isn't this client's — same as projects.
+         */
+        get: operations["get_hosting_api_v1_client_hosting__account_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/client/quotes": {
         parameters: {
             query?: never;
@@ -835,6 +876,85 @@ export interface paths {
         patch: operations["update_settings_api_v1_settings_patch"];
         trace?: never;
     };
+    "/api/v1/hosting/plans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List hosting plans (public)
+         * @description Open endpoint — the pricing page is public. `include_inactive` is honoured
+         *     so an admin screen can reuse this, and it exposes nothing sensitive: plans
+         *     carry only marketing copy and prices.
+         */
+        get: operations["list_plans_api_v1_hosting_plans_get"];
+        put?: never;
+        /** Create a hosting plan (ADMIN only) */
+        post: operations["create_plan_api_v1_hosting_plans_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hosting/plans/{plan_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a hosting plan (public) */
+        get: operations["get_plan_api_v1_hosting_plans__plan_id__get"];
+        put?: never;
+        post?: never;
+        /** Deactivate a hosting plan (ADMIN only, soft delete) */
+        delete: operations["deactivate_plan_api_v1_hosting_plans__plan_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update a hosting plan (ADMIN only) */
+        patch: operations["update_plan_api_v1_hosting_plans__plan_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/hosting/accounts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List hosting accounts (ADMIN or STAFF) */
+        get: operations["list_accounts_api_v1_hosting_accounts_get"];
+        put?: never;
+        /** Create a hosting account for a client (ADMIN or STAFF) */
+        post: operations["create_account_api_v1_hosting_accounts_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hosting/accounts/{account_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a hosting account (ADMIN or STAFF) */
+        get: operations["get_account_api_v1_hosting_accounts__account_id__get"];
+        put?: never;
+        post?: never;
+        /** Deactivate a hosting account (ADMIN only, soft delete) */
+        delete: operations["deactivate_account_api_v1_hosting_accounts__account_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update a hosting account (ADMIN or STAFF) */
+        patch: operations["update_account_api_v1_hosting_accounts__account_id__patch"];
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -856,6 +976,11 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * BillingCycle
+         * @enum {string}
+         */
+        BillingCycle: "MONTHLY" | "YEARLY";
         /** Body_login_api_v1_auth_login_post */
         Body_login_api_v1_auth_login_post: {
             /** Grant Type */
@@ -931,6 +1056,86 @@ export interface components {
             completed_projects: number;
             /** Pending Quotes */
             pending_quotes: number;
+        };
+        /**
+         * ClientHostingDetail
+         * @description Full hosting detail for the owning client.
+         *
+         *     Includes `nameservers` — the client needs those to point their DNS — but
+         *     never `server_notes`, `invoice_id` internals, or any other staff field.
+         */
+        ClientHostingDetail: {
+            /** Id */
+            id: number;
+            /** Domain */
+            domain: string | null;
+            /** Nameservers */
+            nameservers: string | null;
+            status: components["schemas"]["HostingStatus"];
+            billing_cycle: components["schemas"]["BillingCycle"];
+            /** Start Date */
+            start_date: string | null;
+            /** Next Billing Date */
+            next_billing_date: string | null;
+            /** Expires At */
+            expires_at: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            plan?: components["schemas"]["ClientHostingPlanRead"] | null;
+        };
+        /**
+         * ClientHostingListItem
+         * @description Hosting summary for the client's own list.
+         *
+         *     `server_notes` is not declared on this model or on the detail model below,
+         *     so internal provisioning notes cannot reach a client even if the whole ORM
+         *     row is passed in.
+         */
+        ClientHostingListItem: {
+            /** Id */
+            id: number;
+            /** Domain */
+            domain: string | null;
+            status: components["schemas"]["HostingStatus"];
+            billing_cycle: components["schemas"]["BillingCycle"];
+            /** Start Date */
+            start_date: string | null;
+            /** Next Billing Date */
+            next_billing_date: string | null;
+            /** Expires At */
+            expires_at: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            plan?: components["schemas"]["ClientHostingPlanRead"] | null;
+        };
+        /**
+         * ClientHostingPlanRead
+         * @description Plan details a client may see — plans are public anyway.
+         */
+        ClientHostingPlanRead: {
+            /** Id */
+            id: number;
+            /** Name */
+            name: string;
+            /** Description */
+            description: string | null;
+            /** Features */
+            features: string;
+            /** Monthly Price */
+            monthly_price: string;
+            /** Yearly Price */
+            yearly_price: string;
         };
         /**
          * ClientInvoiceDetail
@@ -1300,6 +1505,196 @@ export interface components {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
         };
+        /** HostingAccountCreate */
+        HostingAccountCreate: {
+            /** Client Id */
+            client_id: number;
+            /** Plan Id */
+            plan_id: number;
+            /** Domain */
+            domain?: string | null;
+            /** Nameservers */
+            nameservers?: string | null;
+            /** Server Notes */
+            server_notes?: string | null;
+            /** @default PENDING */
+            status: components["schemas"]["HostingStatus"];
+            /** @default MONTHLY */
+            billing_cycle: components["schemas"]["BillingCycle"];
+            /** Start Date */
+            start_date?: string | null;
+            /** Expires At */
+            expires_at?: string | null;
+            /** Invoice Id */
+            invoice_id?: number | null;
+        };
+        /** HostingAccountListItem */
+        HostingAccountListItem: {
+            /** Id */
+            id: number;
+            /** Client Id */
+            client_id: number;
+            /** Plan Id */
+            plan_id: number;
+            /** Domain */
+            domain: string | null;
+            status: components["schemas"]["HostingStatus"];
+            billing_cycle: components["schemas"]["BillingCycle"];
+            /** Next Billing Date */
+            next_billing_date: string | null;
+            /** Expires At */
+            expires_at: string | null;
+            /** Is Active */
+            is_active: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /**
+         * HostingAccountRead
+         * @description Full staff view, including the internal server notes.
+         */
+        HostingAccountRead: {
+            /** Id */
+            id: number;
+            /** Client Id */
+            client_id: number;
+            /** Plan Id */
+            plan_id: number;
+            /** Domain */
+            domain: string | null;
+            /** Nameservers */
+            nameservers: string | null;
+            /** Server Notes */
+            server_notes: string | null;
+            status: components["schemas"]["HostingStatus"];
+            billing_cycle: components["schemas"]["BillingCycle"];
+            /** Start Date */
+            start_date: string | null;
+            /** Next Billing Date */
+            next_billing_date: string | null;
+            /** Expires At */
+            expires_at: string | null;
+            /** Invoice Id */
+            invoice_id: number | null;
+            /** Is Active */
+            is_active: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            plan?: components["schemas"]["HostingPlanRead"] | null;
+        };
+        /** HostingAccountUpdate */
+        HostingAccountUpdate: {
+            /** Plan Id */
+            plan_id?: number | null;
+            /** Domain */
+            domain?: string | null;
+            /** Nameservers */
+            nameservers?: string | null;
+            /** Server Notes */
+            server_notes?: string | null;
+            status?: components["schemas"]["HostingStatus"] | null;
+            billing_cycle?: components["schemas"]["BillingCycle"] | null;
+            /** Start Date */
+            start_date?: string | null;
+            /** Next Billing Date */
+            next_billing_date?: string | null;
+            /** Expires At */
+            expires_at?: string | null;
+            /** Invoice Id */
+            invoice_id?: number | null;
+        };
+        /** HostingPlanCreate */
+        HostingPlanCreate: {
+            /** Name */
+            name: string;
+            /** Description */
+            description?: string | null;
+            /**
+             * Features
+             * @default
+             */
+            features: string;
+            /**
+             * Monthly Price
+             * @default 0
+             */
+            monthly_price: number | string;
+            /**
+             * Yearly Price
+             * @default 0
+             */
+            yearly_price: number | string;
+            /**
+             * Display Order
+             * @default 0
+             */
+            display_order: number;
+            /**
+             * Is Active
+             * @default true
+             */
+            is_active: boolean;
+        };
+        /**
+         * HostingPlanRead
+         * @description Plans are public — there is nothing internal on them.
+         */
+        HostingPlanRead: {
+            /** Id */
+            id: number;
+            /** Name */
+            name: string;
+            /** Description */
+            description: string | null;
+            /** Features */
+            features: string;
+            /** Monthly Price */
+            monthly_price: string;
+            /** Yearly Price */
+            yearly_price: string;
+            /** Is Active */
+            is_active: boolean;
+            /** Display Order */
+            display_order: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** HostingPlanUpdate */
+        HostingPlanUpdate: {
+            /** Name */
+            name?: string | null;
+            /** Description */
+            description?: string | null;
+            /** Features */
+            features?: string | null;
+            /** Monthly Price */
+            monthly_price?: number | string | null;
+            /** Yearly Price */
+            yearly_price?: number | string | null;
+            /** Display Order */
+            display_order?: number | null;
+            /** Is Active */
+            is_active?: boolean | null;
+        };
         /** HostingStats */
         HostingStats: {
             /**
@@ -1308,6 +1703,11 @@ export interface components {
              */
             active: number;
         };
+        /**
+         * HostingStatus
+         * @enum {string}
+         */
+        HostingStatus: "PENDING" | "ACTIVE" | "SUSPENDED" | "EXPIRED" | "CANCELLED";
         /**
          * InvoiceCompanyBlock
          * @description The issuer details printed at the top of an invoice.
@@ -1584,7 +1984,7 @@ export interface components {
          * NotificationType
          * @enum {string}
          */
-        NotificationType: "QUOTE_SUBMITTED" | "QUOTE_STATUS_CHANGED" | "PROJECT_CREATED" | "PROJECT_STATUS_CHANGED" | "MILESTONE_COMPLETED" | "FILE_UPLOADED" | "INVOICE_CREATED" | "INVOICE_DUE" | "PAYMENT_RECORDED";
+        NotificationType: "QUOTE_SUBMITTED" | "QUOTE_STATUS_CHANGED" | "PROJECT_CREATED" | "PROJECT_STATUS_CHANGED" | "MILESTONE_COMPLETED" | "FILE_UPLOADED" | "INVOICE_CREATED" | "INVOICE_DUE" | "PAYMENT_RECORDED" | "HOSTING_ACCOUNT_CREATED" | "HOSTING_STATUS_CHANGED";
         /** PaymentCreate */
         PaymentCreate: {
             /** Amount */
@@ -3648,6 +4048,68 @@ export interface operations {
             };
         };
     };
+    list_hosting_api_v1_client_hosting_get: {
+        parameters: {
+            query?: {
+                include_inactive?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClientHostingListItem"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_hosting_api_v1_client_hosting__account_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                account_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClientHostingDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_quotes_api_v1_client_quotes_get: {
         parameters: {
             query?: {
@@ -4278,6 +4740,334 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CompanySettingsRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_plans_api_v1_hosting_plans_get: {
+        parameters: {
+            query?: {
+                include_inactive?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HostingPlanRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_plan_api_v1_hosting_plans_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HostingPlanCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HostingPlanRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_plan_api_v1_hosting_plans__plan_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                plan_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HostingPlanRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    deactivate_plan_api_v1_hosting_plans__plan_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                plan_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HostingPlanRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_plan_api_v1_hosting_plans__plan_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                plan_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HostingPlanUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HostingPlanRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_accounts_api_v1_hosting_accounts_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+                status?: components["schemas"]["HostingStatus"] | null;
+                plan_id?: number | null;
+                client_id?: number | null;
+                search?: string | null;
+                include_inactive?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HostingAccountListItem"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_account_api_v1_hosting_accounts_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HostingAccountCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HostingAccountRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_account_api_v1_hosting_accounts__account_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                account_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HostingAccountRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    deactivate_account_api_v1_hosting_accounts__account_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                account_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HostingAccountRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_account_api_v1_hosting_accounts__account_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                account_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HostingAccountUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HostingAccountRead"];
                 };
             };
             /** @description Validation Error */

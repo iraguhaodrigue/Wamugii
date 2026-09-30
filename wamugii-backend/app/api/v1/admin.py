@@ -4,6 +4,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from app.api.deps import DbDep, require_roles
+from app.crud import hosting as hosting_crud
 from app.crud import invoice as invoice_crud
 from app.crud import project as project_crud
 from app.crud import quote_request as quote_crud
@@ -12,6 +13,7 @@ from app.crud import user as user_crud
 from app.models.user import Role, User
 from app.schemas.admin import (
     DashboardStats,
+    HostingStats,
     InvoiceStats,
     ProjectStats,
     QuoteStats,
@@ -57,7 +59,7 @@ def dashboard(db: DbDep, admin: CurrentAdmin):
             pending=invoice_crud.count_outstanding(db),
             outstanding=invoice_crud.sum_outstanding(db),
         ),
-        # TODO: hosting module not built yet
+        hosting=HostingStats(active=hosting_crud.count_active_accounts(db)),
         # TODO: store module not built yet
         # TODO: support module not built yet
     )

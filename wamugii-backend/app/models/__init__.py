@@ -1,4 +1,10 @@
 from app.models.company_settings import CompanySettings  # noqa: F401
+from app.models.hosting import (  # noqa: F401
+    BillingCycle,
+    HostingAccount,
+    HostingPlan,
+    HostingStatus,
+)
 from app.models.invoice import (  # noqa: F401
     Invoice,
     InvoiceItem,

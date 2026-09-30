@@ -18,7 +18,6 @@ import { Avatar, ErrorState, Skeleton, StatCard } from '@/components/ui'
 import { formatMoney } from '@/utils/format'
 
 const comingSoonTiles = [
-  { label: 'Hosting', icon: Server },
   { label: 'Store', icon: ShoppingBag },
   { label: 'Support', icon: HeadphonesIcon },
 ]
@@ -106,6 +105,12 @@ export function AdminDashboard() {
             label="Unpaid Invoices"
             value={data.invoices.pending}
             accent="accent"
+          />
+          <StatCard
+            icon={Server}
+            label="Active Hosting"
+            value={data.hosting.active}
+            accent="success"
           />
         </div>
         <p className="mt-3 text-xs text-slate-400">

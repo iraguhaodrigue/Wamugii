@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from app.api.deps import ActiveUser, DbDep, require_roles
 from app.crud import client as client_crud
 from app.crud import company_settings as settings_crud
+from app.crud import hosting as hosting_crud
 from app.crud import project_milestone as milestone_crud
 from app.models.invoice import InvoiceStatus
 from app.models.project import ProjectStatus
@@ -16,6 +17,8 @@ from app.schemas.client import (
     ClientActivityItem,
     ClientDashboardRead,
     ClientDashboardSummary,
+    ClientHostingDetail,
+    ClientHostingListItem,
     ClientInvoiceDetail,
     ClientInvoiceListItem,
     ClientMilestoneListItem,
@@ -191,6 +194,35 @@ def get_invoice(invoice_id: int, db: DbDep, current_user: ClientOnly):
     # Issuer details, so the client's copy is a complete VAT invoice.
     invoice.company = settings_crud.get_settings(db)
     return ClientInvoiceDetail.model_validate(invoice)
+
+
+@router.get(
+    "/hosting",
+    response_model=list[ClientHostingListItem],
+    summary="List the authenticated client's hosting accounts",
+)
+def list_hosting(db: DbDep, current_user: ClientOnly, include_inactive: bool = False):
+    """
+    The client's own hosting. The response model carries no `server_notes`, so
+    internal provisioning detail cannot leak here.
+    """
+    accounts = hosting_crud.list_accounts_for_client(
+        db, current_user.id, include_inactive=include_inactive
+    )
+    return [ClientHostingListItem.model_validate(a) for a in accounts]
+
+
+@router.get(
+    "/hosting/{account_id}",
+    response_model=ClientHostingDetail,
+    summary="Get one of the authenticated client's hosting accounts",
+)
+def get_hosting(account_id: int, db: DbDep, current_user: ClientOnly):
+    """404 (not 403) for anything that isn't this client's — same as projects."""
+    account = hosting_crud.get_account_for_client(db, account_id, current_user.id)
+    if not account:
+        raise HTTPException(status_code=404, detail="Hosting account not found")
+    return ClientHostingDetail.model_validate(account)
 
 
 @router.get("/quotes", response_model=list[ClientQuoteListItem], summary="List client quotes")

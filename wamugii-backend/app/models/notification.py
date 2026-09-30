@@ -20,6 +20,8 @@ class NotificationType(str, enum.Enum):
     # stable when that job is added — see services/notifications.py.
     INVOICE_DUE = "INVOICE_DUE"
     PAYMENT_RECORDED = "PAYMENT_RECORDED"
+    HOSTING_ACCOUNT_CREATED = "HOSTING_ACCOUNT_CREATED"
+    HOSTING_STATUS_CHANGED = "HOSTING_STATUS_CHANGED"
 
 
 class Notification(Base):

@@ -17,9 +17,21 @@ export interface CreateInvoiceModalProps {
   onClose: () => void
   clients: UserRead[]
   onCreated: (invoice: InvoiceRead) => void
+  /**
+   * Prefill for callers that already know what's being billed — e.g. the
+   * hosting account detail page opens this with the client and a line item for
+   * the plan at the right price for its billing cycle.
+   */
+  defaultValues?: Partial<InvoiceFormValues>
 }
 
-export function CreateInvoiceModal({ isOpen, onClose, clients, onCreated }: CreateInvoiceModalProps) {
+export function CreateInvoiceModal({
+  isOpen,
+  onClose,
+  clients,
+  onCreated,
+  defaultValues,
+}: CreateInvoiceModalProps) {
   const queryClient = useQueryClient()
   const [formError, setFormError] = useState<string | null>(null)
 
@@ -60,6 +72,7 @@ export function CreateInvoiceModal({ isOpen, onClose, clients, onCreated }: Crea
         key={isOpen ? 'open' : 'closed'}
         mode="create"
         clients={clients}
+        defaultValues={defaultValues}
         isSaving={mutation.isPending}
         formError={formError}
         onSubmit={(values) => mutation.mutate(values)}

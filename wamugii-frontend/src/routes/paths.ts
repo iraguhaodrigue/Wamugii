@@ -5,6 +5,7 @@ type Role = components['schemas']['Role']
 export const paths = {
   home: '/',
   services: '/services',
+  hosting: '/hosting',
   serviceDetail: (id: string | number) => `/services/${id}`,
   requestQuote: '/request-quote',
   login: '/login',
@@ -17,6 +18,8 @@ export const paths = {
     projectDetail: (id: string | number) => `/client/projects/${id}`,
     invoices: '/client/invoices',
     invoiceDetail: (id: string | number) => `/client/invoices/${id}`,
+    hosting: '/client/hosting',
+    hostingDetail: (id: string | number) => `/client/hosting/${id}`,
   },
   staff: {
     overview: '/staff',
@@ -26,6 +29,8 @@ export const paths = {
     quoteDetail: (id: string | number) => `/staff/quotes/${id}`,
     invoices: '/staff/invoices',
     invoiceDetail: (id: string | number) => `/staff/invoices/${id}`,
+    hostingAccounts: '/staff/hosting/accounts',
+    hostingAccountDetail: (id: string | number) => `/staff/hosting/accounts/${id}`,
   },
   admin: {
     dashboard: '/admin/dashboard',
@@ -38,6 +43,9 @@ export const paths = {
     invoices: '/admin/invoices',
     invoiceDetail: (id: string | number) => `/admin/invoices/${id}`,
     settings: '/admin/settings',
+    hostingPlans: '/admin/hosting/plans',
+    hostingAccounts: '/admin/hosting/accounts',
+    hostingAccountDetail: (id: string | number) => `/admin/hosting/accounts/${id}`,
   },
 } as const
 

@@ -2,17 +2,23 @@ import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { Activity, ArrowRight, CheckCircle2, Clock, FolderKanban, TrendingUp } from 'lucide-react'
 import { getClientDashboard } from '@/api/clientPortal'
+import { listClientHosting } from '@/api/hosting'
 import { paths } from '@/routes/paths'
 import { Badge, EmptyState, ErrorState, Skeleton, StatCard } from '@/components/ui'
 import { ClientProjectRow } from '@/components/projects/ClientProjectRow'
 import { formatDate, formatEnumLabel } from '@/utils/format'
-import { quoteStatusVariant } from '@/utils/statusBadge'
+import { hostingStatusVariant, quoteStatusVariant } from '@/utils/statusBadge'
 
 export function ClientDashboard() {
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['client', 'dashboard'],
     queryFn: getClientDashboard,
   })
+
+  // Separate from the dashboard payload so the existing endpoint's shape stays
+  // untouched; the summary simply doesn't render if this is empty or fails.
+  const hostingQuery = useQuery({ queryKey: ['client', 'hosting'], queryFn: listClientHosting })
+  const hostingAccounts = hostingQuery.data ?? []
 
   if (isLoading) {
     return (
@@ -53,6 +59,46 @@ export function ClientDashboard() {
         <StatCard icon={CheckCircle2} label="Completed Projects" value={data.summary.completed_projects} accent="success" />
         <StatCard icon={Clock} label="Pending Quotes" value={data.summary.pending_quotes} accent="warning" />
       </div>
+
+      {/* Only rendered when the client actually has hosting — no empty tile. */}
+      {hostingAccounts.length > 0 && (
+        <section>
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-slate-900">My Hosting</h2>
+            <Link
+              to={paths.client.hosting}
+              className="inline-flex items-center gap-1 text-sm font-medium text-brand-600 hover:text-brand-700"
+            >
+              View all
+              <ArrowRight className="size-4" aria-hidden="true" />
+            </Link>
+          </div>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            {hostingAccounts.slice(0, 2).map((account) => (
+              <Link
+                key={account.id}
+                to={paths.client.hostingDetail(account.id)}
+                className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-panel p-4 shadow-[var(--shadow-card)] backdrop-blur-sm transition-colors hover:border-brand-400/30"
+              >
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium text-slate-900">
+                    {account.domain ?? `Hosting #${account.id}`}
+                  </p>
+                  <p className="mt-0.5 text-xs text-slate-500">
+                    {account.plan?.name ?? 'Hosting'}
+                    {account.next_billing_date
+                      ? ` · renews ${formatDate(account.next_billing_date)}`
+                      : ''}
+                  </p>
+                </div>
+                <Badge variant={hostingStatusVariant[account.status]}>
+                  {formatEnumLabel(account.status)}
+                </Badge>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section>
         <div className="flex items-center justify-between">

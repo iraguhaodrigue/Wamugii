@@ -6,6 +6,7 @@ type ProjectPriority = components['schemas']['ProjectPriority']
 type MilestoneStatus = components['schemas']['MilestoneStatus']
 type QuoteStatus = components['schemas']['QuoteStatus']
 type InvoiceStatus = components['schemas']['InvoiceStatus']
+type HostingStatus = components['schemas']['HostingStatus']
 type Role = components['schemas']['Role']
 
 export const projectStatusVariant: Record<ProjectStatus, BadgeVariant> = {
@@ -49,6 +50,14 @@ export const invoiceStatusVariant: Record<InvoiceStatus, BadgeVariant> = {
   PARTIALLY_PAID: 'warning',
   PAID: 'success',
   OVERDUE: 'danger',
+  CANCELLED: 'neutral',
+}
+
+export const hostingStatusVariant: Record<HostingStatus, BadgeVariant> = {
+  PENDING: 'neutral',
+  ACTIVE: 'success',
+  SUSPENDED: 'warning',
+  EXPIRED: 'danger',
   CANCELLED: 'neutral',
 }
 

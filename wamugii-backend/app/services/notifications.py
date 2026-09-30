@@ -23,6 +23,7 @@ from sqlalchemy.orm import Session
 from app.crud import company_settings as settings_crud
 from app.crud import notification as notification_crud
 from app.crud import user as user_crud
+from app.models.hosting import HostingAccount
 from app.models.invoice import Invoice, Payment
 from app.models.notification import NotificationType
 from app.models.project import Project
@@ -314,6 +315,65 @@ def notify_invoice_created(db: Session, invoice: Invoice) -> None:
     client = _recipient(db, invoice.client_id)
     if client is not None:
         _send_email(client, email_templates.invoice_created_client(invoice, client))
+
+
+# --- hosting events ---------------------------------------------------------
+
+
+def notify_hosting_account_created(db: Session, account: HostingAccount) -> None:
+    _emit(
+        db,
+        user_id=account.client_id,
+        type=NotificationType.HOSTING_ACCOUNT_CREATED,
+        title="Hosting account created",
+        message=(
+            f"Your hosting account{f' for {account.domain}' if account.domain else ''} has been "
+            "created — we'll set it up shortly."
+        ),
+        related_type="hosting",
+        related_id=account.id,
+    )
+    client = _recipient(db, account.client_id)
+    if client is not None:
+        _send_email(
+            client,
+            email_templates.hosting_account_created_client(account, account.plan, client),
+        )
+
+
+def notify_hosting_status_changed(db: Session, account: HostingAccount) -> None:
+    """
+    Called only for status transitions worth telling the client about (ACTIVE
+    and SUSPENDED) — see api/v1/hosting.update_account.
+    """
+    status = account.status.value
+    if status == "ACTIVE":
+        message = (
+            f"Your hosting{f' for {account.domain}' if account.domain else ''} is now active."
+        )
+        if account.nameservers:
+            message += f" Nameservers: {account.nameservers}"
+    else:
+        message = (
+            f"Your hosting{f' for {account.domain}' if account.domain else ''} is now "
+            f"{status.lower()}."
+        )
+
+    _emit(
+        db,
+        user_id=account.client_id,
+        type=NotificationType.HOSTING_STATUS_CHANGED,
+        title="Hosting status updated",
+        message=message,
+        related_type="hosting",
+        related_id=account.id,
+    )
+    client = _recipient(db, account.client_id)
+    if client is not None:
+        _send_email(
+            client,
+            email_templates.hosting_status_changed_client(account, account.plan, client),
+        )
 
 
 def notify_payment_recorded(db: Session, invoice: Invoice, payment: Payment) -> None:

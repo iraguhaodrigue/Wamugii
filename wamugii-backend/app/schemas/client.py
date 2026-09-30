@@ -1,8 +1,9 @@
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from app.models.hosting import BillingCycle, HostingStatus
 from app.models.invoice import InvoiceStatus, PaymentMethod
 from app.models.project import ProjectPriority, ProjectStatus
 from app.models.project_milestone import MilestoneStatus
@@ -162,6 +163,64 @@ class ClientInvoiceDetail(BaseModel):
     payments: list[ClientPaymentRead] = []
     # The client needs the issuer's details to have a valid VAT invoice.
     company: InvoiceCompanyBlock | None = None
+
+
+class ClientHostingPlanRead(BaseModel):
+    """Plan details a client may see — plans are public anyway."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    name: str
+    description: str | None
+    features: str
+    monthly_price: Decimal
+    yearly_price: Decimal
+
+
+class ClientHostingListItem(BaseModel):
+    """
+    Hosting summary for the client's own list.
+
+    `server_notes` is not declared on this model or on the detail model below,
+    so internal provisioning notes cannot reach a client even if the whole ORM
+    row is passed in.
+    """
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    domain: str | None
+    status: HostingStatus
+    billing_cycle: BillingCycle
+    start_date: date | None
+    next_billing_date: date | None
+    expires_at: date | None
+    created_at: datetime
+    plan: ClientHostingPlanRead | None = None
+
+
+class ClientHostingDetail(BaseModel):
+    """
+    Full hosting detail for the owning client.
+
+    Includes `nameservers` — the client needs those to point their DNS — but
+    never `server_notes`, `invoice_id` internals, or any other staff field.
+    """
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    domain: str | None
+    nameservers: str | None
+    status: HostingStatus
+    billing_cycle: BillingCycle
+    start_date: date | None
+    next_billing_date: date | None
+    expires_at: date | None
+    created_at: datetime
+    updated_at: datetime
+    plan: ClientHostingPlanRead | None = None
 
 
 class ClientActivityItem(BaseModel):

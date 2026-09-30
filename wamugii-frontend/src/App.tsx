@@ -1,5 +1,13 @@
 import { Route, Routes } from 'react-router-dom'
-import { LayoutDashboard, FolderKanban, MessageSquare, Receipt, Settings, Users } from 'lucide-react'
+import {
+  FolderKanban,
+  LayoutDashboard,
+  MessageSquare,
+  Receipt,
+  Server,
+  Settings,
+  Users,
+} from 'lucide-react'
 import { PublicLayout } from '@/components/layout/PublicLayout'
 import { AuthLayout } from '@/components/layout/AuthLayout'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
@@ -12,6 +20,7 @@ import { Home } from '@/pages/public/Home'
 import { Services } from '@/pages/public/Services'
 import { ServiceDetail } from '@/pages/public/ServiceDetail'
 import { RequestQuote } from '@/pages/public/RequestQuote'
+import { Hosting } from '@/pages/public/Hosting'
 import { Login } from '@/pages/auth/Login'
 import { Register } from '@/pages/auth/Register'
 import { ForgotPassword } from '@/pages/auth/ForgotPassword'
@@ -21,6 +30,8 @@ import { ClientProjects } from '@/pages/client/Projects'
 import { ClientProjectDetail } from '@/pages/client/ProjectDetail'
 import { ClientInvoices } from '@/pages/client/Invoices'
 import { ClientInvoiceDetail } from '@/pages/client/InvoiceDetail'
+import { ClientHosting } from '@/pages/client/Hosting'
+import { ClientHostingDetail } from '@/pages/client/HostingDetail'
 import { StaffOverview } from '@/pages/staff/Overview'
 import { StaffProjects } from '@/pages/staff/Projects'
 import { StaffProjectDetail } from '@/pages/staff/ProjectDetail'
@@ -28,6 +39,8 @@ import { StaffQuotes } from '@/pages/staff/Quotes'
 import { StaffQuoteDetail } from '@/pages/staff/QuoteDetail'
 import { StaffInvoices } from '@/pages/staff/Invoices'
 import { StaffInvoiceDetail } from '@/pages/staff/InvoiceDetail'
+import { StaffHostingAccounts } from '@/pages/staff/HostingAccounts'
+import { StaffHostingAccountDetail } from '@/pages/staff/HostingAccountDetail'
 import { AdminDashboard } from '@/pages/admin/Dashboard'
 import { AdminUsers } from '@/pages/admin/Users'
 import { AdminUserDetail } from '@/pages/admin/UserDetail'
@@ -37,6 +50,9 @@ import { AdminQuotes } from '@/pages/admin/Quotes'
 import { AdminQuoteDetail } from '@/pages/admin/QuoteDetail'
 import { AdminInvoices } from '@/pages/admin/Invoices'
 import { AdminSettings } from '@/pages/admin/Settings'
+import { AdminHostingPlans } from '@/pages/admin/HostingPlans'
+import { AdminHostingAccounts } from '@/pages/admin/HostingAccounts'
+import { AdminHostingAccountDetail } from '@/pages/admin/HostingAccountDetail'
 import { AdminInvoiceDetail } from '@/pages/admin/InvoiceDetail'
 import { NotFound } from '@/pages/NotFound'
 
@@ -44,6 +60,7 @@ const clientNavItems = [
   { label: 'Dashboard', to: paths.client.dashboard, icon: LayoutDashboard },
   { label: 'My Projects', to: paths.client.projects, icon: FolderKanban },
   { label: 'My Invoices', to: paths.client.invoices, icon: Receipt },
+  { label: 'My Hosting', to: paths.client.hosting, icon: Server },
 ]
 
 const staffNavItems = [
@@ -51,6 +68,7 @@ const staffNavItems = [
   { label: 'Projects', to: paths.staff.projects, icon: FolderKanban },
   { label: 'Quote Requests', to: paths.staff.quotes, icon: MessageSquare },
   { label: 'Invoices', to: paths.staff.invoices, icon: Receipt },
+  { label: 'Hosting', to: paths.staff.hostingAccounts, icon: Server },
 ]
 
 const adminNavItems = [
@@ -59,6 +77,8 @@ const adminNavItems = [
   { label: 'Projects', to: paths.admin.projects, icon: FolderKanban },
   { label: 'Quote Requests', to: paths.admin.quotes, icon: MessageSquare },
   { label: 'Invoices', to: paths.admin.invoices, icon: Receipt },
+  { label: 'Hosting', to: paths.admin.hostingAccounts, icon: Server },
+  { label: 'Hosting Plans', to: paths.admin.hostingPlans, icon: Server },
   { label: 'Settings', to: paths.admin.settings, icon: Settings },
 ]
 
@@ -71,6 +91,7 @@ function App() {
         <Route path={paths.services} element={<Services />} />
         <Route path="/services/:serviceId" element={<ServiceDetail />} />
         <Route path={paths.requestQuote} element={<RequestQuote />} />
+        <Route path={paths.hosting} element={<Hosting />} />
       </Route>
 
       {/* Auth */}
@@ -92,6 +113,8 @@ function App() {
             <Route path="/client/projects/:projectId" element={<ClientProjectDetail />} />
             <Route path={paths.client.invoices} element={<ClientInvoices />} />
             <Route path="/client/invoices/:invoiceId" element={<ClientInvoiceDetail />} />
+            <Route path={paths.client.hosting} element={<ClientHosting />} />
+            <Route path="/client/hosting/:accountId" element={<ClientHostingDetail />} />
           </Route>
         </Route>
 
@@ -105,6 +128,8 @@ function App() {
             <Route path="/staff/quotes/:quoteId" element={<StaffQuoteDetail />} />
             <Route path={paths.staff.invoices} element={<StaffInvoices />} />
             <Route path="/staff/invoices/:invoiceId" element={<StaffInvoiceDetail />} />
+            <Route path={paths.staff.hostingAccounts} element={<StaffHostingAccounts />} />
+            <Route path="/staff/hosting/accounts/:accountId" element={<StaffHostingAccountDetail />} />
           </Route>
         </Route>
 
@@ -120,6 +145,9 @@ function App() {
             <Route path="/admin/quotes/:quoteId" element={<AdminQuoteDetail />} />
             <Route path={paths.admin.invoices} element={<AdminInvoices />} />
             <Route path="/admin/invoices/:invoiceId" element={<AdminInvoiceDetail />} />
+            <Route path={paths.admin.hostingPlans} element={<AdminHostingPlans />} />
+            <Route path={paths.admin.hostingAccounts} element={<AdminHostingAccounts />} />
+            <Route path="/admin/hosting/accounts/:accountId" element={<AdminHostingAccountDetail />} />
             <Route path={paths.admin.settings} element={<AdminSettings />} />
           </Route>
         </Route>

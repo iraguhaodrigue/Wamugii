@@ -237,6 +237,90 @@ def invoice_created_client(invoice, client) -> tuple[str, str, str]:
     return subject, html, text
 
 
+HOSTING_STATUS_MEANING: dict[str, str] = {
+    "PENDING": "Your hosting is queued for setup — we'll let you know the moment it's live.",
+    "ACTIVE": "Your hosting is live and ready to use.",
+    "SUSPENDED": "Your hosting has been suspended. Get in touch and we'll sort it out with you.",
+    "EXPIRED": "Your hosting term has ended. Contact us to renew it.",
+    "CANCELLED": "Your hosting has been cancelled.",
+}
+
+
+def hosting_account_created_client(account, plan, client) -> tuple[str, str, str]:
+    subject = "Your WAMUGII hosting account has been created"
+    url = _cta_url("/client/hosting")
+
+    pairs = [("Plan", plan.name if plan else "—")]
+    if account.domain:
+        pairs.append(("Domain", account.domain))
+    pairs.append(("Billing", _billing_label(account)))
+
+    html = _shell(
+        heading="Hosting account created",
+        intro=(
+            f"Hi {client.full_name.split(' ')[0]}, your hosting account has been created — "
+            "we'll set it up shortly and email you again once it's live."
+        ),
+        detail_rows=_rows(pairs),
+        cta=_button(url, "View My Hosting"),
+    )
+    text = _plain(
+        "Hosting account created",
+        [f"{label}: {value}" for label, value in pairs]
+        + ["", "We'll set it up shortly and email you once it's live."],
+        url,
+        "View My Hosting",
+    )
+    return subject, html, text
+
+
+def hosting_status_changed_client(account, plan, client) -> tuple[str, str, str]:
+    status = account.status.value if hasattr(account.status, "value") else str(account.status)
+    target = account.domain or (plan.name if plan else "your hosting")
+
+    if status == "ACTIVE":
+        subject = f"Your hosting for {target} is now active"
+        heading = "Your hosting is live"
+    else:
+        subject = f"Hosting update for {target}"
+        heading = "Hosting status updated"
+
+    meaning = HOSTING_STATUS_MEANING.get(status, "Your hosting status has been updated.")
+    url = _cta_url("/client/hosting")
+
+    pairs = [("Status", status.replace("_", " ").title())]
+    if plan:
+        pairs.append(("Plan", plan.name))
+    if account.domain:
+        pairs.append(("Domain", account.domain))
+    # Only meaningful once the account is live and DNS can actually be pointed.
+    if status == "ACTIVE" and account.nameservers:
+        pairs.append(("Nameservers", account.nameservers))
+
+    html = _shell(
+        heading=heading,
+        intro=f"Hi {client.full_name.split(' ')[0]}, {meaning}",
+        detail_rows=_rows(pairs),
+        cta=_button(url, "View My Hosting"),
+    )
+    text = _plain(
+        heading,
+        [meaning, ""] + [f"{label}: {value}" for label, value in pairs],
+        url,
+        "View My Hosting",
+    )
+    return subject, html, text
+
+
+def _billing_label(account) -> str:
+    cycle = (
+        account.billing_cycle.value
+        if hasattr(account.billing_cycle, "value")
+        else str(account.billing_cycle)
+    )
+    return cycle.title()
+
+
 def password_reset(user, reset_url: str | None) -> tuple[str, str, str]:
     """
     The reset link email.

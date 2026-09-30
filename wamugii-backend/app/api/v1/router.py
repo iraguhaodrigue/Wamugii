@@ -4,6 +4,7 @@ from app.api.v1 import (
     admin,
     auth,
     client,
+    hosting,
     invoices,
     notifications,
     projects,
@@ -28,3 +29,4 @@ api_router.include_router(quote_requests.router)
 api_router.include_router(invoices.router)
 api_router.include_router(notifications.router)
 api_router.include_router(settings.router)
+api_router.include_router(hosting.router)
