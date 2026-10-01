@@ -5,7 +5,7 @@ import jwt
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 
-from app.api.deps import ActiveUser, DbDep
+from app.api.deps import AnyApprovalUser, DbDep
 from app.core.config import settings
 from app.core.security import REFRESH, create_access_token, create_refresh_token, decode_token
 from app.crud import password_reset_token as reset_crud
@@ -16,8 +16,9 @@ from app.schemas.password_reset import (
     ResetPasswordRequest,
 )
 from app.schemas.token import RefreshRequest, Token
-from app.schemas.user import UserCreate, UserRead
-from app.services import email_service, email_templates
+from app.models.user import ApprovalStatus, Role
+from app.schemas.user import TeamMemberRegister, UserCreate, UserRead
+from app.services import email_service, email_templates, notifications
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 logger = logging.getLogger(__name__)
@@ -49,6 +50,47 @@ def register(data: UserCreate, db: DbDep):
     return user_crud.create(db, data)
 
 
+TEAM_MEMBER_PENDING_RESPONSE = (
+    "Thanks for registering. Your account is pending admin approval — we'll email "
+    "you as soon as it's approved."
+)
+
+
+@router.post("/register-team-member", response_model=MessageResponse, status_code=201)
+def register_team_member(data: TeamMemberRegister, db: DbDep):
+    """
+    Public self-registration for a project collaborator.
+
+    The account is created PENDING: it can log in, but the approval gate in
+    `deps.get_current_active_user` closes every other endpoint until an admin
+    approves it.
+
+    Returns a message rather than the user row, and the *same* message whether
+    or not the address was already taken — otherwise this endpoint becomes an
+    account-enumeration oracle, the same reasoning as forgot-password. A
+    duplicate simply creates nothing.
+    """
+    existing = user_crud.get_by_email(db, data.email.lower())
+    if existing is not None:
+        logger.info("team member registration for an address that already has an account")
+        return MessageResponse(detail=TEAM_MEMBER_PENDING_RESPONSE)
+
+    user = user_crud.create(
+        db,
+        UserCreate(
+            full_name=data.full_name,
+            email=data.email,
+            phone=data.phone,
+            password=data.password,
+        ),
+        role=Role.TEAM_MEMBER,
+        approval_status=ApprovalStatus.PENDING,
+    )
+    logger.info("team member %s self-registered, pending approval", user.id)
+    notifications.notify_team_member_registered(db, user)
+    return MessageResponse(detail=TEAM_MEMBER_PENDING_RESPONSE)
+
+
 @router.post("/login", response_model=Token)
 def login(db: DbDep, form: Annotated[OAuth2PasswordRequestForm, Depends()]):
     # NOTE: put the email in the "username" field.
@@ -77,7 +119,12 @@ def refresh(body: RefreshRequest, db: DbDep):
 
 
 @router.get("/me", response_model=UserRead)
-def me(current_user: ActiveUser):
+def me(current_user: AnyApprovalUser):
+    """
+    Readable by a PENDING account on purpose: it is how the frontend learns to
+    show the awaiting-approval screen rather than a dashboard. The response
+    carries no data the caller didn't already supply about themselves.
+    """
     return current_user
 
 

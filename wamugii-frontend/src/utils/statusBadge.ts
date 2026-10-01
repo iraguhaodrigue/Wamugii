@@ -11,6 +11,8 @@ type DomainStatus = components['schemas']['DomainStatus']
 type TicketStatus = components['schemas']['TicketStatus']
 type TicketPriority = components['schemas']['TicketPriority']
 type Role = components['schemas']['Role']
+type ApprovalStatus = components['schemas']['ApprovalStatus']
+type ProjectRole = components['schemas']['ProjectRole']
 
 export const projectStatusVariant: Record<ProjectStatus, BadgeVariant> = {
   PENDING: 'neutral',
@@ -91,4 +93,22 @@ export const roleVariant: Record<Role, BadgeVariant> = {
   ADMIN: 'brand',
   STAFF: 'info',
   CLIENT: 'neutral',
+  // Green rather than another blue: STAFF already owns 'info', and the two
+  // need to be told apart at a glance on the admin user list.
+  TEAM_MEMBER: 'success',
+}
+
+export const approvalStatusVariant: Record<ApprovalStatus, BadgeVariant> = {
+  PENDING: 'warning',
+  APPROVED: 'success',
+  REJECTED: 'danger',
+}
+
+/** Project roles are peers, not a hierarchy — only the lead is set apart. */
+export const projectRoleVariant: Record<ProjectRole, BadgeVariant> = {
+  TEAM_LEAD: 'brand',
+  PROGRAMMER: 'info',
+  TESTER: 'info',
+  RESEARCHER: 'info',
+  DESIGNER: 'info',
 }

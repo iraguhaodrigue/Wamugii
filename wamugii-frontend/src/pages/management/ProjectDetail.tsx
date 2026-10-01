@@ -15,6 +15,7 @@ import { paths } from '@/routes/paths'
 import { Badge, Button, ConfirmDialog, EmptyState, ErrorState, Input, Select, Skeleton, Textarea } from '@/components/ui'
 import { MilestonesPanel } from '@/components/milestones/MilestonesPanel'
 import { FilesPanel } from '@/components/files/FilesPanel'
+import { ProjectMembersPanel } from '@/components/team/ProjectMembersPanel'
 import { formatDate, formatEnumLabel, formatMoney } from '@/utils/format'
 import { projectPriorityVariant, projectStatusVariant } from '@/utils/statusBadge'
 import { cn } from '@/utils/cn'
@@ -43,7 +44,7 @@ const editSchema = z.object({
 })
 type EditFormValues = z.infer<typeof editSchema>
 
-type Tab = 'overview' | 'milestones' | 'files'
+type Tab = 'overview' | 'milestones' | 'files' | 'team'
 
 function EditProjectForm({
   project,
@@ -197,6 +198,7 @@ export function ProjectDetail() {
     { key: 'overview', label: 'Overview' },
     { key: 'milestones', label: 'Milestones' },
     { key: 'files', label: 'Files' },
+    { key: 'team', label: 'Team' },
   ]
 
   return (
@@ -304,6 +306,7 @@ export function ProjectDetail() {
 
       {tab === 'milestones' && <MilestonesPanel projectId={project.id} />}
       {tab === 'files' && <FilesPanel projectId={project.id} />}
+      {tab === 'team' && <ProjectMembersPanel projectId={project.id} />}
 
       <ConfirmDialog
         isOpen={isDeleteOpen}

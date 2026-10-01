@@ -2,7 +2,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.core.security import hash_password, verify_password
-from app.models.user import Role, User
+from app.models.user import ApprovalStatus, Role, User
 from app.schemas.user import UserAdminUpdate, UserCreate
 
 
@@ -14,13 +14,24 @@ def get_by_id(db: Session, user_id: int) -> User | None:
     return db.get(User, user_id)
 
 
-def create(db: Session, data: UserCreate, role: Role = Role.CLIENT) -> User:
+def create(
+    db: Session,
+    data: UserCreate,
+    role: Role = Role.CLIENT,
+    approval_status: ApprovalStatus = ApprovalStatus.APPROVED,
+) -> User:
+    """
+    `approval_status` defaults to APPROVED so every existing caller -- client
+    registration, the admin-created accounts, the test fixtures -- is unchanged.
+    Only team-member self-registration passes PENDING.
+    """
     user = User(
         full_name=data.full_name,
         email=data.email.lower(),
         phone=data.phone,
         password_hash=hash_password(data.password),
         role=role,
+        approval_status=approval_status,
     )
     db.add(user)
     db.commit()
@@ -121,3 +132,64 @@ def deactivate(db: Session, user: User) -> User:
     db.commit()
     db.refresh(user)
     return user
+
+
+# --- team members -----------------------------------------------------------
+
+
+def list_active_admins(db: Session) -> list[User]:
+    """Recipients for a team-member registration -- admins approve, staff don't."""
+    return list(
+        db.scalars(
+            select(User).where(User.role == Role.ADMIN, User.is_active.is_(True))
+        ).all()
+    )
+
+
+def list_team_members(
+    db: Session,
+    *,
+    approval_status: ApprovalStatus | None = None,
+    limit: int = 50,
+    offset: int = 0,
+) -> list[User]:
+    query = select(User).where(User.role == Role.TEAM_MEMBER)
+    if approval_status is not None:
+        query = query.where(User.approval_status == approval_status)
+    return list(db.scalars(query.order_by(User.id).offset(offset).limit(limit)).all())
+
+
+def count_team_members(
+    db: Session, *, approval_status: ApprovalStatus | None = None
+) -> int:
+    query = select(func.count()).select_from(User).where(User.role == Role.TEAM_MEMBER)
+    if approval_status is not None:
+        query = query.where(User.approval_status == approval_status)
+    return db.scalar(query) or 0
+
+
+def set_approval_status(db: Session, user: User, status: ApprovalStatus) -> User:
+    user.approval_status = status
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+def list_assignable_members(db: Session) -> list[User]:
+    """
+    Users who may be put on a project: approved, active TEAM_MEMBERs and STAFF.
+
+    A PENDING team member is deliberately excluded -- assigning work to an
+    account that cannot yet log in would just produce a dead notification.
+    """
+    return list(
+        db.scalars(
+            select(User)
+            .where(
+                User.role.in_([Role.TEAM_MEMBER, Role.STAFF]),
+                User.is_active.is_(True),
+                User.approval_status == ApprovalStatus.APPROVED,
+            )
+            .order_by(User.full_name)
+        ).all()
+    )

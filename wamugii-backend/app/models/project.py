@@ -66,3 +66,4 @@ class Project(Base):
     service = relationship("Service")
     milestones = relationship("ProjectMilestone", back_populates="project")
     files = relationship("ProjectFile", back_populates="project")
+    members = relationship("ProjectMember", back_populates="project")

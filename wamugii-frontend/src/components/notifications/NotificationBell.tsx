@@ -63,6 +63,15 @@ const RESOURCE_ROUTES: Record<Role, Record<string, (id: number) => string>> = {
     domain: paths.client.domainDetail,
     ticket: paths.client.ticketDetail,
   },
+  // A TEAM_MEMBER only ever receives PROJECT_ASSIGNMENT (and the one-off
+  // TEAM_MEMBER_APPROVED, which carries no related_id), so `project` is the
+  // only entry there is to make -- and it points at their own privacy-walled
+  // view, never the staff one. The others are deliberately absent: those
+  // notifications are never addressed to them, and if one ever were, it must
+  // not navigate into client or billing data.
+  TEAM_MEMBER: {
+    project: paths.team.projectDetail,
+  },
 }
 
 function resolveRoute(

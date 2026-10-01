@@ -11,7 +11,7 @@ from app.crud import quote_request as quote_crud
 from app.crud import service as service_crud
 from app.crud import support as support_crud
 from app.crud import user as user_crud
-from app.models.user import Role, User
+from app.models.user import ApprovalStatus, Role, User
 from app.schemas.admin import (
     DashboardStats,
     HostingStats,
@@ -20,9 +20,11 @@ from app.schemas.admin import (
     QuoteStats,
     ServiceStats,
     SupportStats,
+    TeamStats,
     UserStats,
 )
-from app.schemas.user import UserAdminUpdate, UserRead
+from app.schemas.user import RejectTeamMemberRequest, UserAdminUpdate, UserRead
+from app.services import notifications
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 logger = logging.getLogger(__name__)
@@ -64,7 +66,105 @@ def dashboard(db: DbDep, admin: CurrentAdmin):
         hosting=HostingStats(active=hosting_crud.count_active_accounts(db)),
         # TODO: store module not built yet
         support=SupportStats(open_tickets=support_crud.count_open_tickets(db)),
+        team=TeamStats(
+            pending_approvals=user_crud.count_team_members(
+                db, approval_status=ApprovalStatus.PENDING
+            ),
+            approved_members=user_crud.count_team_members(
+                db, approval_status=ApprovalStatus.APPROVED
+            ),
+        ),
     )
+
+
+# --- team member approval ---------------------------------------------------
+#
+# Registration itself is public (auth/register-team-member). These three are
+# the admin side of it: see who is waiting, let them in, or turn them down.
+
+
+def _get_team_member(db: DbDep, user_id: int) -> User:
+    """
+    A team member by id, 404 for anything else.
+
+    Guards the obvious foot-gun: these endpoints must not be usable to flip the
+    approval flag on a CLIENT, STAFF or ADMIN account.
+    """
+    user = user_crud.get_by_id(db, user_id)
+    if not user or user.role != Role.TEAM_MEMBER:
+        raise HTTPException(status_code=404, detail="Team member not found")
+    return user
+
+
+@router.get(
+    "/team-members/pending",
+    response_model=list[UserRead],
+    summary="List team member registrations awaiting approval (ADMIN only)",
+)
+def list_pending_team_members(
+    db: DbDep,
+    admin: CurrentAdmin,
+    limit: int = Query(50, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+):
+    return user_crud.list_team_members(
+        db, approval_status=ApprovalStatus.PENDING, limit=limit, offset=offset
+    )
+
+
+@router.get(
+    "/team-members",
+    response_model=list[UserRead],
+    summary="List team members, optionally by approval status (ADMIN only)",
+)
+def list_team_members(
+    db: DbDep,
+    admin: CurrentAdmin,
+    approval_status: ApprovalStatus | None = None,
+    limit: int = Query(50, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+):
+    return user_crud.list_team_members(
+        db, approval_status=approval_status, limit=limit, offset=offset
+    )
+
+
+@router.patch(
+    "/team-members/{user_id}/approve",
+    response_model=UserRead,
+    summary="Approve a team member registration (ADMIN only)",
+)
+def approve_team_member(user_id: int, db: DbDep, admin: CurrentAdmin):
+    user = _get_team_member(db, user_id)
+    if user.approval_status == ApprovalStatus.APPROVED:
+        # Idempotent, but don't re-notify someone who was already approved.
+        return user
+
+    updated = user_crud.set_approval_status(db, user, ApprovalStatus.APPROVED)
+    logger.info("admin %s approved team member %s", admin.id, user_id)
+    notifications.notify_team_member_approved(db, updated)
+    return updated
+
+
+@router.patch(
+    "/team-members/{user_id}/reject",
+    response_model=UserRead,
+    summary="Reject a team member registration (ADMIN only)",
+)
+def reject_team_member(
+    user_id: int,
+    db: DbDep,
+    admin: CurrentAdmin,
+    data: RejectTeamMemberRequest | None = None,
+):
+    user = _get_team_member(db, user_id)
+    if user.approval_status == ApprovalStatus.REJECTED:
+        return user
+
+    updated = user_crud.set_approval_status(db, user, ApprovalStatus.REJECTED)
+    logger.info("admin %s rejected team member %s", admin.id, user_id)
+    notifications.notify_team_member_rejected(db, updated, data.reason if data else None)
+    return updated
 
 
 @router.get("/users", response_model=list[UserRead])

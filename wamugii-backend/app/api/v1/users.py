@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 
-from app.api.deps import ActiveUser, DbDep, require_roles
+from app.api.deps import AnyApprovalUser, DbDep, require_roles
 from app.crud import user as user_crud
 from app.models.user import Role, User
 from app.schemas.user import UserRead
@@ -10,7 +10,8 @@ router = APIRouter(prefix="/users", tags=["users"])
 
 
 @router.get("/me", response_model=UserRead)
-def read_me(current_user: ActiveUser):
+def read_me(current_user: AnyApprovalUser):
+    """Same as /auth/me -- reachable while PENDING so the gate can be shown."""
     return current_user
 
 

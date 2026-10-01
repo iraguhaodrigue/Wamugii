@@ -11,6 +11,10 @@ export const paths = {
   login: '/login',
   register: '/register',
   forgotPassword: '/forgot-password',
+  /** Public self-registration for project collaborators. */
+  joinTeam: '/join',
+  /** Shown instead of a dashboard while an account is awaiting approval. */
+  pendingApproval: '/pending-approval',
   resetPassword: '/reset-password',
   client: {
     dashboard: '/client/dashboard',
@@ -59,6 +63,17 @@ export const paths = {
     domainDetail: (id: string | number) => `/admin/domains/${id}`,
     tickets: '/admin/support',
     ticketDetail: (id: string | number) => `/admin/support/${id}`,
+    teamMembers: '/admin/team-members',
+  },
+  /**
+   * The TEAM_MEMBER area. Nothing else lives under /team: a collaborator only
+   * ever sees their assigned projects, so there is no quotes/invoices/clients
+   * route here to guard.
+   */
+  team: {
+    dashboard: '/team/dashboard',
+    projects: '/team/projects',
+    projectDetail: (id: string | number) => `/team/projects/${id}`,
   },
 } as const
 
@@ -67,6 +82,7 @@ export const roleHomePath: Record<Role, string> = {
   ADMIN: paths.admin.dashboard,
   STAFF: paths.staff.overview,
   CLIENT: paths.client.dashboard,
+  TEAM_MEMBER: paths.team.dashboard,
 }
 
 /**
@@ -84,6 +100,8 @@ export function isPathAllowedForRole(pathname: string, role: Role): boolean {
       return pathname.startsWith('/staff')
     case 'CLIENT':
       return pathname.startsWith('/client')
+    case 'TEAM_MEMBER':
+      return pathname.startsWith('/team')
     default:
       return false
   }

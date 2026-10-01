@@ -4,7 +4,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
-from app.api.deps import ActiveUser, DbDep, require_roles
+from app.api.deps import DbDep, require_roles
 from app.api.v1.support import validate_project_for_ticket
 from app.crud import client as client_crud
 from app.crud import company_settings as settings_crud

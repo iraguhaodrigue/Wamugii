@@ -28,6 +28,7 @@ from app.models.hosting import HostingAccount
 from app.models.invoice import Invoice, Payment
 from app.models.notification import NotificationType
 from app.models.project import Project
+from app.models.project_member import ProjectMember
 from app.models.project_milestone import ProjectMilestone
 from app.models.quote_request import QuoteRequest
 from app.models.support import SupportTicket, TicketMessage
@@ -545,3 +546,89 @@ def notify_payment_recorded(db: Session, invoice: Invoice, payment: Payment) -> 
     client = _recipient(db, invoice.client_id)
     if client is not None:
         _send_email(client, email_templates.payment_recorded_client(payment, invoice, client))
+
+
+# --- team member events -----------------------------------------------------
+
+
+def _emit_to_admins(db: Session, **kwargs) -> list[User]:
+    """
+    Fan out to active ADMINs only.
+
+    Narrower than `_emit_to_staff` on purpose: approving a registration is an
+    admin action, so routing it to staff who cannot act on it would just be
+    noise. Same non-fatal contract.
+    """
+    try:
+        recipients = user_crud.list_active_admins(db)
+    except Exception:
+        db.rollback()
+        logger.exception("failed to resolve admin recipients for a notification")
+        return []
+    for recipient in recipients:
+        _emit(db, user_id=recipient.id, **kwargs)
+    return recipients
+
+
+def notify_team_member_registered(db: Session, user: User) -> None:
+    """To every admin: somebody self-registered and is waiting for approval."""
+    recipients = _emit_to_admins(
+        db,
+        type=NotificationType.TEAM_MEMBER_REGISTERED,
+        title="New team member registration",
+        message=(
+            f"New team member registration awaiting approval: {user.full_name} "
+            f"({user.email})."
+        ),
+        related_type="team_member",
+        related_id=user.id,
+    )
+    built = email_templates.team_member_registered_admin(user)
+    for recipient in recipients:
+        _send_email(recipient, built)
+
+
+def notify_team_member_approved(db: Session, user: User) -> None:
+    """To the member: they can log in now."""
+    _emit(
+        db,
+        user_id=user.id,
+        type=NotificationType.TEAM_MEMBER_APPROVED,
+        title="Your account has been approved",
+        message="Your WAMUGII account has been approved — you can now log in.",
+    )
+    _send_email(user, email_templates.team_member_approved(user))
+
+
+def notify_team_member_rejected(db: Session, user: User, reason: str | None = None) -> None:
+    """
+    To the member: the registration wasn't approved.
+
+    Email only. There is no notification type for it and no in-app message,
+    because a REJECTED account is locked out of the API by the approval gate —
+    a bell they can never open would be a dead end.
+    """
+    _send_email(user, email_templates.team_member_rejected(user, reason))
+
+
+def notify_project_assignment(
+    db: Session, member: ProjectMember, project: Project, user: User
+) -> None:
+    """
+    To the assigned member: they're on a project now.
+
+    The notification and the email carry the project title, their role and the
+    deadline — never the client or the budget, the same wall
+    `schemas/team.py` enforces on the read endpoints.
+    """
+    role = member.project_role.value.replace("_", " ").title()
+    _emit(
+        db,
+        user_id=user.id,
+        type=NotificationType.PROJECT_ASSIGNMENT,
+        title="You've been assigned to a project",
+        message=f"You've been assigned to project {project.title} as {role}.",
+        related_type="project",
+        related_id=project.id,
+    )
+    _send_email(user, email_templates.project_assignment_member(project, member, user))

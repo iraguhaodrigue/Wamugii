@@ -21,6 +21,35 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/auth/register-team-member": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Register Team Member
+         * @description Public self-registration for a project collaborator.
+         *
+         *     The account is created PENDING: it can log in, but the approval gate in
+         *     `deps.get_current_active_user` closes every other endpoint until an admin
+         *     approves it.
+         *
+         *     Returns a message rather than the user row, and the *same* message whether
+         *     or not the address was already taken — otherwise this endpoint becomes an
+         *     account-enumeration oracle, the same reasoning as forgot-password. A
+         *     duplicate simply creates nothing.
+         */
+        post: operations["register_team_member_api_v1_auth_register_team_member_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/login": {
         parameters: {
             query?: never;
@@ -62,7 +91,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Me */
+        /**
+         * Me
+         * @description Readable by a PENDING account on purpose: it is how the frontend learns to
+         *     show the awaiting-approval screen rather than a dashboard. The response
+         *     carries no data the caller didn't already supply about themselves.
+         */
         get: operations["me_api_v1_auth_me_get"];
         put?: never;
         post?: never;
@@ -143,7 +177,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Read Me */
+        /**
+         * Read Me
+         * @description Same as /auth/me -- reachable while PENDING so the gate can be shown.
+         */
         get: operations["read_me_api_v1_users_me_get"];
         put?: never;
         post?: never;
@@ -239,6 +276,74 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/team-members/pending": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List team member registrations awaiting approval (ADMIN only) */
+        get: operations["list_pending_team_members_api_v1_admin_team_members_pending_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/team-members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List team members, optionally by approval status (ADMIN only) */
+        get: operations["list_team_members_api_v1_admin_team_members_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/team-members/{user_id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Approve a team member registration (ADMIN only) */
+        patch: operations["approve_team_member_api_v1_admin_team_members__user_id__approve_patch"];
+        trace?: never;
+    };
+    "/api/v1/admin/team-members/{user_id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Reject a team member registration (ADMIN only) */
+        patch: operations["reject_team_member_api_v1_admin_team_members__user_id__reject_patch"];
         trace?: never;
     };
     "/api/v1/admin/users": {
@@ -471,6 +576,55 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{project_id}/members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List a project's members (ADMIN or STAFF) */
+        get: operations["list_members_api_v1_projects__project_id__members_get"];
+        put?: never;
+        /**
+         * Assign a user to a project with a role (ADMIN or STAFF)
+         * @description Assign, or re-assign, a user to this project.
+         *
+         *     Re-adding someone who was previously removed reactivates their existing
+         *     membership rather than creating a second row -- see
+         *     `crud.project_member.add_or_reactivate`. Only a genuinely new assignment
+         *     notifies; changing the role of an already-active member does not, so a
+         *     typo-correction doesn't email them twice.
+         */
+        post: operations["add_member_api_v1_projects__project_id__members_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{project_id}/members/{member_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Remove a member from a project (ADMIN or STAFF, soft delete)
+         * @description Soft delete. The row stays so the assignment history survives, and the
+         *     project drops out of that member's /team/projects immediately.
+         */
+        delete: operations["remove_member_api_v1_projects__project_id__members__member_id__delete"];
+        options?: never;
+        head?: never;
+        /** Change a member's project role (ADMIN or STAFF) */
+        patch: operations["update_member_api_v1_projects__project_id__members__member_id__patch"];
         trace?: never;
     };
     "/api/v1/client/dashboard": {
@@ -1170,6 +1324,68 @@ export interface paths {
         patch: operations["update_domain_api_v1_domains__domain_id__patch"];
         trace?: never;
     };
+    "/api/v1/team/projects": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List the projects the authenticated TEAM_MEMBER is assigned to */
+        get: operations["list_my_projects_api_v1_team_projects_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/team/projects/{project_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get one assigned project with its milestones and files
+         * @description 404 for anything that isn't an active project they're an active member of.
+         */
+        get: operations["get_my_project_api_v1_team_projects__project_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/team/projects/{project_id}/files/{file_id}/download": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Download a file on an assigned project
+         * @description Mirrors `project_files.download_file`, scoped to membership.
+         *
+         *     Here rather than on the existing route because that one is closed to team
+         *     members: this keeps the whole team-member surface inside /team, which is
+         *     the only place the privacy rules have to be audited. Without it the file
+         *     list on the detail page would be metadata nobody can open.
+         */
+        get: operations["download_my_project_file_api_v1_team_projects__project_id__files__file_id__download_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -1191,6 +1407,16 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * ApprovalStatus
+         * @description Whether an account has been cleared to use the app.
+         *
+         *     Only team-member self-registrations start PENDING; every other account
+         *     (and every account that existed before this column) is APPROVED, so the
+         *     gate in `deps.get_current_active_user` is a no-op for them.
+         * @enum {string}
+         */
+        ApprovalStatus: "PENDING" | "APPROVED" | "REJECTED";
         /**
          * BillingCycle
          * @enum {string}
@@ -1881,6 +2107,13 @@ export interface components {
              *     }
              */
             support: components["schemas"]["SupportStats"];
+            /**
+             * @default {
+             *       "pending_approvals": 0,
+             *       "approved_members": 0
+             *     }
+             */
+            team: components["schemas"]["TeamStats"];
         };
         /** DomainCreate */
         DomainCreate: {
@@ -2518,7 +2751,7 @@ export interface components {
          * NotificationType
          * @enum {string}
          */
-        NotificationType: "QUOTE_SUBMITTED" | "QUOTE_STATUS_CHANGED" | "PROJECT_CREATED" | "PROJECT_STATUS_CHANGED" | "MILESTONE_COMPLETED" | "FILE_UPLOADED" | "INVOICE_CREATED" | "INVOICE_DUE" | "PAYMENT_RECORDED" | "HOSTING_ACCOUNT_CREATED" | "HOSTING_STATUS_CHANGED" | "TICKET_CREATED" | "TICKET_REPLY" | "TICKET_STATUS_CHANGED" | "DOMAIN_REGISTERED" | "DOMAIN_STATUS_CHANGED";
+        NotificationType: "QUOTE_SUBMITTED" | "QUOTE_STATUS_CHANGED" | "PROJECT_CREATED" | "PROJECT_STATUS_CHANGED" | "MILESTONE_COMPLETED" | "FILE_UPLOADED" | "INVOICE_CREATED" | "INVOICE_DUE" | "PAYMENT_RECORDED" | "HOSTING_ACCOUNT_CREATED" | "HOSTING_STATUS_CHANGED" | "TICKET_CREATED" | "TICKET_REPLY" | "TICKET_STATUS_CHANGED" | "DOMAIN_REGISTERED" | "DOMAIN_STATUS_CHANGED" | "TEAM_MEMBER_REGISTERED" | "TEAM_MEMBER_APPROVED" | "PROJECT_ASSIGNMENT";
         /** PaymentCreate */
         PaymentCreate: {
             /** Amount */
@@ -2670,6 +2903,49 @@ export interface components {
              */
             created_at: string;
         };
+        /** ProjectMemberCreate */
+        ProjectMemberCreate: {
+            /** User Id */
+            user_id: number;
+            /** @default PROGRAMMER */
+            project_role: components["schemas"]["ProjectRole"];
+        };
+        /**
+         * ProjectMemberRead
+         * @description The ADMIN/STAFF view of a membership.
+         *
+         *     The member's name and email are included because staff manage assignments
+         *     and need to know who they are picking. This schema is never returned to a
+         *     TEAM_MEMBER -- their own view is in schemas/team.py.
+         */
+        ProjectMemberRead: {
+            /** Id */
+            id: number;
+            /** Project Id */
+            project_id: number;
+            /** User Id */
+            user_id: number;
+            project_role: components["schemas"]["ProjectRole"];
+            /**
+             * Assigned At
+             * Format: date-time
+             */
+            assigned_at: string;
+            /** Assigned By */
+            assigned_by: number;
+            /** Is Active */
+            is_active: boolean;
+            /** User Full Name */
+            user_full_name?: string | null;
+            /** User Email */
+            user_email?: string | null;
+            /** User Role */
+            user_role?: string | null;
+        };
+        /** ProjectMemberUpdate */
+        ProjectMemberUpdate: {
+            project_role: components["schemas"]["ProjectRole"];
+        };
         /** ProjectMilestoneCreate */
         ProjectMilestoneCreate: {
             /** Title */
@@ -2818,6 +3094,12 @@ export interface components {
              */
             updated_at: string;
         };
+        /**
+         * ProjectRole
+         * @description What a member does on one specific project.
+         * @enum {string}
+         */
+        ProjectRole: "TEAM_LEAD" | "PROGRAMMER" | "TESTER" | "RESEARCHER" | "DESIGNER";
         /** ProjectStats */
         ProjectStats: {
             /**
@@ -2974,6 +3256,14 @@ export interface components {
             /** Refresh Token */
             refresh_token: string;
         };
+        /**
+         * RejectTeamMemberRequest
+         * @description Optional note for the rejection email. Nothing is required.
+         */
+        RejectTeamMemberRequest: {
+            /** Reason */
+            reason?: string | null;
+        };
         /** ResetPasswordRequest */
         ResetPasswordRequest: {
             /** Token */
@@ -2985,7 +3275,7 @@ export interface components {
          * Role
          * @enum {string}
          */
-        Role: "ADMIN" | "STAFF" | "CLIENT";
+        Role: "ADMIN" | "STAFF" | "CLIENT" | "TEAM_MEMBER";
         /** ServiceCreate */
         ServiceCreate: {
             /** Name */
@@ -3217,6 +3507,141 @@ export interface components {
             assigned_to?: number | null;
         };
         /**
+         * TeamMemberRegister
+         * @description Public self-registration for a project collaborator.
+         *
+         *     Separate from `UserCreate` on purpose: `role` and `approval_status` are set
+         *     by the endpoint, never by the caller, so there is no field here that could
+         *     be used to self-approve or to claim a different role.
+         */
+        TeamMemberRegister: {
+            /** Full Name */
+            full_name: string;
+            /**
+             * Email
+             * Format: email
+             */
+            email: string;
+            /** Phone */
+            phone?: string | null;
+            /** Password */
+            password: string;
+        };
+        /** TeamProjectDetail */
+        TeamProjectDetail: {
+            /** Id */
+            id: number;
+            /** Title */
+            title: string;
+            /** Description */
+            description: string;
+            status: components["schemas"]["ProjectStatus"];
+            priority: components["schemas"]["ProjectPriority"];
+            /** Start Date */
+            start_date: string | null;
+            /** Deadline */
+            deadline: string | null;
+            /** Completed At */
+            completed_at: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            my_role: components["schemas"]["ProjectRole"];
+            /**
+             * Milestones
+             * @default []
+             */
+            milestones: components["schemas"]["TeamProjectMilestone"][];
+            /**
+             * Files
+             * @default []
+             */
+            files: components["schemas"]["TeamProjectFile"][];
+        };
+        /**
+         * TeamProjectFile
+         * @description File metadata minus `uploaded_by` -- see the module docstring.
+         */
+        TeamProjectFile: {
+            /** Id */
+            id: number;
+            /** Original Filename */
+            original_filename: string;
+            /** Content Type */
+            content_type: string;
+            /** File Size */
+            file_size: number;
+            category: components["schemas"]["FileCategory"];
+            /** Description */
+            description: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /** TeamProjectListItem */
+        TeamProjectListItem: {
+            /** Id */
+            id: number;
+            /** Title */
+            title: string;
+            status: components["schemas"]["ProjectStatus"];
+            priority: components["schemas"]["ProjectPriority"];
+            /** Deadline */
+            deadline: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            my_role: components["schemas"]["ProjectRole"];
+        };
+        /**
+         * TeamProjectMilestone
+         * @description Technical milestone view -- no money, no client.
+         */
+        TeamProjectMilestone: {
+            /** Id */
+            id: number;
+            /** Title */
+            title: string;
+            /** Description */
+            description: string;
+            status: components["schemas"]["MilestoneStatus"];
+            /** Display Order */
+            display_order: number;
+            /** Start Date */
+            start_date: string | null;
+            /** Due Date */
+            due_date: string | null;
+            /** Completed At */
+            completed_at: string | null;
+        };
+        /**
+         * TeamStats
+         * @description Team-member registrations: how many are waiting, how many are live.
+         */
+        TeamStats: {
+            /**
+             * Pending Approvals
+             * @default 0
+             */
+            pending_approvals: number;
+            /**
+             * Approved Members
+             * @default 0
+             */
+            approved_members: number;
+        };
+        /**
          * TicketCategory
          * @enum {string}
          */
@@ -3322,6 +3747,7 @@ export interface components {
             /** Id */
             id: number;
             role: components["schemas"]["Role"];
+            approval_status: components["schemas"]["ApprovalStatus"];
             /** Is Active */
             is_active: boolean;
             /**
@@ -3383,6 +3809,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UserRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    register_team_member_api_v1_auth_register_team_member_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TeamMemberRegister"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MessageResponse"];
                 };
             };
             /** @description Validation Error */
@@ -3820,6 +4279,137 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DashboardStats"];
+                };
+            };
+        };
+    };
+    list_pending_team_members_api_v1_admin_team_members_pending_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_team_members_api_v1_admin_team_members_get: {
+        parameters: {
+            query?: {
+                approval_status?: components["schemas"]["ApprovalStatus"] | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    approve_team_member_api_v1_admin_team_members__user_id__approve_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reject_team_member_api_v1_admin_team_members__user_id__reject_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["RejectTeamMemberRequest"] | null;
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -4550,6 +5140,142 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_members_api_v1_projects__project_id__members_get: {
+        parameters: {
+            query?: {
+                include_inactive?: boolean;
+            };
+            header?: never;
+            path: {
+                project_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectMemberRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_member_api_v1_projects__project_id__members_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProjectMemberCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectMemberRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_member_api_v1_projects__project_id__members__member_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: number;
+                member_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectMemberRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_member_api_v1_projects__project_id__members__member_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: number;
+                member_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProjectMemberUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectMemberRead"];
                 };
             };
             /** @description Validation Error */
@@ -6358,6 +7084,101 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DomainRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_my_projects_api_v1_team_projects_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TeamProjectListItem"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_my_project_api_v1_team_projects__project_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TeamProjectDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    download_my_project_file_api_v1_team_projects__project_id__files__file_id__download_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: number;
+                file_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */

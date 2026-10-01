@@ -612,3 +612,136 @@ def payment_recorded_client(payment, invoice, client) -> tuple[str, str, str]:
         "View Invoice",
     )
     return subject, html, text
+
+
+# --- team member templates --------------------------------------------------
+
+
+def team_member_registered_admin(user) -> tuple[str, str, str]:
+    """To admins: a self-registration is waiting for approval."""
+    subject = f"Team member registration awaiting approval — {user.full_name}"
+    url = _cta_url("/admin/team-members")
+
+    pairs = [
+        ("Name", user.full_name),
+        ("Email", user.email),
+        ("Phone", user.phone or "—"),
+    ]
+
+    html = _shell(
+        heading="New team member registration",
+        intro=(
+            f"{user.full_name} ({user.email}) has registered as a team member and is "
+            "waiting for approval. They cannot access anything until an admin approves "
+            "the account."
+        ),
+        detail_rows=_rows(pairs),
+        cta=_button(url, "Review Registration"),
+    )
+    text = _plain(
+        "New team member registration",
+        [f"{label}: {value}" for label, value in pairs],
+        url,
+        "Review Registration",
+    )
+    return subject, html, text
+
+
+def team_member_approved(user) -> tuple[str, str, str]:
+    """To the member: approved, go ahead and log in."""
+    subject = "Your WAMUGII account has been approved"
+    url = _cta_url("/login")
+    first_name = user.full_name.split(" ")[0] if user.full_name else "there"
+
+    html = _shell(
+        heading="Your account has been approved",
+        intro=(
+            f"Hi {first_name}, your {BRAND_NAME} team member account has been approved "
+            "— you can now log in. You'll see the projects you've been assigned to, "
+            "and we'll email you whenever you're added to a new one."
+        ),
+        detail_rows=_rows([("Email", user.email)]),
+        cta=_button(url, "Log In"),
+    )
+    text = _plain(
+        "Your account has been approved",
+        [
+            f"Hi {first_name}, your {BRAND_NAME} team member account has been approved.",
+            f"Email: {user.email}",
+        ],
+        url,
+        "Log In",
+    )
+    return subject, html, text
+
+
+def team_member_rejected(user, reason: str | None = None) -> tuple[str, str, str]:
+    """To the member: the registration wasn't approved."""
+    subject = "About your WAMUGII account registration"
+    first_name = user.full_name.split(" ")[0] if user.full_name else "there"
+
+    intro = (
+        f"Hi {first_name}, thank you for your interest in joining {BRAND_NAME}. "
+        "We're not able to approve your team member registration at this time."
+    )
+    pairs = [("Reason", reason)] if reason else []
+
+    note = (
+        f'<p style="margin:18px 0 0 0;color:{MUTED};font-size:13px;line-height:1.6;">'
+        "If you think this is a mistake, please get in touch and we'll take another "
+        "look.</p>"
+    )
+
+    html = _shell(
+        heading="About your registration",
+        intro=intro,
+        detail_rows=_rows(pairs),
+        cta="",
+        footer_note=note,
+    )
+    text = _plain(
+        "About your registration",
+        [intro] + [f"{label}: {value}" for label, value in pairs],
+        None,
+        "",
+    )
+    return subject, html, text
+
+
+def project_assignment_member(project, member, user) -> tuple[str, str, str]:
+    """
+    To the assigned member: you're on this project.
+
+    Carries the technical detail only. No client name, no budget — the same
+    wall schemas/team.py enforces on the read endpoints, because an email is
+    just as much a disclosure as an API response.
+    """
+    role = _enum_label(member.project_role)
+    subject = f"You've been assigned to {project.title}"
+    url = _cta_url(f"/team/projects/{project.id}")
+    first_name = user.full_name.split(" ")[0] if user.full_name else "there"
+
+    pairs = [
+        ("Project", project.title),
+        ("Your role", role),
+        ("Status", _enum_label(project.status)),
+        ("Priority", _enum_label(project.priority)),
+        ("Deadline", project.deadline.date().isoformat() if project.deadline else "—"),
+    ]
+
+    html = _shell(
+        heading="You've been assigned to a project",
+        intro=(
+            f"Hi {first_name}, you've been assigned to project {project.title} as "
+            f"{role}. Open it to see the brief, milestones and files."
+        ),
+        detail_rows=_rows(pairs),
+        cta=_button(url, "View Project"),
+    )
+    text = _plain(
+        "You've been assigned to a project",
+        [f"{label}: {value}" for label, value in pairs],
+        url,
+        "View Project",
+    )
+    return subject, html, text

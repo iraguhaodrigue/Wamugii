@@ -4,7 +4,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
-from app.api.deps import ActiveUser, DbDep, require_roles
+from app.api.deps import DbDep, NonTeamUser, require_roles
 from app.crud import project as project_crud
 from app.crud import service as service_crud
 from app.crud import user as user_crud
@@ -96,7 +96,7 @@ def create_project(data: ProjectCreate, db: DbDep, current_user: StaffOrAdmin):
 @router.get("", response_model=list[ProjectListItem], summary="List projects (role-scoped)")
 def list_projects(
     db: DbDep,
-    current_user: ActiveUser,
+    current_user: NonTeamUser,
     limit: int = Query(20, ge=1, le=100),
     offset: int = Query(0, ge=0),
     status: ProjectStatus | None = None,
@@ -123,7 +123,7 @@ def list_projects(
 
 
 @router.get("/{project_id}", response_model=ProjectRead, summary="Get a single project")
-def get_project(project_id: int, db: DbDep, current_user: ActiveUser):
+def get_project(project_id: int, db: DbDep, current_user: NonTeamUser):
     project = project_crud.get_by_id(db, project_id)
     if not project or not project_visible_to(current_user, project):
         raise HTTPException(status_code=404, detail="Project not found")

@@ -5,6 +5,7 @@ import {
   Clock,
   FolderKanban,
   LifeBuoy,
+  UserCheck,
   Receipt,
   Server,
   ShoppingBag,
@@ -121,9 +122,20 @@ export function AdminDashboard() {
               className="h-full transition-all hover:-translate-y-0.5 hover:shadow-md"
             />
           </Link>
+          {/* Team member registrations waiting on an admin decision. */}
+          <Link to={paths.admin.teamMembers} className="rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
+            <StatCard
+              icon={UserCheck}
+              label="Pending Team Approvals"
+              value={data.team.pending_approvals}
+              accent={data.team.pending_approvals > 0 ? 'warning' : 'success'}
+              className="h-full transition-all hover:-translate-y-0.5 hover:shadow-md"
+            />
+          </Link>
         </div>
         <p className="mt-3 text-xs text-slate-400">
-          Users: {data.users.clients} clients · {data.users.staff} staff · {data.users.admins} admins
+          Users: {data.users.clients} clients · {data.users.staff} staff · {data.users.admins} admins ·{' '}
+          {data.team.approved_members} team members
         </p>
       </div>
 

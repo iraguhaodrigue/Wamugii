@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from app.api.deps import ActiveUser, DbDep, require_roles
+from app.api.deps import DbDep, NonTeamUser, require_roles
 from app.crud import project as project_crud
 from app.crud import project_milestone as milestone_crud
 from app.models.project_milestone import MilestoneStatus, ProjectMilestone
@@ -97,7 +97,7 @@ def create_milestone(
 def list_milestones(
     project_id: int,
     db: DbDep,
-    current_user: ActiveUser,
+    current_user: NonTeamUser,
     status: MilestoneStatus | None = None,
     include_inactive: bool = False,
     limit: int = Query(100, ge=1, le=500),
@@ -189,7 +189,7 @@ def get_milestone(
     project_id: int,
     milestone_id: int,
     db: DbDep,
-    current_user: ActiveUser,
+    current_user: NonTeamUser,
 ):
     """Get a single milestone with authorization checks."""
     if not _milestone_visible_to(current_user, project_id, db):
@@ -286,7 +286,7 @@ def deactivate_milestone(
 def get_project_progress(
     project_id: int,
     db: DbDep,
-    current_user: ActiveUser,
+    current_user: NonTeamUser,
 ):
     """Calculate and return project progress based on milestones."""
     if not _milestone_visible_to(current_user, project_id, db):

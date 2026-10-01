@@ -83,12 +83,20 @@ export function Login() {
         </Button>
       </form>
 
-      <p className="text-center text-sm text-slate-500">
-        Don&apos;t have an account?{' '}
-        <Link to={paths.register} className="font-medium text-brand-400 hover:text-brand-300 hover:underline">
-          Create one
-        </Link>
-      </p>
+      <div className="space-y-2 text-center text-sm text-slate-500">
+        <p>
+          Don&apos;t have an account?{' '}
+          <Link to={paths.register} className="font-medium text-brand-400 hover:text-brand-300 hover:underline">
+            Create one
+          </Link>
+        </p>
+        <p className="border-t border-slate-200 pt-2">
+          Working with us on a project?{' '}
+          <Link to={paths.joinTeam} className="font-medium text-brand-400 hover:text-brand-300 hover:underline">
+            Join as a team member
+          </Link>
+        </p>
+      </div>
     </div>
   )
 }

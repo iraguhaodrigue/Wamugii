@@ -452,6 +452,7 @@ def test_dashboard_shape_is_unchanged(client, admin_headers):
     body = client.get("/api/v1/admin/dashboard", headers=admin_headers).json()
     assert set(body) == {
         "users", "services", "projects", "quotes", "invoices", "hosting", "store", "support",
+        "team",
     }
     assert set(body["hosting"]) == {"active"}
 

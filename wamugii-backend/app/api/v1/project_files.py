@@ -5,7 +5,7 @@ from fastapi import APIRouter, File, Form, HTTPException, Query, UploadFile
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
-from app.api.deps import ActiveUser, DbDep
+from app.api.deps import DbDep, NonTeamUser
 from app.core.config import settings
 from app.crud import project as project_crud
 from app.crud import project_file as file_crud
@@ -75,7 +75,7 @@ def _validate_upload(file: UploadFile) -> str:
 def upload_file(
     project_id: int,
     db: DbDep,
-    current_user: ActiveUser,
+    current_user: NonTeamUser,
     file: UploadFile = File(...),
     category: FileCategory = Form(FileCategory.DOCUMENT),
     description: str | None = Form(None),
@@ -123,7 +123,7 @@ def upload_file(
 def list_files(
     project_id: int,
     db: DbDep,
-    current_user: ActiveUser,
+    current_user: NonTeamUser,
     category: FileCategory | None = None,
     include_inactive: bool = False,
     limit: int = Query(20, ge=1, le=100),
@@ -150,7 +150,7 @@ def list_files(
     response_model=ProjectFileRead,
     summary="Get file metadata",
 )
-def get_file(project_id: int, file_id: int, db: DbDep, current_user: ActiveUser):
+def get_file(project_id: int, file_id: int, db: DbDep, current_user: NonTeamUser):
     _project_access(db, project_id, current_user)
 
     file = file_crud.get_by_id_for_project(db, file_id, project_id)
@@ -163,7 +163,7 @@ def get_file(project_id: int, file_id: int, db: DbDep, current_user: ActiveUser)
     "/{project_id}/files/{file_id}/download",
     summary="Download a project file",
 )
-def download_file(project_id: int, file_id: int, db: DbDep, current_user: ActiveUser):
+def download_file(project_id: int, file_id: int, db: DbDep, current_user: NonTeamUser):
     _project_access(db, project_id, current_user)
 
     file = file_crud.get_by_id_for_project(db, file_id, project_id)
@@ -192,7 +192,7 @@ def update_file(
     file_id: int,
     data: ProjectFileUpdate,
     db: DbDep,
-    current_user: ActiveUser,
+    current_user: NonTeamUser,
 ):
     """Update file metadata (category, description). Never touches the stored binary.
 
@@ -219,7 +219,7 @@ def update_file(
     response_model=ProjectFileRead,
     summary="Soft-delete a project file",
 )
-def delete_file(project_id: int, file_id: int, db: DbDep, current_user: ActiveUser):
+def delete_file(project_id: int, file_id: int, db: DbDep, current_user: NonTeamUser):
     """Soft-delete a file. ADMIN can delete any file; STAFF cannot delete (existing
     convention, matching milestones); CLIENT may delete only files they uploaded
     themselves, within their own project."""

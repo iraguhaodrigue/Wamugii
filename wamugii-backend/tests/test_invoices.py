@@ -496,6 +496,7 @@ def test_dashboard_shape_is_unchanged(client, admin_headers):
         "invoices",
         "hosting",
         "store",
+        "team",
         "support",
     }
 

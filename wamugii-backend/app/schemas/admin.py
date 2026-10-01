@@ -46,6 +46,13 @@ class SupportStats(BaseModel):
     open_tickets: int = 0
 
 
+class TeamStats(BaseModel):
+    """Team-member registrations: how many are waiting, how many are live."""
+
+    pending_approvals: int = 0
+    approved_members: int = 0
+
+
 class DashboardStats(BaseModel):
     users: UserStats
     services: ServiceStats
@@ -55,3 +62,4 @@ class DashboardStats(BaseModel):
     hosting: HostingStats = HostingStats()
     store: StoreStats = StoreStats()
     support: SupportStats = SupportStats()
+    team: TeamStats = TeamStats()

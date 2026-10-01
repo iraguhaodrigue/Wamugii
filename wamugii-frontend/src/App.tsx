@@ -4,6 +4,7 @@ import {
   LayoutDashboard,
   LifeBuoy,
   MessageSquare,
+  UserCheck,
   Receipt,
   Globe,
   Server,
@@ -27,6 +28,8 @@ import { Login } from '@/pages/auth/Login'
 import { Register } from '@/pages/auth/Register'
 import { ForgotPassword } from '@/pages/auth/ForgotPassword'
 import { ResetPassword } from '@/pages/auth/ResetPassword'
+import { JoinTeam } from '@/pages/auth/JoinTeam'
+import { PendingApproval } from '@/pages/auth/PendingApproval'
 import { ClientDashboard } from '@/pages/client/Dashboard'
 import { ClientProjects } from '@/pages/client/Projects'
 import { ClientProjectDetail } from '@/pages/client/ProjectDetail'
@@ -68,6 +71,10 @@ import { AdminDomains } from '@/pages/admin/Domains'
 import { AdminDomainDetail } from '@/pages/admin/DomainDetail'
 import { AdminTickets } from '@/pages/admin/Tickets'
 import { AdminTicketDetail } from '@/pages/admin/TicketDetail'
+import { AdminTeamMembers } from '@/pages/admin/TeamMembers'
+import { TeamDashboard } from '@/pages/team/Dashboard'
+import { TeamProjects } from '@/pages/team/Projects'
+import { TeamProjectDetail } from '@/pages/team/ProjectDetail'
 import { AdminInvoiceDetail } from '@/pages/admin/InvoiceDetail'
 import { NotFound } from '@/pages/NotFound'
 
@@ -78,6 +85,11 @@ const clientNavItems = [
   { label: 'My Hosting', to: paths.client.hosting, icon: Server },
   { label: 'My Domains', to: paths.client.domains, icon: Globe },
   { label: 'Support', to: paths.client.tickets, icon: LifeBuoy },
+]
+
+const teamNavItems = [
+  { label: 'Dashboard', to: paths.team.dashboard, icon: LayoutDashboard },
+  { label: 'My Projects', to: paths.team.projects, icon: FolderKanban },
 ]
 
 const staffNavItems = [
@@ -100,6 +112,7 @@ const adminNavItems = [
   { label: 'Hosting Plans', to: paths.admin.hostingPlans, icon: Server },
   { label: 'Domains', to: paths.admin.domains, icon: Globe },
   { label: 'Support Tickets', to: paths.admin.tickets, icon: LifeBuoy },
+  { label: 'Team Members', to: paths.admin.teamMembers, icon: UserCheck },
   { label: 'Settings', to: paths.admin.settings, icon: Settings },
 ]
 
@@ -122,9 +135,18 @@ function App() {
         {/* Public: the user is locked out, so no auth guard. */}
         <Route path={paths.forgotPassword} element={<ForgotPassword />} />
         <Route path={paths.resetPassword} element={<ResetPassword />} />
+        {/* Public: collaborators self-register here and wait for approval. */}
+        <Route path={paths.joinTeam} element={<JoinTeam />} />
       </Route>
 
-      {/* Authenticated areas — ProtectedRoute checks login, RoleProtectedRoute checks role */}
+      {/* The awaiting-approval screen: authenticated but deliberately outside
+          ProtectedRoute, which is what redirects an unapproved account here. */}
+      <Route element={<AuthLayout />}>
+        <Route path={paths.pendingApproval} element={<PendingApproval />} />
+      </Route>
+
+      {/* Authenticated areas — ProtectedRoute checks login and approval,
+          RoleProtectedRoute checks role */}
       <Route element={<ProtectedRoute />}>
         {/* Client area */}
         <Route element={<RoleProtectedRoute allowedRoles={['CLIENT']} />}>
@@ -142,6 +164,15 @@ function App() {
             <Route path="/client/quotes/:quoteId" element={<ClientQuoteDetail />} />
             <Route path={paths.client.tickets} element={<ClientTickets />} />
             <Route path="/client/support/:ticketId" element={<ClientTicketDetail />} />
+          </Route>
+        </Route>
+
+        {/* Team member area — assigned projects only, no client data anywhere */}
+        <Route element={<RoleProtectedRoute allowedRoles={['TEAM_MEMBER']} />}>
+          <Route element={<DashboardLayout roleLabel="Team Member" navItems={teamNavItems} />}>
+            <Route path={paths.team.dashboard} element={<TeamDashboard />} />
+            <Route path={paths.team.projects} element={<TeamProjects />} />
+            <Route path="/team/projects/:projectId" element={<TeamProjectDetail />} />
           </Route>
         </Route>
 
@@ -183,6 +214,7 @@ function App() {
             <Route path="/admin/domains/:domainId" element={<AdminDomainDetail />} />
             <Route path={paths.admin.tickets} element={<AdminTickets />} />
             <Route path="/admin/support/:ticketId" element={<AdminTicketDetail />} />
+            <Route path={paths.admin.teamMembers} element={<AdminTeamMembers />} />
             <Route path={paths.admin.settings} element={<AdminSettings />} />
           </Route>
         </Route>
