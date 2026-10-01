@@ -23,12 +23,14 @@ from sqlalchemy.orm import Session
 from app.crud import company_settings as settings_crud
 from app.crud import notification as notification_crud
 from app.crud import user as user_crud
+from app.models.domain import Domain
 from app.models.hosting import HostingAccount
 from app.models.invoice import Invoice, Payment
 from app.models.notification import NotificationType
 from app.models.project import Project
 from app.models.project_milestone import ProjectMilestone
 from app.models.quote_request import QuoteRequest
+from app.models.support import SupportTicket, TicketMessage
 from app.models.user import User
 from app.services import email_service, email_templates
 
@@ -315,6 +317,156 @@ def notify_invoice_created(db: Session, invoice: Invoice) -> None:
     client = _recipient(db, invoice.client_id)
     if client is not None:
         _send_email(client, email_templates.invoice_created_client(invoice, client))
+
+
+# --- domain events ----------------------------------------------------------
+
+
+def notify_domain_registered(db: Session, domain: Domain) -> None:
+    _emit(
+        db,
+        user_id=domain.client_id,
+        type=NotificationType.DOMAIN_REGISTERED,
+        title="Domain registration started",
+        message=f"We've started registering {domain.domain_name} for you.",
+        related_type="domain",
+        related_id=domain.id,
+    )
+    client = _recipient(db, domain.client_id)
+    if client is not None:
+        _send_email(client, email_templates.domain_registered_client(domain, client))
+
+
+def notify_domain_status_changed(db: Session, domain: Domain) -> None:
+    """
+    Called only for transitions the client should hear about (ACTIVE, EXPIRED,
+    CANCELLED) — see api/v1/domains.update_domain.
+    """
+    status = domain.status.value
+    if status == "ACTIVE":
+        message = f"{domain.domain_name} is now active."
+        if domain.nameservers:
+            message += f" Nameservers: {domain.nameservers}"
+    else:
+        message = f"{domain.domain_name} is now {status.lower()}."
+
+    _emit(
+        db,
+        user_id=domain.client_id,
+        type=NotificationType.DOMAIN_STATUS_CHANGED,
+        title="Domain status updated",
+        message=message,
+        related_type="domain",
+        related_id=domain.id,
+    )
+    client = _recipient(db, domain.client_id)
+    if client is not None:
+        _send_email(client, email_templates.domain_status_changed_client(domain, client))
+
+
+# --- support ticket events --------------------------------------------------
+
+
+def notify_ticket_created(db: Session, ticket: SupportTicket) -> None:
+    """A new ticket goes to the whole team — nobody owns it yet."""
+    client = _recipient(db, ticket.client_id)
+    recipients = _emit_to_staff(
+        db,
+        type=NotificationType.TICKET_CREATED,
+        title="New support ticket",
+        message=(
+            f"{client.full_name if client else 'A client'} opened a ticket: {ticket.subject}"
+        ),
+        related_type="ticket",
+        related_id=ticket.id,
+    )
+    built = email_templates.ticket_created_admin(ticket, client)
+    for recipient in recipients:
+        _send_email(recipient, built)
+
+
+def notify_ticket_reply_to_client(
+    db: Session, ticket: SupportTicket, message: TicketMessage
+) -> None:
+    """
+    Staff replied — tell the client.
+
+    Only ever called for non-internal messages; the router checks that before
+    calling, so an internal note can never reach a client this way.
+    """
+    client = _recipient(db, ticket.client_id)
+    if client is None:
+        return
+    _emit(
+        db,
+        user_id=ticket.client_id,
+        type=NotificationType.TICKET_REPLY,
+        title="New reply on your ticket",
+        message=f"Our team replied to '{ticket.subject}'.",
+        related_type="ticket",
+        related_id=ticket.id,
+    )
+    _send_email(client, email_templates.ticket_reply_client(ticket, message, client))
+
+
+def notify_ticket_reply_to_staff(
+    db: Session, ticket: SupportTicket, message: TicketMessage
+) -> None:
+    """
+    The client replied — tell the assignee, or the whole team if unassigned.
+    """
+    client = _recipient(db, ticket.client_id)
+    built = email_templates.ticket_reply_staff(ticket, message, client)
+    title = "Client replied on a ticket"
+    body = f"{client.full_name if client else 'The client'} replied to '{ticket.subject}'."
+
+    if ticket.assigned_to is not None:
+        assignee = _recipient(db, ticket.assigned_to)
+        if assignee is not None:
+            _emit(
+                db,
+                user_id=assignee.id,
+                type=NotificationType.TICKET_REPLY,
+                title=title,
+                message=body,
+                related_type="ticket",
+                related_id=ticket.id,
+            )
+            _send_email(assignee, built)
+            return
+
+    # Unassigned (or the assignee vanished): fan out so it isn't missed.
+    recipients = _emit_to_staff(
+        db,
+        type=NotificationType.TICKET_REPLY,
+        title=title,
+        message=body,
+        related_type="ticket",
+        related_id=ticket.id,
+    )
+    for recipient in recipients:
+        _send_email(recipient, built)
+
+
+def notify_ticket_status_changed(db: Session, ticket: SupportTicket) -> None:
+    """
+    Called only for transitions the client should hear about (RESOLVED, CLOSED,
+    WAITING_ON_CLIENT) — see api/v1/support.update_ticket.
+    """
+    client = _recipient(db, ticket.client_id)
+    if client is None:
+        return
+    status = ticket.status.value
+    _emit(
+        db,
+        user_id=ticket.client_id,
+        type=NotificationType.TICKET_STATUS_CHANGED,
+        title="Ticket update",
+        message=f"'{ticket.subject}' is now {status.replace('_', ' ').lower()}.",
+        related_type="ticket",
+        related_id=ticket.id,
+    )
+    _send_email(client, email_templates.ticket_status_changed_client(ticket, client))
 
 
 # --- hosting events ---------------------------------------------------------

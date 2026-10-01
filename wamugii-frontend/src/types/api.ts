@@ -635,6 +635,106 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/client/tickets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List the authenticated client's support tickets */
+        get: operations["list_tickets_api_v1_client_tickets_get"];
+        put?: never;
+        /**
+         * Open a support ticket
+         * @description Clients raise their own tickets. Public visitors don't reach this — they use
+         *     the quote form — so the owner is always the authenticated account.
+         */
+        post: operations["create_ticket_api_v1_client_tickets_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/client/tickets/{ticket_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get one of the authenticated client's tickets with its thread
+         * @description 404 (not 403) for anything that isn't this client's — same as projects.
+         */
+        get: operations["get_ticket_api_v1_client_tickets__ticket_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/client/tickets/{ticket_id}/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reply on one of the authenticated client's tickets */
+        post: operations["add_ticket_message_api_v1_client_tickets__ticket_id__messages_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/client/domains": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List the authenticated client's domains
+         * @description The client's own domains. The response model carries no `notes`, so internal
+         *     remarks cannot leak here.
+         */
+        get: operations["list_domains_api_v1_client_domains_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/client/domains/{domain_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get one of the authenticated client's domains
+         * @description 404 (not 403) for anything that isn't this client's — same as projects.
+         */
+        get: operations["get_domain_api_v1_client_domains__domain_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/client/quotes": {
         parameters: {
             query?: never;
@@ -647,6 +747,30 @@ export interface paths {
          * @description List all quote requests associated with the client's email.
          */
         get: operations["list_quotes_api_v1_client_quotes_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/client/quotes/{quote_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get one of the authenticated client's quote requests
+         * @description The click-through target for a QUOTE_STATUS_CHANGED notification.
+         *
+         *     Scoped by email, not client_id: quote requests are public and carry an email
+         *     rather than a user FK, so a client's quotes are the ones submitted with
+         *     their address. 404 for anything else.
+         */
+        get: operations["get_quote_api_v1_client_quotes__quote_id__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -955,6 +1079,97 @@ export interface paths {
         patch: operations["update_account_api_v1_hosting_accounts__account_id__patch"];
         trace?: never;
     };
+    "/api/v1/tickets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List tickets (ADMIN or STAFF) */
+        get: operations["list_tickets_api_v1_tickets_get"];
+        put?: never;
+        /** Raise a ticket on a client's behalf (ADMIN or STAFF) */
+        post: operations["create_ticket_for_client_api_v1_tickets_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tickets/{ticket_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a ticket with its full thread, internal notes included (ADMIN or STAFF) */
+        get: operations["get_ticket_api_v1_tickets__ticket_id__get"];
+        put?: never;
+        post?: never;
+        /** Deactivate a ticket (ADMIN only, soft delete) */
+        delete: operations["deactivate_ticket_api_v1_tickets__ticket_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update a ticket's status, priority, category or assignee (ADMIN or STAFF) */
+        patch: operations["update_ticket_api_v1_tickets__ticket_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/tickets/{ticket_id}/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reply on a ticket, optionally as an internal note (ADMIN or STAFF) */
+        post: operations["add_staff_message_api_v1_tickets__ticket_id__messages_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/domains": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List domains (ADMIN or STAFF) */
+        get: operations["list_domains_api_v1_domains_get"];
+        put?: never;
+        /** Register a domain for a client (ADMIN or STAFF) */
+        post: operations["create_domain_api_v1_domains_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/domains/{domain_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a domain (ADMIN or STAFF) */
+        get: operations["get_domain_api_v1_domains__domain_id__get"];
+        put?: never;
+        post?: never;
+        /** Deactivate a domain record (ADMIN only, soft delete) */
+        delete: operations["deactivate_domain_api_v1_domains__domain_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update a domain (ADMIN or STAFF) */
+        patch: operations["update_domain_api_v1_domains__domain_id__patch"];
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -1056,6 +1271,72 @@ export interface components {
             completed_projects: number;
             /** Pending Quotes */
             pending_quotes: number;
+        };
+        /**
+         * ClientDomainDetail
+         * @description Full detail for the owning client — including nameservers (they may need
+         *     them) and what they were charged, but never internal notes.
+         */
+        ClientDomainDetail: {
+            /** Id */
+            id: number;
+            /** Hosting Account Id */
+            hosting_account_id: number | null;
+            /** Domain Name */
+            domain_name: string;
+            /** Registrar */
+            registrar: string;
+            /** Registration Fee */
+            registration_fee: string;
+            /** Service Fee */
+            service_fee: string | null;
+            /** Total Fee */
+            total_fee: string;
+            status: components["schemas"]["DomainStatus"];
+            /** Registered Date */
+            registered_date: string | null;
+            /** Expires At */
+            expires_at: string | null;
+            /** Auto Renew */
+            auto_renew: boolean;
+            /** Nameservers */
+            nameservers: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /**
+         * ClientDomainListItem
+         * @description The client's own domain list. `notes` is not declared here or on the detail
+         *     model below, so internal remarks cannot leak even if the ORM row is passed
+         *     in whole.
+         */
+        ClientDomainListItem: {
+            /** Id */
+            id: number;
+            /** Domain Name */
+            domain_name: string;
+            /** Registrar */
+            registrar: string;
+            status: components["schemas"]["DomainStatus"];
+            /** Registered Date */
+            registered_date: string | null;
+            /** Expires At */
+            expires_at: string | null;
+            /** Auto Renew */
+            auto_renew: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
         };
         /**
          * ClientHostingDetail
@@ -1336,6 +1617,44 @@ export interface components {
             created_at: string;
         };
         /**
+         * ClientQuoteDetail
+         * @description A client's own quote request in full.
+         *
+         *     `admin_notes` is not declared here — internal review notes stay internal,
+         *     exactly as ClientQuoteListItem already ensures for the list view.
+         *     `converted_project_id` is filled in when the quote became a project, so the
+         *     client can click through to it.
+         */
+        ClientQuoteDetail: {
+            /** Id */
+            id: number;
+            /** Project Title */
+            project_title: string;
+            /** Project Description */
+            project_description: string;
+            /** Service Id */
+            service_id: number | null;
+            /** Service Name */
+            service_name?: string | null;
+            /** Budget Range */
+            budget_range: string | null;
+            /** Preferred Deadline */
+            preferred_deadline: string | null;
+            status: components["schemas"]["QuoteStatus"];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Converted Project Id */
+            converted_project_id?: number | null;
+        };
+        /**
          * ClientQuoteListItem
          * @description Safe quote info without admin_notes.
          */
@@ -1355,6 +1674,82 @@ export interface components {
              * Format: date-time
              */
             updated_at: string;
+        };
+        /**
+         * ClientTicketDetail
+         * @description The client's own ticket. Carries no `assigned_to` (who internally owns it
+         *     isn't the client's business) and no internal notes.
+         */
+        ClientTicketDetail: {
+            /** Id */
+            id: number;
+            /** Project Id */
+            project_id: number | null;
+            /** Subject */
+            subject: string;
+            /** Description */
+            description: string;
+            category: components["schemas"]["TicketCategory"];
+            priority: components["schemas"]["TicketPriority"];
+            status: components["schemas"]["TicketStatus"];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /**
+             * Messages
+             * @default []
+             */
+            messages: components["schemas"]["ClientTicketMessageRead"][];
+        };
+        /** ClientTicketListItem */
+        ClientTicketListItem: {
+            /** Id */
+            id: number;
+            /** Project Id */
+            project_id: number | null;
+            /** Subject */
+            subject: string;
+            category: components["schemas"]["TicketCategory"];
+            priority: components["schemas"]["TicketPriority"];
+            status: components["schemas"]["TicketStatus"];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /**
+         * ClientTicketMessageRead
+         * @description A thread entry as its client sees it.
+         *
+         *     `is_internal_note` is not declared here at all, and the router filters those
+         *     messages out before serializing — so an internal note can neither appear nor
+         *     be inferred from a missing id, since ids aren't sequential per view.
+         */
+        ClientTicketMessageRead: {
+            /** Id */
+            id: number;
+            /** Sender Id */
+            sender_id: number;
+            /** Message */
+            message: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
         };
         /**
          * ClientUserRead
@@ -1486,6 +1881,145 @@ export interface components {
              *     }
              */
             support: components["schemas"]["SupportStats"];
+        };
+        /** DomainCreate */
+        DomainCreate: {
+            /** Client Id */
+            client_id: number;
+            /** Hosting Account Id */
+            hosting_account_id?: number | null;
+            /** Domain Name */
+            domain_name: string;
+            /**
+             * Registrar
+             * @default Namecheap
+             */
+            registrar: string;
+            /**
+             * Registration Fee
+             * @default 0
+             */
+            registration_fee: number | string;
+            /** Service Fee */
+            service_fee?: number | string | null;
+            /** @default PENDING */
+            status: components["schemas"]["DomainStatus"];
+            /** Registered Date */
+            registered_date?: string | null;
+            /** Expires At */
+            expires_at?: string | null;
+            /**
+             * Auto Renew
+             * @default false
+             */
+            auto_renew: boolean;
+            /** Nameservers */
+            nameservers?: string | null;
+            /** Notes */
+            notes?: string | null;
+            /** Invoice Id */
+            invoice_id?: number | null;
+        };
+        /** DomainListItem */
+        DomainListItem: {
+            /** Id */
+            id: number;
+            /** Client Id */
+            client_id: number;
+            /** Hosting Account Id */
+            hosting_account_id: number | null;
+            /** Domain Name */
+            domain_name: string;
+            /** Registrar */
+            registrar: string;
+            status: components["schemas"]["DomainStatus"];
+            /** Expires At */
+            expires_at: string | null;
+            /** Is Active */
+            is_active: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /**
+         * DomainRead
+         * @description Full staff view, including the internal notes.
+         */
+        DomainRead: {
+            /** Id */
+            id: number;
+            /** Client Id */
+            client_id: number;
+            /** Hosting Account Id */
+            hosting_account_id: number | null;
+            /** Domain Name */
+            domain_name: string;
+            /** Registrar */
+            registrar: string;
+            /** Registration Fee */
+            registration_fee: string;
+            /** Service Fee */
+            service_fee: string | null;
+            /** Total Fee */
+            total_fee: string;
+            status: components["schemas"]["DomainStatus"];
+            /** Registered Date */
+            registered_date: string | null;
+            /** Expires At */
+            expires_at: string | null;
+            /** Auto Renew */
+            auto_renew: boolean;
+            /** Nameservers */
+            nameservers: string | null;
+            /** Notes */
+            notes: string | null;
+            /** Invoice Id */
+            invoice_id: number | null;
+            /** Is Active */
+            is_active: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /**
+         * DomainStatus
+         * @enum {string}
+         */
+        DomainStatus: "PENDING" | "ACTIVE" | "EXPIRED" | "CANCELLED";
+        /** DomainUpdate */
+        DomainUpdate: {
+            /** Hosting Account Id */
+            hosting_account_id?: number | null;
+            /** Domain Name */
+            domain_name?: string | null;
+            /** Registrar */
+            registrar?: string | null;
+            /** Registration Fee */
+            registration_fee?: number | string | null;
+            /** Service Fee */
+            service_fee?: number | string | null;
+            status?: components["schemas"]["DomainStatus"] | null;
+            /** Registered Date */
+            registered_date?: string | null;
+            /** Expires At */
+            expires_at?: string | null;
+            /** Auto Renew */
+            auto_renew?: boolean | null;
+            /** Nameservers */
+            nameservers?: string | null;
+            /** Notes */
+            notes?: string | null;
+            /** Invoice Id */
+            invoice_id?: number | null;
         };
         /**
          * FileCategory
@@ -1984,7 +2518,7 @@ export interface components {
          * NotificationType
          * @enum {string}
          */
-        NotificationType: "QUOTE_SUBMITTED" | "QUOTE_STATUS_CHANGED" | "PROJECT_CREATED" | "PROJECT_STATUS_CHANGED" | "MILESTONE_COMPLETED" | "FILE_UPLOADED" | "INVOICE_CREATED" | "INVOICE_DUE" | "PAYMENT_RECORDED" | "HOSTING_ACCOUNT_CREATED" | "HOSTING_STATUS_CHANGED";
+        NotificationType: "QUOTE_SUBMITTED" | "QUOTE_STATUS_CHANGED" | "PROJECT_CREATED" | "PROJECT_STATUS_CHANGED" | "MILESTONE_COMPLETED" | "FILE_UPLOADED" | "INVOICE_CREATED" | "INVOICE_DUE" | "PAYMENT_RECORDED" | "HOSTING_ACCOUNT_CREATED" | "HOSTING_STATUS_CHANGED" | "TICKET_CREATED" | "TICKET_REPLY" | "TICKET_STATUS_CHANGED" | "DOMAIN_REGISTERED" | "DOMAIN_STATUS_CHANGED";
         /** PaymentCreate */
         PaymentCreate: {
             /** Amount */
@@ -2573,6 +3107,167 @@ export interface components {
              */
             open_tickets: number;
         };
+        /**
+         * SupportTicketAdminCreate
+         * @description Staff may also raise a ticket on a client's behalf.
+         */
+        SupportTicketAdminCreate: {
+            /** Subject */
+            subject: string;
+            /** Description */
+            description: string;
+            /** @default GENERAL */
+            category: components["schemas"]["TicketCategory"];
+            /** Project Id */
+            project_id?: number | null;
+            /** Client Id */
+            client_id: number;
+            /** @default MEDIUM */
+            priority: components["schemas"]["TicketPriority"];
+        };
+        /**
+         * SupportTicketCreate
+         * @description What a client submits. Priority/status/assignee are staff decisions.
+         */
+        SupportTicketCreate: {
+            /** Subject */
+            subject: string;
+            /** Description */
+            description: string;
+            /** @default GENERAL */
+            category: components["schemas"]["TicketCategory"];
+            /** Project Id */
+            project_id?: number | null;
+        };
+        /** SupportTicketListItem */
+        SupportTicketListItem: {
+            /** Id */
+            id: number;
+            /** Client Id */
+            client_id: number;
+            /** Project Id */
+            project_id: number | null;
+            /** Subject */
+            subject: string;
+            category: components["schemas"]["TicketCategory"];
+            priority: components["schemas"]["TicketPriority"];
+            status: components["schemas"]["TicketStatus"];
+            /** Assigned To */
+            assigned_to: number | null;
+            /** Is Active */
+            is_active: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /**
+         * SupportTicketRead
+         * @description Full staff view, with the whole thread including internal notes.
+         */
+        SupportTicketRead: {
+            /** Id */
+            id: number;
+            /** Client Id */
+            client_id: number;
+            /** Project Id */
+            project_id: number | null;
+            /** Subject */
+            subject: string;
+            /** Description */
+            description: string;
+            category: components["schemas"]["TicketCategory"];
+            priority: components["schemas"]["TicketPriority"];
+            status: components["schemas"]["TicketStatus"];
+            /** Assigned To */
+            assigned_to: number | null;
+            /** Is Active */
+            is_active: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /**
+             * Messages
+             * @default []
+             */
+            messages: components["schemas"]["TicketMessageRead"][];
+        };
+        /**
+         * SupportTicketUpdate
+         * @description Staff-only changes.
+         */
+        SupportTicketUpdate: {
+            status?: components["schemas"]["TicketStatus"] | null;
+            priority?: components["schemas"]["TicketPriority"] | null;
+            category?: components["schemas"]["TicketCategory"] | null;
+            /** Assigned To */
+            assigned_to?: number | null;
+        };
+        /**
+         * TicketCategory
+         * @enum {string}
+         */
+        TicketCategory: "GENERAL" | "BILLING" | "TECHNICAL" | "PROJECT_CHANGE" | "HOSTING" | "OTHER";
+        /**
+         * TicketMessageCreate
+         * @description A reply. `is_internal_note` is accepted here but only honoured for
+         *     ADMIN/STAFF — the client endpoint ignores it entirely (see
+         *     api/v1/support.add_client_message), so a client cannot post a note that
+         *     hides itself from their own view or skips the staff email.
+         */
+        TicketMessageCreate: {
+            /** Message */
+            message: string;
+            /**
+             * Is Internal Note
+             * @default false
+             */
+            is_internal_note: boolean;
+        };
+        /**
+         * TicketMessageRead
+         * @description Staff view of a thread entry, including the internal-note flag.
+         */
+        TicketMessageRead: {
+            /** Id */
+            id: number;
+            /** Ticket Id */
+            ticket_id: number;
+            /** Sender Id */
+            sender_id: number;
+            /** Message */
+            message: string;
+            /** Is Internal Note */
+            is_internal_note: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /**
+         * TicketPriority
+         * @enum {string}
+         */
+        TicketPriority: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+        /**
+         * TicketStatus
+         * @enum {string}
+         */
+        TicketStatus: "OPEN" | "IN_PROGRESS" | "WAITING_ON_CLIENT" | "RESOLVED" | "CLOSED";
         /** Token */
         Token: {
             /** Access Token */
@@ -4110,6 +4805,200 @@ export interface operations {
             };
         };
     };
+    list_tickets_api_v1_client_tickets_get: {
+        parameters: {
+            query?: {
+                status?: components["schemas"]["TicketStatus"] | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClientTicketListItem"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_ticket_api_v1_client_tickets_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SupportTicketCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClientTicketDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_ticket_api_v1_client_tickets__ticket_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                ticket_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClientTicketDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_ticket_message_api_v1_client_tickets__ticket_id__messages_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                ticket_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TicketMessageCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClientTicketMessageRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_domains_api_v1_client_domains_get: {
+        parameters: {
+            query?: {
+                status?: components["schemas"]["DomainStatus"] | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClientDomainListItem"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_domain_api_v1_client_domains__domain_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                domain_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClientDomainDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_quotes_api_v1_client_quotes_get: {
         parameters: {
             query?: {
@@ -4130,6 +5019,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ClientQuoteListItem"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_quote_api_v1_client_quotes__quote_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                quote_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClientQuoteDetail"];
                 };
             };
             /** @description Validation Error */
@@ -5068,6 +5988,376 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HostingAccountRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_tickets_api_v1_tickets_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+                status?: components["schemas"]["TicketStatus"] | null;
+                priority?: components["schemas"]["TicketPriority"] | null;
+                category?: components["schemas"]["TicketCategory"] | null;
+                client_id?: number | null;
+                assigned_to?: number | null;
+                search?: string | null;
+                include_inactive?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupportTicketListItem"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_ticket_for_client_api_v1_tickets_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SupportTicketAdminCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupportTicketRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_ticket_api_v1_tickets__ticket_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                ticket_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupportTicketRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    deactivate_ticket_api_v1_tickets__ticket_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                ticket_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupportTicketRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_ticket_api_v1_tickets__ticket_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                ticket_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SupportTicketUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupportTicketRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_staff_message_api_v1_tickets__ticket_id__messages_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                ticket_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TicketMessageCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketMessageRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_domains_api_v1_domains_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+                status?: components["schemas"]["DomainStatus"] | null;
+                client_id?: number | null;
+                search?: string | null;
+                include_inactive?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainListItem"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_domain_api_v1_domains_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DomainCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_domain_api_v1_domains__domain_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                domain_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    deactivate_domain_api_v1_domains__domain_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                domain_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_domain_api_v1_domains__domain_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                domain_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DomainUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainRead"];
                 };
             };
             /** @description Validation Error */

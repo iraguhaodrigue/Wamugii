@@ -7,6 +7,9 @@ type MilestoneStatus = components['schemas']['MilestoneStatus']
 type QuoteStatus = components['schemas']['QuoteStatus']
 type InvoiceStatus = components['schemas']['InvoiceStatus']
 type HostingStatus = components['schemas']['HostingStatus']
+type DomainStatus = components['schemas']['DomainStatus']
+type TicketStatus = components['schemas']['TicketStatus']
+type TicketPriority = components['schemas']['TicketPriority']
 type Role = components['schemas']['Role']
 
 export const projectStatusVariant: Record<ProjectStatus, BadgeVariant> = {
@@ -59,6 +62,29 @@ export const hostingStatusVariant: Record<HostingStatus, BadgeVariant> = {
   SUSPENDED: 'warning',
   EXPIRED: 'danger',
   CANCELLED: 'neutral',
+}
+
+export const domainStatusVariant: Record<DomainStatus, BadgeVariant> = {
+  PENDING: 'neutral',
+  ACTIVE: 'success',
+  EXPIRED: 'danger',
+  CANCELLED: 'neutral',
+}
+
+export const ticketStatusVariant: Record<TicketStatus, BadgeVariant> = {
+  OPEN: 'brand',
+  IN_PROGRESS: 'info',
+  WAITING_ON_CLIENT: 'warning',
+  RESOLVED: 'success',
+  CLOSED: 'neutral',
+}
+
+/** Mirrors projectPriorityVariant -- same four levels, same reading. */
+export const ticketPriorityVariant: Record<TicketPriority, BadgeVariant> = {
+  LOW: 'neutral',
+  MEDIUM: 'info',
+  HIGH: 'warning',
+  URGENT: 'danger',
 }
 
 export const roleVariant: Record<Role, BadgeVariant> = {

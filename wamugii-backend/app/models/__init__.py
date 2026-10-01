@@ -1,4 +1,5 @@
 from app.models.company_settings import CompanySettings  # noqa: F401
+from app.models.domain import Domain, DomainStatus  # noqa: F401
 from app.models.hosting import (  # noqa: F401
     BillingCycle,
     HostingAccount,
@@ -18,5 +19,12 @@ from app.models.project import Project  # noqa: F401
 from app.models.project_file import FileCategory, ProjectFile  # noqa: F401
 from app.models.project_milestone import MilestoneStatus, ProjectMilestone  # noqa: F401
 from app.models.quote_request import QuoteRequest  # noqa: F401
+from app.models.support import (  # noqa: F401
+    SupportTicket,
+    TicketCategory,
+    TicketMessage,
+    TicketPriority,
+    TicketStatus,
+)
 from app.models.service import Service  # noqa: F401
 from app.models.user import Role, User  # noqa: F401

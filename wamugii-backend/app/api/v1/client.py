@@ -5,13 +5,20 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app.api.deps import ActiveUser, DbDep, require_roles
+from app.api.v1.support import validate_project_for_ticket
 from app.crud import client as client_crud
 from app.crud import company_settings as settings_crud
+from app.crud import domain as domain_crud
 from app.crud import hosting as hosting_crud
+from app.crud import project as project_crud
 from app.crud import project_milestone as milestone_crud
+from app.crud import service as service_crud
+from app.crud import support as support_crud
+from app.models.domain import DomainStatus
 from app.models.invoice import InvoiceStatus
 from app.models.project import ProjectStatus
 from app.models.quote_request import QuoteStatus
+from app.models.support import SupportTicket, TicketStatus
 from app.models.user import Role, User
 from app.schemas.client import (
     ClientActivityItem,
@@ -24,14 +31,38 @@ from app.schemas.client import (
     ClientMilestoneListItem,
     ClientProjectDetail,
     ClientProjectListItem,
+    ClientQuoteDetail,
     ClientQuoteListItem,
     ClientUserRead,
 )
+from app.schemas.domain import ClientDomainDetail, ClientDomainListItem
+from app.schemas.support import (
+    ClientTicketDetail,
+    ClientTicketListItem,
+    ClientTicketMessageRead,
+    SupportTicketCreate,
+    TicketMessageCreate,
+)
+from app.services import notifications
 
 router = APIRouter(prefix="/client", tags=["client"])
 logger = logging.getLogger(__name__)
 
 ClientOnly = Annotated[User, Depends(require_roles(Role.CLIENT))]
+
+
+def _client_ticket_detail(ticket: SupportTicket) -> ClientTicketDetail:
+    """
+    Build the client's view of a ticket with internal notes stripped.
+
+    Done explicitly rather than by relying on the schema alone: the thread is a
+    list, so a staff-only note would otherwise still occupy an entry.
+    """
+    detail = ClientTicketDetail.model_validate(ticket)
+    detail.messages = [
+        ClientTicketMessageRead.model_validate(m) for m in support_crud.visible_messages(ticket)
+    ]
+    return detail
 
 
 @router.get("/dashboard", response_model=ClientDashboardRead, summary="Get client dashboard")
@@ -225,6 +256,123 @@ def get_hosting(account_id: int, db: DbDep, current_user: ClientOnly):
     return ClientHostingDetail.model_validate(account)
 
 
+@router.post(
+    "/tickets",
+    response_model=ClientTicketDetail,
+    status_code=201,
+    summary="Open a support ticket",
+)
+def create_ticket(data: SupportTicketCreate, db: DbDep, current_user: ClientOnly):
+    """
+    Clients raise their own tickets. Public visitors don't reach this — they use
+    the quote form — so the owner is always the authenticated account.
+    """
+    if data.project_id is not None:
+        validate_project_for_ticket(db, data.project_id, current_user.id)
+
+    ticket = support_crud.create_ticket(
+        db,
+        client_id=current_user.id,
+        subject=data.subject,
+        description=data.description,
+        category=data.category,
+        project_id=data.project_id,
+    )
+    logger.info("client %s opened ticket %s", current_user.id, ticket.id)
+    notifications.notify_ticket_created(db, ticket)
+    return _client_ticket_detail(ticket)
+
+
+@router.get(
+    "/tickets",
+    response_model=list[ClientTicketListItem],
+    summary="List the authenticated client's support tickets",
+)
+def list_tickets(
+    db: DbDep,
+    current_user: ClientOnly,
+    status: TicketStatus | None = None,
+    limit: int = Query(20, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+):
+    tickets = support_crud.list_tickets_for_client(
+        db, current_user.id, limit=limit, offset=offset, status=status
+    )
+    return [ClientTicketListItem.model_validate(t) for t in tickets]
+
+
+@router.get(
+    "/tickets/{ticket_id}",
+    response_model=ClientTicketDetail,
+    summary="Get one of the authenticated client's tickets with its thread",
+)
+def get_ticket(ticket_id: int, db: DbDep, current_user: ClientOnly):
+    """404 (not 403) for anything that isn't this client's — same as projects."""
+    ticket = support_crud.get_ticket_for_client(db, ticket_id, current_user.id)
+    if not ticket:
+        raise HTTPException(status_code=404, detail="Ticket not found")
+    return _client_ticket_detail(ticket)
+
+
+@router.post(
+    "/tickets/{ticket_id}/messages",
+    response_model=ClientTicketMessageRead,
+    status_code=201,
+    summary="Reply on one of the authenticated client's tickets",
+)
+def add_ticket_message(
+    ticket_id: int, data: TicketMessageCreate, db: DbDep, current_user: ClientOnly
+):
+    ticket = support_crud.get_ticket_for_client(db, ticket_id, current_user.id)
+    if not ticket:
+        raise HTTPException(status_code=404, detail="Ticket not found")
+
+    entry = support_crud.add_message(
+        db,
+        ticket,
+        sender_id=current_user.id,
+        message=data.message,
+        # Hardcoded: `is_internal_note` in the body is ignored here so a client
+        # can't post a note that hides from their own view or skips the email.
+        is_internal_note=False,
+    )
+    # The client answering a WAITING_ON_CLIENT ticket puts the ball back with us.
+    support_crud.reopen_if_waiting(db, ticket)
+    logger.info("client %s replied on ticket %s", current_user.id, ticket_id)
+
+    notifications.notify_ticket_reply_to_staff(db, ticket, entry)
+    return ClientTicketMessageRead.model_validate(entry)
+
+
+@router.get(
+    "/domains",
+    response_model=list[ClientDomainListItem],
+    summary="List the authenticated client's domains",
+)
+def list_domains(db: DbDep, current_user: ClientOnly, status: DomainStatus | None = None):
+    """
+    The client's own domains. The response model carries no `notes`, so internal
+    remarks cannot leak here.
+    """
+    domains = domain_crud.list_domains_for_client(db, current_user.id)
+    if status is not None:
+        domains = [d for d in domains if d.status == status]
+    return [ClientDomainListItem.model_validate(d) for d in domains]
+
+
+@router.get(
+    "/domains/{domain_id}",
+    response_model=ClientDomainDetail,
+    summary="Get one of the authenticated client's domains",
+)
+def get_domain(domain_id: int, db: DbDep, current_user: ClientOnly):
+    """404 (not 403) for anything that isn't this client's — same as projects."""
+    domain = domain_crud.get_domain_for_client(db, domain_id, current_user.id)
+    if not domain:
+        raise HTTPException(status_code=404, detail="Domain not found")
+    return ClientDomainDetail.model_validate(domain)
+
+
 @router.get("/quotes", response_model=list[ClientQuoteListItem], summary="List client quotes")
 def list_quotes(
     db: DbDep,
@@ -239,3 +387,35 @@ def list_quotes(
     )
 
     return [ClientQuoteListItem.model_validate(q) for q in quotes]
+
+
+@router.get(
+    "/quotes/{quote_id}",
+    response_model=ClientQuoteDetail,
+    summary="Get one of the authenticated client's quote requests",
+)
+def get_quote(quote_id: int, db: DbDep, current_user: ClientOnly):
+    """
+    The click-through target for a QUOTE_STATUS_CHANGED notification.
+
+    Scoped by email, not client_id: quote requests are public and carry an email
+    rather than a user FK, so a client's quotes are the ones submitted with
+    their address. 404 for anything else.
+    """
+    quote = client_crud.get_client_quote_by_id(db, quote_id, current_user.email)
+    if not quote:
+        raise HTTPException(status_code=404, detail="Quote request not found")
+
+    detail = ClientQuoteDetail.model_validate(quote)
+
+    # Resolve the service name so the client sees "Web Design" rather than an id.
+    if quote.service_id is not None:
+        service = service_crud.get_by_id(db, quote.service_id)
+        detail.service_name = service.name if service else None
+
+    # If this quote became a project, let them click through to it.
+    project = project_crud.get_by_quote_request_id(db, quote.id)
+    if project is not None and project.client_id == current_user.id:
+        detail.converted_project_id = project.id
+
+    return detail

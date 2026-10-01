@@ -321,6 +321,202 @@ def _billing_label(account) -> str:
     return cycle.title()
 
 
+DOMAIN_STATUS_MEANING: dict[str, str] = {
+    "PENDING": "We're registering your domain — we'll confirm once it's live.",
+    "ACTIVE": "Your domain is registered and active.",
+    "EXPIRED": "Your domain has expired. Contact us if you'd like it renewed.",
+    "CANCELLED": "Your domain registration has been cancelled.",
+}
+
+
+def domain_registered_client(domain, client) -> tuple[str, str, str]:
+    subject = f"Domain registration started — {domain.domain_name}"
+    url = _cta_url("/client/domains")
+
+    pairs = [
+        ("Domain", domain.domain_name),
+        ("Registrar", domain.registrar),
+        ("Total", _money(domain.total_fee)),
+    ]
+    if domain.expires_at is not None:
+        pairs.append(("Expires", domain.expires_at.strftime("%d %b %Y")))
+
+    html = _shell(
+        heading="Domain registration",
+        intro=(
+            f"Hi {client.full_name.split(' ')[0]}, we've started registering "
+            f"{domain.domain_name} for you and will confirm once it's active."
+        ),
+        detail_rows=_rows(pairs),
+        cta=_button(url, "View My Domains"),
+    )
+    text = _plain(
+        "Domain registration",
+        [f"{label}: {value}" for label, value in pairs],
+        url,
+        "View My Domains",
+    )
+    return subject, html, text
+
+
+def domain_status_changed_client(domain, client) -> tuple[str, str, str]:
+    status = _enum_value(domain.status)
+    if status == "ACTIVE":
+        subject = f"{domain.domain_name} is now active"
+        heading = "Your domain is live"
+    else:
+        subject = f"Domain update — {domain.domain_name}"
+        heading = "Domain status updated"
+
+    meaning = DOMAIN_STATUS_MEANING.get(status, "Your domain status has been updated.")
+    url = _cta_url("/client/domains")
+
+    pairs = [("Domain", domain.domain_name), ("Status", _enum_label(domain.status))]
+    if domain.expires_at is not None:
+        pairs.append(("Expires", domain.expires_at.strftime("%d %b %Y")))
+    # Only useful once the domain actually resolves.
+    if status == "ACTIVE" and domain.nameservers:
+        pairs.append(("Nameservers", domain.nameservers))
+
+    html = _shell(
+        heading=heading,
+        intro=f"Hi {client.full_name.split(' ')[0]}, {meaning}",
+        detail_rows=_rows(pairs),
+        cta=_button(url, "View My Domains"),
+    )
+    text = _plain(
+        heading,
+        [meaning, ""] + [f"{label}: {value}" for label, value in pairs],
+        url,
+        "View My Domains",
+    )
+    return subject, html, text
+
+
+TICKET_STATUS_MEANING: dict[str, str] = {
+    "OPEN": "Your ticket is open and waiting for us.",
+    "IN_PROGRESS": "We're working on your ticket now.",
+    "WAITING_ON_CLIENT": "We're waiting for your reply to carry on.",
+    "RESOLVED": "We've marked your ticket as resolved.",
+    "CLOSED": "Your ticket has been closed.",
+}
+
+
+def ticket_created_admin(ticket, client) -> tuple[str, str, str]:
+    """To staff: a client opened a ticket."""
+    subject = f"New support ticket — {ticket.subject}"
+    url = _cta_url("/admin/tickets")
+
+    pairs = [
+        ("From", client.full_name if client else f"#{ticket.client_id}"),
+        ("Subject", ticket.subject),
+        ("Category", _enum_label(ticket.category)),
+        ("Priority", _enum_label(ticket.priority)),
+        ("Details", ticket.description),
+    ]
+
+    html = _shell(
+        heading="New support ticket",
+        intro="A client has opened a support ticket.",
+        detail_rows=_rows(pairs),
+        cta=_button(url, "View Ticket"),
+    )
+    text = _plain(
+        "New support ticket",
+        [f"{label}: {value}" for label, value in pairs],
+        url,
+        "View Ticket",
+    )
+    return subject, html, text
+
+
+def ticket_reply_client(ticket, message, client) -> tuple[str, str, str]:
+    """To the client: staff replied on their ticket."""
+    subject = f"New reply on your support ticket: {ticket.subject}"
+    url = _cta_url(f"/client/tickets/{ticket.id}")
+
+    html = _shell(
+        heading="New reply on your ticket",
+        intro=(
+            f"Hi {client.full_name.split(' ')[0]}, our team has replied to your ticket "
+            f"&ldquo;{ticket.subject}&rdquo;."
+        ),
+        detail_rows=_rows([("Status", _enum_label(ticket.status))]),
+        cta=_button(url, "View Ticket"),
+        footer_note=(
+            f'<div style="margin:18px 0 0 0;padding:14px 16px;background:#f5f7fb;'
+            f'border-left:3px solid {TEAL};border-radius:6px;color:{INK};font-size:14px;'
+            f'line-height:1.6;white-space:pre-line;">{message.message}</div>'
+        ),
+    )
+    text = _plain(
+        "New reply on your ticket",
+        [f"Ticket: {ticket.subject}", "", message.message],
+        url,
+        "View Ticket",
+    )
+    return subject, html, text
+
+
+def ticket_reply_staff(ticket, message, client) -> tuple[str, str, str]:
+    """To staff: the client replied on a ticket."""
+    subject = f"Client reply on ticket: {ticket.subject}"
+    url = _cta_url(f"/admin/tickets/{ticket.id}")
+
+    html = _shell(
+        heading="Client replied",
+        intro=(
+            f"{client.full_name if client else 'The client'} replied to the ticket "
+            f"&ldquo;{ticket.subject}&rdquo;."
+        ),
+        detail_rows=_rows([("Status", _enum_label(ticket.status))]),
+        cta=_button(url, "View Ticket"),
+        footer_note=(
+            f'<div style="margin:18px 0 0 0;padding:14px 16px;background:#f5f7fb;'
+            f'border-left:3px solid {TEAL};border-radius:6px;color:{INK};font-size:14px;'
+            f'line-height:1.6;white-space:pre-line;">{message.message}</div>'
+        ),
+    )
+    text = _plain(
+        "Client replied",
+        [f"Ticket: {ticket.subject}", "", message.message],
+        url,
+        "View Ticket",
+    )
+    return subject, html, text
+
+
+def ticket_status_changed_client(ticket, client) -> tuple[str, str, str]:
+    status = _enum_value(ticket.status)
+    subject = f"Your support ticket is now {status.replace('_', ' ').lower()}: {ticket.subject}"
+    url = _cta_url(f"/client/tickets/{ticket.id}")
+    meaning = TICKET_STATUS_MEANING.get(status, "Your ticket status has been updated.")
+
+    html = _shell(
+        heading="Ticket update",
+        intro=f"Hi {client.full_name.split(' ')[0]}, {meaning}",
+        detail_rows=_rows(
+            [("Ticket", ticket.subject), ("Status", status.replace("_", " ").title())]
+        ),
+        cta=_button(url, "View Ticket"),
+    )
+    text = _plain(
+        "Ticket update",
+        [meaning, "", f"Ticket: {ticket.subject}", f"Status: {status.replace('_', ' ').title()}"],
+        url,
+        "View Ticket",
+    )
+    return subject, html, text
+
+
+def _enum_value(value) -> str:
+    return value.value if hasattr(value, "value") else str(value)
+
+
+def _enum_label(value) -> str:
+    return _enum_value(value).replace("_", " ").title()
+
+
 def password_reset(user, reset_url: str | None) -> tuple[str, str, str]:
     """
     The reset link email.

@@ -20,6 +20,11 @@ export const paths = {
     invoiceDetail: (id: string | number) => `/client/invoices/${id}`,
     hosting: '/client/hosting',
     hostingDetail: (id: string | number) => `/client/hosting/${id}`,
+    domains: '/client/domains',
+    domainDetail: (id: string | number) => `/client/domains/${id}`,
+    quoteDetail: (id: string | number) => `/client/quotes/${id}`,
+    tickets: '/client/support',
+    ticketDetail: (id: string | number) => `/client/support/${id}`,
   },
   staff: {
     overview: '/staff',
@@ -31,6 +36,10 @@ export const paths = {
     invoiceDetail: (id: string | number) => `/staff/invoices/${id}`,
     hostingAccounts: '/staff/hosting/accounts',
     hostingAccountDetail: (id: string | number) => `/staff/hosting/accounts/${id}`,
+    domains: '/staff/domains',
+    domainDetail: (id: string | number) => `/staff/domains/${id}`,
+    tickets: '/staff/support',
+    ticketDetail: (id: string | number) => `/staff/support/${id}`,
   },
   admin: {
     dashboard: '/admin/dashboard',
@@ -46,6 +55,10 @@ export const paths = {
     hostingPlans: '/admin/hosting/plans',
     hostingAccounts: '/admin/hosting/accounts',
     hostingAccountDetail: (id: string | number) => `/admin/hosting/accounts/${id}`,
+    domains: '/admin/domains',
+    domainDetail: (id: string | number) => `/admin/domains/${id}`,
+    tickets: '/admin/support',
+    ticketDetail: (id: string | number) => `/admin/support/${id}`,
   },
 } as const
 
