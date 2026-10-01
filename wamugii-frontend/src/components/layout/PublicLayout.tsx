@@ -2,6 +2,7 @@ import { Outlet } from 'react-router-dom'
 import { AnnouncementBar } from './AnnouncementBar'
 import { Header } from './Header'
 import { Footer } from './Footer'
+import { ChatWidget } from '@/components/common/ChatWidget'
 
 /**
  * The public marketing site is permanently dark — it reuses the same `.dark`
@@ -20,6 +21,9 @@ export function PublicLayout() {
         <Outlet />
       </main>
       <Footer />
+      {/* Public pages only — the authenticated shells (AdminLayout,
+          DashboardLayout) don't mount this. */}
+      <ChatWidget />
     </div>
   )
 }
