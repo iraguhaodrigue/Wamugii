@@ -96,6 +96,27 @@ def get_client_quotes(
     return list(db.scalars(query).all())
 
 
+def get_client_quote_by_id(
+    db: Session, quote_id: int, client_email: str
+) -> QuoteRequest | None:
+    """
+    A quote if it was submitted with this client's email.
+
+    Matched on email rather than a user FK because quote requests are public —
+    there may be no account behind one at submission time. Returns None for
+    anything else, which the router turns into a 404.
+    """
+    return db.scalar(
+        select(QuoteRequest).where(
+            and_(
+                QuoteRequest.id == quote_id,
+                QuoteRequest.email == client_email,
+                QuoteRequest.is_active.is_(True),
+            )
+        )
+    )
+
+
 def count_client_quotes(
     db: Session,
     client_email: str,

@@ -1,9 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
+import { Link } from 'react-router-dom'
 import {
   Boxes,
   Clock,
   FolderKanban,
-  HeadphonesIcon,
+  LifeBuoy,
   Receipt,
   Server,
   ShoppingBag,
@@ -14,13 +15,11 @@ import {
 import { getAdminDashboard } from '@/api/adminDashboard'
 import { useAuth } from '@/context/AuthContext'
 import { usePageTitle } from '@/context/PageTitleContext'
+import { paths } from '@/routes/paths'
 import { Avatar, ErrorState, Skeleton, StatCard } from '@/components/ui'
 import { formatMoney } from '@/utils/format'
 
-const comingSoonTiles = [
-  { label: 'Store', icon: ShoppingBag },
-  { label: 'Support', icon: HeadphonesIcon },
-]
+const comingSoonTiles = [{ label: 'Store', icon: ShoppingBag }]
 
 export function AdminDashboard() {
   usePageTitle('Dashboard')
@@ -112,6 +111,16 @@ export function AdminDashboard() {
             value={data.hosting.active}
             accent="success"
           />
+          {/* Open = OPEN + IN_PROGRESS + WAITING_ON_CLIENT, counted server-side. */}
+          <Link to={paths.admin.tickets} className="rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
+            <StatCard
+              icon={LifeBuoy}
+              label="Open Tickets"
+              value={data.support.open_tickets}
+              accent="warning"
+              className="h-full transition-all hover:-translate-y-0.5 hover:shadow-md"
+            />
+          </Link>
         </div>
         <p className="mt-3 text-xs text-slate-400">
           Users: {data.users.clients} clients · {data.users.staff} staff · {data.users.admins} admins

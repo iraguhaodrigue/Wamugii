@@ -165,6 +165,31 @@ class ClientInvoiceDetail(BaseModel):
     company: InvoiceCompanyBlock | None = None
 
 
+class ClientQuoteDetail(BaseModel):
+    """
+    A client's own quote request in full.
+
+    `admin_notes` is not declared here — internal review notes stay internal,
+    exactly as ClientQuoteListItem already ensures for the list view.
+    `converted_project_id` is filled in when the quote became a project, so the
+    client can click through to it.
+    """
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    project_title: str
+    project_description: str
+    service_id: int | None
+    service_name: str | None = None
+    budget_range: str | None
+    preferred_deadline: str | None
+    status: QuoteStatus
+    created_at: datetime
+    updated_at: datetime
+    converted_project_id: int | None = None
+
+
 class ClientHostingPlanRead(BaseModel):
     """Plan details a client may see — plans are public anyway."""
 

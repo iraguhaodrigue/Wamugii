@@ -29,25 +29,39 @@ const UNREAD_POLL_MS = 45_000
  * depending on who is reading it, so this is keyed by role first — a client
  * must never be sent to an /admin/* route they'd only be bounced out of.
  *
- * A missing entry is deliberate, not an oversight: clients have no quote
- * detail screen, so a client's quote notification is marked read and goes
- * nowhere. Unknown `related_type` values fall through the same path.
+ * Every `related_type` the backend emits (see services/notifications.py:
+ * quote, project, invoice, hosting, domain, ticket) has an entry for every
+ * role that can receive it. `hosting` and `domain` notifications only ever go
+ * to the owning client today, but staff entries are kept so a future
+ * staff-facing emit lands somewhere rather than silently going nowhere.
+ *
+ * A missing entry is not a bug: the notification is still marked read, it just
+ * doesn't navigate. Unknown `related_type` values fall through the same path.
  */
 const RESOURCE_ROUTES: Record<Role, Record<string, (id: number) => string>> = {
   ADMIN: {
     invoice: paths.admin.invoiceDetail,
     project: paths.admin.projectDetail,
     quote: paths.admin.quoteDetail,
+    hosting: paths.admin.hostingAccountDetail,
+    domain: paths.admin.domainDetail,
+    ticket: paths.admin.ticketDetail,
   },
   STAFF: {
     invoice: paths.staff.invoiceDetail,
     project: paths.staff.projectDetail,
     quote: paths.staff.quoteDetail,
+    hosting: paths.staff.hostingAccountDetail,
+    domain: paths.staff.domainDetail,
+    ticket: paths.staff.ticketDetail,
   },
   CLIENT: {
     invoice: paths.client.invoiceDetail,
     project: paths.client.projectDetail,
-    // No client-facing quote detail route exists — see the note above.
+    quote: paths.client.quoteDetail,
+    hosting: paths.client.hostingDetail,
+    domain: paths.client.domainDetail,
+    ticket: paths.client.ticketDetail,
   },
 }
 

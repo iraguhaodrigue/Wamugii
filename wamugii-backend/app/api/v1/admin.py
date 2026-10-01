@@ -9,6 +9,7 @@ from app.crud import invoice as invoice_crud
 from app.crud import project as project_crud
 from app.crud import quote_request as quote_crud
 from app.crud import service as service_crud
+from app.crud import support as support_crud
 from app.crud import user as user_crud
 from app.models.user import Role, User
 from app.schemas.admin import (
@@ -18,6 +19,7 @@ from app.schemas.admin import (
     ProjectStats,
     QuoteStats,
     ServiceStats,
+    SupportStats,
     UserStats,
 )
 from app.schemas.user import UserAdminUpdate, UserRead
@@ -61,7 +63,7 @@ def dashboard(db: DbDep, admin: CurrentAdmin):
         ),
         hosting=HostingStats(active=hosting_crud.count_active_accounts(db)),
         # TODO: store module not built yet
-        # TODO: support module not built yet
+        support=SupportStats(open_tickets=support_crud.count_open_tickets(db)),
     )
 
 

@@ -33,3 +33,29 @@ export async function listClientMilestones(projectId: number | string): Promise<
   const { data } = await apiClient.get<ClientMilestoneListItem[]>(`/client/projects/${projectId}/milestones`)
   return data
 }
+
+export type ClientQuoteListItem = components['schemas']['ClientQuoteListItem']
+export type ClientQuoteDetail = components['schemas']['ClientQuoteDetail']
+export type QuoteStatus = components['schemas']['QuoteStatus']
+
+export interface ListClientQuotesParams {
+  status?: QuoteStatus
+  limit?: number
+  offset?: number
+}
+
+export async function listClientQuotes(
+  params: ListClientQuotesParams = {},
+): Promise<ClientQuoteListItem[]> {
+  const { data } = await apiClient.get<ClientQuoteListItem[]>('/client/quotes', { params })
+  return data
+}
+
+/**
+ * The click-through target for a QUOTE_STATUS_CHANGED notification. Scoped to
+ * the signed-in client's email server-side; anything else 404s.
+ */
+export async function getClientQuote(quoteId: number | string): Promise<ClientQuoteDetail> {
+  const { data } = await apiClient.get<ClientQuoteDetail>(`/client/quotes/${quoteId}`)
+  return data
+}

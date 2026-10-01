@@ -132,16 +132,17 @@ export function ClientDashboard() {
               <EmptyState title="No quote requests yet" description="Submit a request and it'll appear here." />
             ) : (
               data.recent_quotes.map((quote) => (
-                <div
+                <Link
                   key={quote.id}
-                  className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-panel p-4 shadow-sm"
+                  to={paths.client.quoteDetail(quote.id)}
+                  className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-panel p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                 >
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium text-slate-900">{quote.project_title}</p>
                     <p className="mt-0.5 text-xs text-slate-500">Submitted {formatDate(quote.created_at)}</p>
                   </div>
                   <Badge variant={quoteStatusVariant[quote.status]}>{formatEnumLabel(quote.status)}</Badge>
-                </div>
+                </Link>
               ))
             )}
           </div>
