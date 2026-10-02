@@ -8,6 +8,7 @@ from app.models.invoice import InvoiceStatus, PaymentMethod
 from app.models.project import ProjectPriority, ProjectStatus
 from app.models.project_milestone import MilestoneStatus
 from app.models.quote_request import QuoteStatus
+from app.schemas.quote_request import QuoteAnswerRead
 from app.schemas.company_settings import InvoiceCompanyBlock
 
 
@@ -188,6 +189,9 @@ class ClientQuoteDetail(BaseModel):
     created_at: datetime
     updated_at: datetime
     converted_project_id: int | None = None
+    # The structured per-service answers, as asked at submit time. Safe for a
+    # client to see: these are their own words, not internal review notes.
+    answers: list[QuoteAnswerRead] = []
 
 
 class ClientHostingPlanRead(BaseModel):

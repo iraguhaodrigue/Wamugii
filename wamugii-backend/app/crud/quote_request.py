@@ -1,6 +1,7 @@
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from app.models.quote_answer import QuoteAnswer
 from app.models.quote_request import QuoteRequest, QuoteStatus
 from app.schemas.quote_request import QuoteRequestAdminUpdate, QuoteRequestCreate
 
@@ -37,9 +38,39 @@ def list_quote_requests(
     return list(db.scalars(query).all())
 
 
-def create(db: Session, data: QuoteRequestCreate) -> QuoteRequest:
-    quote = QuoteRequest(**data.model_dump(), status=QuoteStatus.NEW)
+def create(
+    db: Session,
+    data: QuoteRequestCreate,
+    answers: list[tuple[int | None, str, str]] | None = None,
+) -> QuoteRequest:
+    """
+    Create a quote and, in the same transaction, its answers.
+
+    `answers` is a list of `(question_id, question_text, answer)` triples that
+    the router has already validated and resolved -- the text comes from the
+    stored question, not from the request body, so a caller cannot relabel what
+    they were asked.
+
+    `answers` is excluded from the model kwargs deliberately: `QuoteRequest` has
+    no such column, and splatting the schema wholesale would raise.
+    """
+    quote = QuoteRequest(
+        **data.model_dump(exclude={"answers"}),
+        status=QuoteStatus.NEW,
+    )
     db.add(quote)
+    db.flush()  # assigns quote.id without ending the transaction
+
+    for question_id, question_text, answer in answers or []:
+        db.add(
+            QuoteAnswer(
+                quote_request_id=quote.id,
+                question_id=question_id,
+                question_text=question_text,
+                answer=answer,
+            )
+        )
+
     db.commit()
     db.refresh(quote)
     return quote

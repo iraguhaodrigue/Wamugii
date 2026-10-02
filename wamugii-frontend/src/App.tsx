@@ -4,6 +4,7 @@ import {
   LayoutDashboard,
   LifeBuoy,
   MessageSquare,
+  Boxes,
   UserCheck,
   Receipt,
   Globe,
@@ -72,6 +73,8 @@ import { AdminDomainDetail } from '@/pages/admin/DomainDetail'
 import { AdminTickets } from '@/pages/admin/Tickets'
 import { AdminTicketDetail } from '@/pages/admin/TicketDetail'
 import { AdminTeamMembers } from '@/pages/admin/TeamMembers'
+import { AdminServices } from '@/pages/admin/Services'
+import { AdminServiceDetail } from '@/pages/admin/ServiceDetail'
 import { TeamDashboard } from '@/pages/team/Dashboard'
 import { TeamProjects } from '@/pages/team/Projects'
 import { TeamProjectDetail } from '@/pages/team/ProjectDetail'
@@ -105,6 +108,7 @@ const staffNavItems = [
 const adminNavItems = [
   { label: 'Dashboard', to: paths.admin.dashboard, icon: LayoutDashboard },
   { label: 'Users', to: paths.admin.users, icon: Users },
+  { label: 'Services', to: paths.admin.services, icon: Boxes },
   { label: 'Projects', to: paths.admin.projects, icon: FolderKanban },
   { label: 'Quote Requests', to: paths.admin.quotes, icon: MessageSquare },
   { label: 'Invoices', to: paths.admin.invoices, icon: Receipt },
@@ -214,6 +218,8 @@ function App() {
             <Route path="/admin/domains/:domainId" element={<AdminDomainDetail />} />
             <Route path={paths.admin.tickets} element={<AdminTickets />} />
             <Route path="/admin/support/:ticketId" element={<AdminTicketDetail />} />
+            <Route path={paths.admin.services} element={<AdminServices />} />
+            <Route path="/admin/services/:serviceId" element={<AdminServiceDetail />} />
             <Route path={paths.admin.teamMembers} element={<AdminTeamMembers />} />
             <Route path={paths.admin.settings} element={<AdminSettings />} />
           </Route>

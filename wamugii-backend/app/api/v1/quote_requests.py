@@ -12,11 +12,13 @@ from app.api.v1.projects import (
 from app.crud import project as project_crud
 from app.crud import quote_request as quote_crud
 from app.crud import service as service_crud
+from app.crud import service_question as question_crud
 from app.crud import user as user_crud
 from app.models.quote_request import QuoteStatus
 from app.models.user import Role, User
 from app.schemas.project import ProjectCreate, ProjectRead
 from app.schemas.quote_request import (
+    QuoteAnswerSubmit,
     QuoteRequestAdminUpdate,
     QuoteRequestCreate,
     QuoteRequestPublicRead,
@@ -29,6 +31,71 @@ logger = logging.getLogger(__name__)
 
 StaffOrAdmin = Annotated[User, Depends(require_roles(Role.ADMIN, Role.STAFF))]
 AdminOnly = Annotated[User, Depends(require_roles(Role.ADMIN))]
+
+
+def resolve_answers(
+    db: DbDep, service_id: int | None, submitted: list[QuoteAnswerSubmit]
+) -> list[tuple[int | None, str, str]]:
+    """
+    Validate a submission's answers and resolve them to storable triples.
+
+    Three rules, all 422 on failure:
+
+    * every answer with a `question_id` must name an active question on the
+      service actually chosen -- an id from another service is rejected rather
+      than silently filed under the wrong question;
+    * the question text is taken from the stored question, never from the
+      request body, so a caller cannot relabel what they were asked;
+    * every active required question on that service must come back with a
+      non-blank answer.
+
+    An answer with no `question_id` is kept as-is with its own label. That is
+    how a detail the form captured without a configured question behind it (the
+    chosen hosting plan, say) travels with the quote instead of being dropped.
+
+    A service with no questions, or no service at all, resolves to an empty list
+    and submits exactly as it did before any of this existed.
+    """
+    questions = question_crud.list_for_service(db, service_id) if service_id else []
+    by_id = {q.id: q for q in questions}
+
+    resolved: list[tuple[int | None, str, str]] = []
+    answered_ids: set[int] = set()
+
+    for entry in submitted:
+        answer_text = entry.answer.strip()
+
+        if entry.question_id is None:
+            # Schema-validated: question_text is present when there is no id.
+            resolved.append((None, (entry.question_text or "").strip(), answer_text))
+            continue
+
+        question = by_id.get(entry.question_id)
+        if question is None:
+            raise HTTPException(
+                status_code=422,
+                detail=(
+                    f"question_id {entry.question_id} is not an active question on "
+                    f"service {service_id}"
+                ),
+            )
+        if answer_text:
+            answered_ids.add(question.id)
+        resolved.append((question.id, question.question_text, answer_text))
+
+    missing = [
+        q.question_text
+        for q in questions
+        if q.is_required and q.id not in answered_ids
+    ]
+    if missing:
+        raise HTTPException(
+            status_code=422,
+            detail="Please answer the required question(s): " + "; ".join(missing),
+        )
+
+    # A blank answer to an optional question is nothing to store.
+    return [triple for triple in resolved if triple[2]]
 
 
 @router.post(
@@ -44,7 +111,12 @@ def create_quote_request(data: QuoteRequestCreate, db: DbDep):
             raise HTTPException(
                 status_code=422, detail="service_id does not reference an active service"
             )
-    quote = quote_crud.create(db, data)
+
+    # Validated before anything is written, so a bad answer set never leaves a
+    # half-created quote behind.
+    answers = resolve_answers(db, data.service_id, data.answers)
+
+    quote = quote_crud.create(db, data, answers=answers)
     # After the commit, and non-fatal: a notification failure must not turn a
     # successfully submitted quote into an error for the public submitter.
     notifications.notify_quote_submitted(db, quote)

@@ -6,6 +6,8 @@ export type QuoteRequestPublicRead = components['schemas']['QuoteRequestPublicRe
 export type QuoteRequestRead = components['schemas']['QuoteRequestRead']
 export type QuoteRequestAdminUpdate = components['schemas']['QuoteRequestAdminUpdate']
 export type QuoteStatus = components['schemas']['QuoteStatus']
+export type QuoteAnswerSubmit = components['schemas']['QuoteAnswerSubmit']
+export type QuoteAnswer = components['schemas']['QuoteAnswerRead']
 export type ProjectRead = components['schemas']['ProjectRead']
 
 export async function createQuoteRequest(payload: QuoteRequestCreate): Promise<QuoteRequestPublicRead> {

@@ -5,6 +5,7 @@ import { getClientQuote, type ClientQuoteDetail as ClientQuoteDetailType } from 
 import type { ApiError } from '@/lib/apiClient'
 import { paths } from '@/routes/paths'
 import { Badge, EmptyState, ErrorState, Skeleton } from '@/components/ui'
+import { QuoteAnswersPanel } from '@/components/services/QuoteAnswersPanel'
 import { formatDateTime, formatEnumLabel } from '@/utils/format'
 import { quoteStatusVariant } from '@/utils/statusBadge'
 
@@ -98,6 +99,8 @@ export function ClientQuoteDetail() {
               {quote.project_description}
             </p>
           </div>
+
+          <QuoteAnswersPanel answers={quote.answers} audience="client" />
 
           {quote.converted_project_id && (
             <div className="rounded-xl border border-slate-200 bg-panel p-6 shadow-[var(--shadow-card)] backdrop-blur-sm">

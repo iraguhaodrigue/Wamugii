@@ -261,6 +261,61 @@ export interface paths {
         patch: operations["update_service_api_v1_services__service_id__patch"];
         trace?: never;
     };
+    "/api/v1/services/{service_id}/questions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List a service's quote questions (public; active only unless staff)
+         * @description Open, because the quote form is open.
+         *
+         *     `include_inactive` is honoured only for staff -- the same shape as
+         *     `list_services` -- so the admin screen can show soft-deleted questions
+         *     through this one endpoint while the public form only ever sees live ones.
+         *     An inactive service is a 404 for anyone but staff, matching `get_service`,
+         *     so a draft service's questions aren't discoverable before it is published.
+         */
+        get: operations["list_service_questions_api_v1_services__service_id__questions_get"];
+        put?: never;
+        /** Add a quote question to a service (ADMIN or STAFF) */
+        post: operations["create_service_question_api_v1_services__service_id__questions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/services/{service_id}/questions/{question_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Soft-delete a service's quote question (ADMIN or STAFF)
+         * @description Soft delete. Quotes already submitted keep their answers and the question
+         *     text as it read at submit time, so this never rewrites past submissions.
+         */
+        delete: operations["delete_service_question_api_v1_services__service_id__questions__question_id__delete"];
+        options?: never;
+        head?: never;
+        /**
+         * Edit a service's quote question (ADMIN or STAFF)
+         * @description A partial update can still produce an incoherent question -- switching a
+         *     TEXT question to SELECT without sending options, or the reverse -- so the
+         *     merged result is re-validated against the full create schema before it is
+         *     written.
+         */
+        patch: operations["update_service_question_api_v1_services__service_id__questions__question_id__patch"];
+        trace?: never;
+    };
     "/api/v1/admin/dashboard": {
         parameters: {
             query?: never;
@@ -1879,6 +1934,11 @@ export interface components {
             updated_at: string;
             /** Converted Project Id */
             converted_project_id?: number | null;
+            /**
+             * Answers
+             * @default []
+             */
+            answers: components["schemas"]["QuoteAnswerRead"][];
         };
         /**
          * ClientQuoteListItem
@@ -3135,6 +3195,44 @@ export interface components {
             /** Deadline */
             deadline?: string | null;
         };
+        /**
+         * QuestionType
+         * @enum {string}
+         */
+        QuestionType: "TEXT" | "TEXTAREA" | "NUMBER" | "SELECT" | "MULTISELECT" | "YES_NO";
+        /** QuoteAnswerRead */
+        QuoteAnswerRead: {
+            /** Id */
+            id: number;
+            /** Question Id */
+            question_id: number | null;
+            /** Question Text */
+            question_text: string;
+            /** Answer */
+            answer: string;
+        };
+        /**
+         * QuoteAnswerSubmit
+         * @description One answer in a public submission.
+         *
+         *     `question_id` points at a configured question on the chosen service; the
+         *     router checks it really belongs to that service and captures the question
+         *     text itself, so a caller cannot relabel a question by sending their own
+         *     text alongside an id.
+         *
+         *     Leaving `question_id` out is the escape hatch for a detail the form
+         *     captured without a configured question behind it -- the chosen hosting plan,
+         *     for instance. `question_text` is then required, because otherwise the answer
+         *     would arrive with nothing saying what it answers.
+         */
+        QuoteAnswerSubmit: {
+            /** Question Id */
+            question_id?: number | null;
+            /** Question Text */
+            question_text?: string | null;
+            /** Answer */
+            answer: string;
+        };
         /** QuoteRequestAdminUpdate */
         QuoteRequestAdminUpdate: {
             status?: components["schemas"]["QuoteStatus"] | null;
@@ -3164,6 +3262,11 @@ export interface components {
             budget_range?: string | null;
             /** Preferred Deadline */
             preferred_deadline?: string | null;
+            /**
+             * Answers
+             * @default []
+             */
+            answers: components["schemas"]["QuoteAnswerSubmit"][];
         };
         /** QuoteRequestPublicRead */
         QuoteRequestPublicRead: {
@@ -3196,6 +3299,11 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
+            /**
+             * Answers
+             * @default []
+             */
+            answers: components["schemas"]["QuoteAnswerRead"][];
         };
         /** QuoteRequestRead */
         QuoteRequestRead: {
@@ -3228,6 +3336,11 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
+            /**
+             * Answers
+             * @default []
+             */
+            answers: components["schemas"]["QuoteAnswerRead"][];
             /** Admin Notes */
             admin_notes: string | null;
             /** Is Active */
@@ -3284,6 +3397,10 @@ export interface components {
             short_description?: string | null;
             /** Description */
             description?: string | null;
+            /** Long Description */
+            long_description?: string | null;
+            /** Features */
+            features?: string[] | null;
             /** Category */
             category?: string | null;
             /** Icon */
@@ -3305,6 +3422,79 @@ export interface components {
             /** Slug */
             slug?: string | null;
         };
+        /** ServiceQuestionCreate */
+        ServiceQuestionCreate: {
+            /** Question Text */
+            question_text: string;
+            /** @default TEXT */
+            question_type: components["schemas"]["QuestionType"];
+            /** Options */
+            options?: string[] | null;
+            /**
+             * Is Required
+             * @default false
+             */
+            is_required: boolean;
+            /**
+             * Display Order
+             * @default 0
+             */
+            display_order: number;
+        };
+        /** ServiceQuestionRead */
+        ServiceQuestionRead: {
+            /** Question Text */
+            question_text: string;
+            /** @default TEXT */
+            question_type: components["schemas"]["QuestionType"];
+            /** Options */
+            options?: string[] | null;
+            /**
+             * Is Required
+             * @default false
+             */
+            is_required: boolean;
+            /**
+             * Display Order
+             * @default 0
+             */
+            display_order: number;
+            /** Id */
+            id: number;
+            /** Service Id */
+            service_id: number;
+            /** Is Active */
+            is_active: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /**
+         * ServiceQuestionUpdate
+         * @description Every field optional, but a type/options change has to stay consistent, so
+         *     the router re-validates the merged result against `ServiceQuestionBase`
+         *     rather than trusting a partial payload on its own.
+         */
+        ServiceQuestionUpdate: {
+            /** Question Text */
+            question_text?: string | null;
+            question_type?: components["schemas"]["QuestionType"] | null;
+            /** Options */
+            options?: string[] | null;
+            /** Is Required */
+            is_required?: boolean | null;
+            /** Display Order */
+            display_order?: number | null;
+            /** Is Active */
+            is_active?: boolean | null;
+        };
         /** ServiceRead */
         ServiceRead: {
             /** Name */
@@ -3313,6 +3503,10 @@ export interface components {
             short_description?: string | null;
             /** Description */
             description?: string | null;
+            /** Long Description */
+            long_description?: string | null;
+            /** Features */
+            features?: string[] | null;
             /** Category */
             category?: string | null;
             /** Icon */
@@ -3363,6 +3557,10 @@ export interface components {
             short_description?: string | null;
             /** Description */
             description?: string | null;
+            /** Long Description */
+            long_description?: string | null;
+            /** Features */
+            features?: string[] | null;
             /** Category */
             category?: string | null;
             /** Icon */
@@ -4250,6 +4448,142 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ServiceRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_service_questions_api_v1_services__service_id__questions_get: {
+        parameters: {
+            query?: {
+                include_inactive?: boolean;
+            };
+            header?: never;
+            path: {
+                service_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceQuestionRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_service_question_api_v1_services__service_id__questions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                service_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ServiceQuestionCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceQuestionRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_service_question_api_v1_services__service_id__questions__question_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                service_id: number;
+                question_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceQuestionRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_service_question_api_v1_services__service_id__questions__question_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                service_id: number;
+                question_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ServiceQuestionUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceQuestionRead"];
                 };
             };
             /** @description Validation Error */

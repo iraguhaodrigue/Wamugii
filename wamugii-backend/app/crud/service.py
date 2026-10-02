@@ -4,6 +4,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.models.service import Service
+from app.schemas.json_list import dump_json_list
 from app.schemas.service import ServiceCreate, ServiceUpdate
 
 _SLUG_RE = re.compile(r"[^a-z0-9]+")
@@ -58,7 +59,10 @@ def list_services(
 def create(db: Session, data: ServiceCreate) -> Service:
     base_slug = slugify(data.slug or data.name)
     slug = _unique_slug(db, base_slug)
-    service = Service(**data.model_dump(exclude={"slug"}), slug=slug)
+    fields = data.model_dump(exclude={"slug"})
+    # The API speaks lists, the column stores JSON Text -- see schemas/json_list.py.
+    fields["features"] = dump_json_list(fields.get("features"))
+    service = Service(**fields, slug=slug)
     db.add(service)
     db.commit()
     db.refresh(service)
@@ -67,6 +71,8 @@ def create(db: Session, data: ServiceCreate) -> Service:
 
 def update(db: Session, service: Service, data: ServiceUpdate) -> Service:
     updates = data.model_dump(exclude_unset=True)
+    if "features" in updates:
+        updates["features"] = dump_json_list(updates["features"])
     if updates.get("slug"):
         updates["slug"] = _unique_slug(db, slugify(updates["slug"]), exclude_id=service.id)
     else:

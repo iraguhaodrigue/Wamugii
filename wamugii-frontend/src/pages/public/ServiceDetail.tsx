@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link, useParams } from 'react-router-dom'
-import { ArrowLeft, ArrowRight, Layers, SearchX } from 'lucide-react'
-import { getService, type Service } from '@/api/services'
+import { ArrowLeft, ArrowRight, Check, HelpCircle, Layers, SearchX } from 'lucide-react'
+import { getService, listServiceQuestions, type Service } from '@/api/services'
 import type { ApiError } from '@/lib/apiClient'
 import { paths } from '@/routes/paths'
 import { Badge, Container, EmptyState, ErrorState, Skeleton } from '@/components/ui'
@@ -15,6 +15,14 @@ export function ServiceDetail() {
     queryFn: () => getService(serviceId!),
     enabled: Boolean(serviceId),
     retry: (failureCount, err) => err.status !== 404 && failureCount < 1,
+  })
+
+  // What this service will ask about if they go on to request a quote. Purely
+  // a heads-up — the quote form is where they're actually answered.
+  const { data: questions } = useQuery({
+    queryKey: ['services', serviceId, 'questions'],
+    queryFn: () => listServiceQuestions(serviceId!),
+    enabled: Boolean(serviceId),
   })
 
   const notFound = isError && error.status === 404
@@ -93,6 +101,59 @@ export function ServiceDetail() {
               {service.description}
             </div>
           )}
+
+          {/* The "explore" detail. Both fields are optional, so a service that
+              has never set them renders exactly as it did before they existed. */}
+          {service.long_description && (
+            <div className="mt-8 whitespace-pre-line text-base leading-relaxed text-slate-600">
+              {service.long_description}
+            </div>
+          )}
+
+          {service.features && service.features.length > 0 && (
+            <div className="mt-10">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
+                What's included
+              </h2>
+              <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+                {service.features.map((feature) => (
+                  <li
+                    key={feature}
+                    className="flex items-start gap-2.5 rounded-lg border border-slate-200 bg-panel p-3 text-sm text-slate-700"
+                  >
+                    <Check className="mt-0.5 size-4 shrink-0 text-brand-500" aria-hidden="true" />
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {questions && questions.length > 0 && (
+            <div className="mt-10 rounded-xl border border-slate-200 bg-panel p-6">
+              <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-400">
+                <HelpCircle className="size-4" aria-hidden="true" />
+                What we'll ask you
+              </h2>
+              <p className="mt-2 text-sm text-slate-500">
+                So we can quote accurately, the request form asks a few things specific to this
+                service:
+              </p>
+              <ul className="mt-4 space-y-2">
+                {questions.map((question) => (
+                  <li key={question.id} className="flex items-start gap-2 text-sm text-slate-600">
+                    <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-brand-400" aria-hidden="true" />
+                    <span>
+                      {question.question_text}
+                      {question.is_required && (
+                        <span className="ml-1.5 text-xs font-medium text-slate-400">(required)</span>
+                      )}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
 
         <aside className="lg:col-span-1">
@@ -103,8 +164,8 @@ export function ServiceDetail() {
               to={`${paths.requestQuote}?service=${service.id}`}
               className="mt-6 inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-[var(--color-brand-solid)] to-[var(--color-accent-solid)] px-5 text-sm font-semibold text-white shadow-[var(--shadow-glow-brand)] transition-[filter] hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
             >
-              Request a Quote
-              <ArrowRight className="size-4" aria-hidden="true" />
+              Request a Quote for this service
+              <ArrowRight className="size-4 shrink-0" aria-hidden="true" />
             </Link>
             <p className="mt-3 text-center text-xs text-slate-400">No account needed to get started.</p>
           </div>

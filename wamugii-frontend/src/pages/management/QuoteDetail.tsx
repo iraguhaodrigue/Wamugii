@@ -16,6 +16,7 @@ import { useAuth } from '@/context/AuthContext'
 import { usePageTitle } from '@/context/PageTitleContext'
 import type { ApiError } from '@/lib/apiClient'
 import { paths } from '@/routes/paths'
+import { QuoteAnswersPanel } from '@/components/services/QuoteAnswersPanel'
 import { Badge, Button, ConfirmDialog, EmptyState, ErrorState, Select, Skeleton, Textarea } from '@/components/ui'
 import { formatDate, formatEnumLabel } from '@/utils/format'
 import { quoteStatusVariant } from '@/utils/statusBadge'
@@ -187,6 +188,8 @@ export function QuoteDetail() {
               </div>
             </dl>
           </div>
+
+          <QuoteAnswersPanel answers={quote.answers} />
 
           <div className="rounded-xl border border-slate-200 bg-panel p-6 shadow-sm">
             <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400">Status &amp; internal notes</h2>

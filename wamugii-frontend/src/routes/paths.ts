@@ -64,6 +64,8 @@ export const paths = {
     tickets: '/admin/support',
     ticketDetail: (id: string | number) => `/admin/support/${id}`,
     teamMembers: '/admin/team-members',
+    services: '/admin/services',
+    serviceDetail: (id: string | number) => `/admin/services/${id}`,
   },
   /**
    * The TEAM_MEMBER area. Nothing else lives under /team: a collaborator only
