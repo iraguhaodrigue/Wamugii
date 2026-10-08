@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { useAuth } from '@/context/AuthContext'
+import { LOGOUT_REASON_MESSAGES, type LogoutReason, useAuth } from '@/context/AuthContext'
 import { isPathAllowedForRole, paths, roleHomePath } from '@/routes/paths'
 import { Button, Input } from '@/components/ui'
 import type { ApiError } from '@/lib/apiClient'
@@ -19,6 +19,14 @@ export function Login() {
   const { login } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
+  // The redirect that sent them here (expired session, idle timeout) can hand
+  // a `reason` through the navigation state. Rendered as a top-of-form notice,
+  // separate from the login error — a submit then clears it.
+  const stateReason = (location.state as { reason?: LogoutReason } | null)?.reason
+  const sessionNotice =
+    stateReason && stateReason in LOGOUT_REASON_MESSAGES
+      ? LOGOUT_REASON_MESSAGES[stateReason]
+      : null
   const [formError, setFormError] = useState<string | null>(null)
 
   const {
@@ -45,6 +53,12 @@ export function Login() {
         <h1 className="text-xl font-semibold text-slate-900">Welcome back</h1>
         <p className="text-sm text-slate-500">Log in to your WAMUGII account</p>
       </div>
+
+      {sessionNotice && !formError && (
+        <p role="status" className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">
+          {sessionNotice}
+        </p>
+      )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4" noValidate>
         <Input

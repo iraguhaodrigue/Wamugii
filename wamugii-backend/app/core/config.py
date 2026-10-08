@@ -1,4 +1,13 @@
+import logging
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+logger = logging.getLogger(__name__)
+
+# Below this, HS256 signing is considered weak and `jwt` already warns on every
+# encode. 32 bytes matches the pyjwt recommendation; we recommend 48 (via
+# `secrets.token_urlsafe(48)`) in .env.example for a comfortable margin.
+MIN_SECRET_KEY_BYTES = 32
 
 
 class Settings(BaseSettings):
@@ -41,3 +50,39 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+
+def _check_secret_key(key: str) -> None:
+    """
+    Warn if SECRET_KEY is too short to sign JWTs comfortably.
+
+    Called at module load (and again from `main.py` on app start, so it reaches
+    uvicorn's own log output and not just whichever handler happens to be set
+    up at import time). A warning rather than a crash: this is a shared repo
+    and a short dev-only key must not stop the app booting, but it must be
+    hard to miss in a real deploy. Generate a strong one with:
+
+        python -c "import secrets; print(secrets.token_urlsafe(48))"
+
+    and put it in .env (gitignored). Never commit a real key.
+    """
+    length = len(key.encode("utf-8"))
+    if length < MIN_SECRET_KEY_BYTES:
+        logger.warning(
+            "SECRET_KEY is %d bytes (minimum recommended: %d). JWTs signed with "
+            "this key are weaker than they should be. Generate a strong one with "
+            "`python -c \"import secrets; print(secrets.token_urlsafe(48))\"` and "
+            "set it in your .env file. Never commit the real key.",
+            length,
+            MIN_SECRET_KEY_BYTES,
+        )
+    # The placeholder value in .env.example is a specific foot-gun worth
+    # calling out even if it happens to be long enough.
+    if key.startswith("CHANGE_ME") or key == "change-this-to-a-long-random-string":
+        logger.warning(
+            "SECRET_KEY looks like the .env.example placeholder. Replace it with "
+            "a freshly generated value before any real deploy."
+        )
+
+
+_check_secret_key(settings.SECRET_KEY)

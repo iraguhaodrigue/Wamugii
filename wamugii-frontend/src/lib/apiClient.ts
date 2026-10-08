@@ -59,12 +59,17 @@ async function performRefresh(): Promise<string | null> {
   const refreshToken = getRefreshToken()
   if (!refreshToken) return null
 
+  // Raw `axios`, not `apiClient`: using the configured instance would run this
+  // call back through the 401 interceptor, which could retry the refresh and
+  // produce the exact loop the interceptor is trying to avoid.
   try {
     const { data } = await axios.post<Token>(`${API_BASE_URL}/auth/refresh`, { refresh_token: refreshToken })
     setAccessToken(data.access_token)
     setRefreshToken(data.refresh_token)
     return data.access_token
   } catch {
+    // Any failure (expired refresh token, network error, server down) resolves
+    // to null; the caller treats a null as "session is over" and logs out.
     return null
   }
 }
@@ -82,6 +87,24 @@ interface RetryableRequestConfig extends InternalAxiosRequestConfig {
   _retry?: boolean
 }
 
+/**
+ * 401 handling: exactly one silent refresh per request, then log out on failure.
+ *
+ * The invariants, each enforced by a specific guard:
+ *   * `_retry` on the request itself -- a request that already retried once and
+ *     still got 401 falls through to the rejection path, so a stale token can
+ *     never cause an infinite loop.
+ *   * `isAuthEndpoint` -- a 401 on /auth/login (bad credentials) or on the
+ *     refresh endpoint (which `performRefresh` already handles directly) is
+ *     left alone, so we never try to refresh the refresh call.
+ *   * `refreshPromise` -- several concurrent 401s share one refresh call; they
+ *     all see the same resolved token (or the same null) and act consistently.
+ *
+ * On a null from the refresh, both halves of the client-side session end:
+ * tokens are cleared and `onUnauthorized` runs the registered handler
+ * (AuthContext wires this to `forceLogout('expired')`, which also clears the
+ * React Query cache and navigates to login with the "session expired" notice).
+ */
 apiClient.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
