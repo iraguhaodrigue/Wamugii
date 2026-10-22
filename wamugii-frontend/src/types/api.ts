@@ -988,6 +988,309 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/client/courses/{course_id}/enroll": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Enroll in a course (CLIENT); free courses go ACTIVE instantly
+         * @description Free course -> enrollment lands ACTIVE and the client reads lessons
+         *     immediately. Paid course -> an invoice is generated with one line item at
+         *     the course price, the enrollment stays PENDING_PAYMENT, and the response
+         *     tells the UI to send them to the invoice.
+         *
+         *     Double-enroll returns the existing row (idempotent) rather than erroring;
+         *     whether that reads as "already active" or "still pending" is on the
+         *     status in the response.
+         */
+        post: operations["enroll_in_course_api_v1_client_courses__course_id__enroll_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/client/courses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List the authenticated clients enrollments with progress */
+        get: operations["list_my_enrollments_api_v1_client_courses_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/client/courses/{course_id}/lessons": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Full lesson content on a course (CLIENT, active enrollment only)
+         * @description The gate. A PENDING_PAYMENT enrollment is a 403 with the complete-payment
+         *     message; no enrollment is a 404. Only active lessons are served -- a
+         *     soft-deleted lesson disappears from the player as well as the catalogue.
+         */
+        get: operations["list_lessons_for_enrolled_client_api_v1_client_courses__course_id__lessons_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/client/courses/{course_id}/lessons/{lesson_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One lesson full content and materials (CLIENT, active enrollment only) */
+        get: operations["get_lesson_for_enrolled_client_api_v1_client_courses__course_id__lessons__lesson_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/client/courses/{course_id}/lessons/{lesson_id}/materials/{material_id}/download": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Download a lesson material (CLIENT, active enrollment only)
+         * @description Mirrors the lesson gate: no active enrollment, no material.
+         */
+        get: operations["download_lesson_material_api_v1_client_courses__course_id__lessons__lesson_id__materials__material_id__download_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/client/courses/{course_id}/lessons/{lesson_id}/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Mark a lesson complete (CLIENT, active enrollment only)
+         * @description Idempotent: calling twice keeps the first completion timestamp (see
+         *     `crud.course.mark_lesson_complete`). The response shows the fresh
+         *     progress so a UI can update without a follow-up list call.
+         */
+        post: operations["complete_lesson_api_v1_client_courses__course_id__lessons__lesson_id__complete_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/courses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List published courses (public)
+         * @description Open endpoint. `include_drafts` is honoured only for staff, same shape as
+         *     `services.list_services` -- a draft course is invisible to the public.
+         */
+        get: operations["list_public_courses_api_v1_courses_get"];
+        put?: never;
+        /** Create a course (ADMIN or STAFF) */
+        post: operations["create_course_api_v1_courses_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/courses/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get a published course with its lesson titles (public)
+         * @description Lesson titles only -- `content` and `video_url` live behind the enrollment
+         *     gate at `/client/courses/{id}/lessons/{lesson_id}`, so a visitor browsing
+         *     the catalogue sees the shape of the course but not its material.
+         *
+         *     A draft course is a 404 for anyone but staff, matching `get_service`.
+         */
+        get: operations["get_public_course_api_v1_courses__slug__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/courses/by-id/{course_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get a course by id for management (ADMIN or STAFF)
+         * @description By-id lookup for the admin edit screen -- the public endpoint is by slug,
+         *     which can change, so management needs a stable handle. Prefixed `/by-id`
+         *     so the matcher never confuses it with the public `/courses/{slug}`.
+         */
+        get: operations["get_course_by_id_api_v1_courses_by_id__course_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/courses/{course_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Soft-delete a course (ADMIN only) */
+        delete: operations["deactivate_course_api_v1_courses__course_id__delete"];
+        options?: never;
+        head?: never;
+        /**
+         * Update a course (ADMIN or STAFF)
+         * @description `is_free` / `price` have to stay coherent after a partial update, so the
+         *     merged pair is checked against the full create schema before anything is
+         *     written.
+         */
+        patch: operations["update_course_api_v1_courses__course_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/courses/{course_id}/lessons": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List all lessons on a course for management (ADMIN or STAFF) */
+        get: operations["list_course_lessons_api_v1_courses__course_id__lessons_get"];
+        put?: never;
+        /** Add a lesson to a course (ADMIN or STAFF) */
+        post: operations["create_lesson_api_v1_courses__course_id__lessons_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/courses/{course_id}/lessons/{lesson_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Soft-delete a lesson (ADMIN only) */
+        delete: operations["deactivate_lesson_api_v1_courses__course_id__lessons__lesson_id__delete"];
+        options?: never;
+        head?: never;
+        /** Edit a lesson (ADMIN or STAFF) */
+        patch: operations["update_lesson_api_v1_courses__course_id__lessons__lesson_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/courses/{course_id}/lessons/{lesson_id}/materials": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Upload a PDF/doc to a lesson (ADMIN or STAFF) */
+        post: operations["upload_lesson_material_api_v1_courses__course_id__lessons__lesson_id__materials_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/courses/{course_id}/lessons/{lesson_id}/materials/{material_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Soft-delete a lesson material (ADMIN or STAFF) */
+        delete: operations["deactivate_lesson_material_api_v1_courses__course_id__lessons__lesson_id__materials__material_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/courses/{course_id}/enrollments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List enrollments on a course with progress (ADMIN or STAFF) */
+        get: operations["list_course_enrollments_api_v1_courses__course_id__enrollments_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/quote-requests": {
         parameters: {
             query?: never;
@@ -1360,6 +1663,69 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/domains/extensions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List active domain extensions with computed client prices (public)
+         * @description Open, because the public Domains page shows a price table and the quote
+         *     form may reference it. Only active rows come back; staff manage soft-deleted
+         *     ones through the dedicated admin endpoint below.
+         */
+        get: operations["list_domain_extensions_api_v1_domains_extensions_get"];
+        put?: never;
+        /**
+         * Add a domain extension (ADMIN only)
+         * @description Rejected with a 409 if the extension already exists -- there is one row
+         *     per TLD by construction, and silently replacing an admin's price would be
+         *     worse than making them look it up.
+         */
+        post: operations["create_domain_extension_api_v1_domains_extensions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/domains/extensions/manage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List every extension including soft-deleted ones (ADMIN only) */
+        get: operations["list_all_domain_extensions_api_v1_domains_extensions_manage_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/domains/extensions/{extension_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Soft-delete a domain extension (ADMIN only) */
+        delete: operations["deactivate_domain_extension_api_v1_domains_extensions__extension_id__delete"];
+        options?: never;
+        head?: never;
+        /** Edit a domain extension (ADMIN only) */
+        patch: operations["update_domain_extension_api_v1_domains_extensions__extension_id__patch"];
+        trace?: never;
+    };
     "/api/v1/domains/{domain_id}": {
         parameters: {
             query?: never;
@@ -1510,6 +1876,11 @@ export interface components {
             /** Description */
             description?: string | null;
         };
+        /** Body_upload_lesson_material_api_v1_courses__course_id__lessons__lesson_id__materials_post */
+        Body_upload_lesson_material_api_v1_courses__course_id__lessons__lesson_id__materials_post: {
+            /** File */
+            file: string;
+        };
         /**
          * ClientActivityItem
          * @description Recent activity entry.
@@ -1618,6 +1989,61 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
+        };
+        /**
+         * ClientEnrollmentRead
+         * @description The client's own view of their enrollment, with the course title and the
+         *     `complete payment to unlock` hint for paid courses the invoice isn't paid
+         *     for yet. No admin-level fields beyond what they already know about
+         *     themselves.
+         */
+        ClientEnrollmentRead: {
+            /** Id */
+            id: number;
+            /** Course Id */
+            course_id: number;
+            /** Client Id */
+            client_id: number;
+            /** Invoice Id */
+            invoice_id: number | null;
+            status: components["schemas"]["EnrollmentStatus"];
+            /**
+             * Enrolled At
+             * Format: date-time
+             */
+            enrolled_at: string;
+            /** Is Active */
+            is_active: boolean;
+            /**
+             * Completed Lessons
+             * @default 0
+             */
+            completed_lessons: number;
+            /**
+             * Total Lessons
+             * @default 0
+             */
+            total_lessons: number;
+            /**
+             * Progress Percent
+             * @default 0
+             */
+            progress_percent: number;
+            /**
+             * Course Title
+             * @default
+             */
+            course_title: string;
+            /**
+             * Course Slug
+             * @default
+             */
+            course_slug: string;
+            /**
+             * Is Free
+             * @default false
+             */
+            is_free: boolean;
         };
         /**
          * ClientHostingDetail
@@ -2124,6 +2550,154 @@ export interface components {
             /** Notification Email */
             notification_email?: string | null;
         };
+        /** CourseCreate */
+        CourseCreate: {
+            /** Title */
+            title: string;
+            /** Slug */
+            slug?: string | null;
+            /**
+             * Description
+             * @default
+             */
+            description: string;
+            /** Cover Image Url */
+            cover_image_url?: string | null;
+            /** Category */
+            category?: string | null;
+            /**
+             * Is Free
+             * @default true
+             */
+            is_free: boolean;
+            /** Price */
+            price?: number | string | null;
+            /** @default DRAFT */
+            status: components["schemas"]["CourseStatus"];
+            /**
+             * Display Order
+             * @default 0
+             */
+            display_order: number;
+        };
+        /**
+         * CoursePublicDetail
+         * @description What the public course detail page gets. Lesson titles, nothing more.
+         */
+        CoursePublicDetail: {
+            /** Id */
+            id: number;
+            /** Title */
+            title: string;
+            /** Slug */
+            slug: string;
+            /** Description */
+            description: string;
+            /** Cover Image Url */
+            cover_image_url: string | null;
+            /** Category */
+            category: string | null;
+            /** Is Free */
+            is_free: boolean;
+            /** Price */
+            price: string | null;
+            status: components["schemas"]["CourseStatus"];
+            /** Display Order */
+            display_order: number;
+            /** Is Active */
+            is_active: boolean;
+            /**
+             * Lesson Count
+             * @default 0
+             */
+            lesson_count: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /**
+             * Lessons
+             * @default []
+             */
+            lessons: components["schemas"]["LessonBrief"][];
+        };
+        /** CourseRead */
+        CourseRead: {
+            /** Id */
+            id: number;
+            /** Title */
+            title: string;
+            /** Slug */
+            slug: string;
+            /** Description */
+            description: string;
+            /** Cover Image Url */
+            cover_image_url: string | null;
+            /** Category */
+            category: string | null;
+            /** Is Free */
+            is_free: boolean;
+            /** Price */
+            price: string | null;
+            status: components["schemas"]["CourseStatus"];
+            /** Display Order */
+            display_order: number;
+            /** Is Active */
+            is_active: boolean;
+            /**
+             * Lesson Count
+             * @default 0
+             */
+            lesson_count: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /**
+         * CourseStatus
+         * @description Draft while being written; published to be publicly listed.
+         * @enum {string}
+         */
+        CourseStatus: "DRAFT" | "PUBLISHED";
+        /**
+         * CourseUpdate
+         * @description Every field optional; `is_free` / `price` are revalidated on the merged
+         *     row in the router so a partial update can't produce an inconsistent pair.
+         */
+        CourseUpdate: {
+            /** Title */
+            title?: string | null;
+            /** Slug */
+            slug?: string | null;
+            /** Description */
+            description?: string | null;
+            /** Cover Image Url */
+            cover_image_url?: string | null;
+            /** Category */
+            category?: string | null;
+            /** Is Free */
+            is_free?: boolean | null;
+            /** Price */
+            price?: number | string | null;
+            status?: components["schemas"]["CourseStatus"] | null;
+            /** Display Order */
+            display_order?: number | null;
+            /** Is Active */
+            is_active?: boolean | null;
+        };
         /** DashboardStats */
         DashboardStats: {
             users: components["schemas"]["UserStats"];
@@ -2174,6 +2748,13 @@ export interface components {
              *     }
              */
             team: components["schemas"]["TeamStats"];
+            /**
+             * @default {
+             *       "published_courses": 0,
+             *       "active_enrollments": 0
+             *     }
+             */
+            training: components["schemas"]["TrainingStats"];
         };
         /** DomainCreate */
         DomainCreate: {
@@ -2212,6 +2793,76 @@ export interface components {
             notes?: string | null;
             /** Invoice Id */
             invoice_id?: number | null;
+        };
+        /** DomainExtensionCreate */
+        DomainExtensionCreate: {
+            /** Extension */
+            extension: string;
+            /** Cost Price */
+            cost_price: number | string;
+            /**
+             * Margin
+             * @default 5000.00
+             */
+            margin: number | string;
+            /**
+             * Is Active
+             * @default true
+             */
+            is_active: boolean;
+            /**
+             * Display Order
+             * @default 0
+             */
+            display_order: number;
+        };
+        /**
+         * DomainExtensionRead
+         * @description Public read shape.
+         *
+         *     `client_price` is computed server-side on every read -- changing cost or
+         *     margin updates it everywhere without touching the row, which is the whole
+         *     point of not storing it.
+         */
+        DomainExtensionRead: {
+            /** Id */
+            id: number;
+            /** Extension */
+            extension: string;
+            /** Cost Price */
+            cost_price: string;
+            /** Margin */
+            margin: string;
+            /** Client Price */
+            client_price: string;
+            /** Is Active */
+            is_active: boolean;
+            /** Display Order */
+            display_order: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /**
+         * DomainExtensionUpdate
+         * @description Every field optional; the extension string itself is immutable.
+         */
+        DomainExtensionUpdate: {
+            /** Cost Price */
+            cost_price?: number | string | null;
+            /** Margin */
+            margin?: number | string | null;
+            /** Is Active */
+            is_active?: boolean | null;
+            /** Display Order */
+            display_order?: number | null;
         };
         /** DomainListItem */
         DomainListItem: {
@@ -2314,6 +2965,64 @@ export interface components {
             /** Invoice Id */
             invoice_id?: number | null;
         };
+        /**
+         * EnrollResponse
+         * @description Shape returned by POST /client/courses/{id}/enroll.
+         *
+         *     `message` is the one line a UI shows ("You're enrolled" vs "complete
+         *     payment to unlock"), so a client can act without having to decode the
+         *     status enum itself.
+         */
+        EnrollResponse: {
+            enrollment: components["schemas"]["ClientEnrollmentRead"];
+            /** Message */
+            message: string;
+        };
+        /**
+         * EnrollmentRead
+         * @description Admin view of one enrollment. Progress is served alongside so the admin
+         *     enrollments list on a course can show how far each student has got.
+         */
+        EnrollmentRead: {
+            /** Id */
+            id: number;
+            /** Course Id */
+            course_id: number;
+            /** Client Id */
+            client_id: number;
+            /** Invoice Id */
+            invoice_id: number | null;
+            status: components["schemas"]["EnrollmentStatus"];
+            /**
+             * Enrolled At
+             * Format: date-time
+             */
+            enrolled_at: string;
+            /** Is Active */
+            is_active: boolean;
+            /**
+             * Completed Lessons
+             * @default 0
+             */
+            completed_lessons: number;
+            /**
+             * Total Lessons
+             * @default 0
+             */
+            total_lessons: number;
+            /**
+             * Progress Percent
+             * @default 0
+             */
+            progress_percent: number;
+        };
+        /**
+         * EnrollmentStatus
+         * @description Paid courses land PENDING_PAYMENT until the linked invoice is paid; free
+         *     courses enroll straight into ACTIVE. CANCELLED is an admin or client exit.
+         * @enum {string}
+         */
+        EnrollmentStatus: "PENDING_PAYMENT" | "ACTIVE" | "CANCELLED";
         /**
          * FileCategory
          * @enum {string}
@@ -2745,6 +3454,115 @@ export interface components {
             items?: components["schemas"]["InvoiceItemCreate"][] | null;
         };
         /**
+         * LessonBrief
+         * @description Public lesson view -- title only. Content and video_url are deliberately
+         *     absent: the catalog teases what's inside, enrolled content is served
+         *     through `/client/courses/.../lessons/{id}`.
+         */
+        LessonBrief: {
+            /** Id */
+            id: number;
+            /** Title */
+            title: string;
+            /** Display Order */
+            display_order: number;
+        };
+        /**
+         * LessonCompleteResponse
+         * @description What the mark-complete endpoint returns -- just the new progress.
+         */
+        LessonCompleteResponse: {
+            /** Completed Lessons */
+            completed_lessons: number;
+            /** Total Lessons */
+            total_lessons: number;
+            /** Progress Percent */
+            progress_percent: number;
+        };
+        /** LessonCreate */
+        LessonCreate: {
+            /** Title */
+            title: string;
+            /**
+             * Content
+             * @default
+             */
+            content: string;
+            /** Video Url */
+            video_url?: string | null;
+            /**
+             * Display Order
+             * @default 0
+             */
+            display_order: number;
+        };
+        /** LessonMaterialRead */
+        LessonMaterialRead: {
+            /** Id */
+            id: number;
+            /** Lesson Id */
+            lesson_id: number;
+            /** Original Filename */
+            original_filename: string;
+            /** Content Type */
+            content_type: string;
+            /** File Size */
+            file_size: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /**
+         * LessonRead
+         * @description Full lesson view, including materials. Served only to enrolled clients.
+         */
+        LessonRead: {
+            /** Id */
+            id: number;
+            /** Course Id */
+            course_id: number;
+            /** Title */
+            title: string;
+            /** Content */
+            content: string;
+            /** Video Url */
+            video_url: string | null;
+            /** Display Order */
+            display_order: number;
+            /** Is Active */
+            is_active: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /**
+             * Materials
+             * @default []
+             */
+            materials: components["schemas"]["LessonMaterialRead"][];
+        };
+        /** LessonUpdate */
+        LessonUpdate: {
+            /** Title */
+            title?: string | null;
+            /** Content */
+            content?: string | null;
+            /** Video Url */
+            video_url?: string | null;
+            /** Display Order */
+            display_order?: number | null;
+            /** Is Active */
+            is_active?: boolean | null;
+        };
+        /**
          * MarkAllReadResponse
          * @description How many of the caller's notifications this request flipped to read.
          */
@@ -2811,7 +3629,7 @@ export interface components {
          * NotificationType
          * @enum {string}
          */
-        NotificationType: "QUOTE_SUBMITTED" | "QUOTE_STATUS_CHANGED" | "PROJECT_CREATED" | "PROJECT_STATUS_CHANGED" | "MILESTONE_COMPLETED" | "FILE_UPLOADED" | "INVOICE_CREATED" | "INVOICE_DUE" | "PAYMENT_RECORDED" | "HOSTING_ACCOUNT_CREATED" | "HOSTING_STATUS_CHANGED" | "TICKET_CREATED" | "TICKET_REPLY" | "TICKET_STATUS_CHANGED" | "DOMAIN_REGISTERED" | "DOMAIN_STATUS_CHANGED" | "TEAM_MEMBER_REGISTERED" | "TEAM_MEMBER_APPROVED" | "PROJECT_ASSIGNMENT";
+        NotificationType: "QUOTE_SUBMITTED" | "QUOTE_STATUS_CHANGED" | "PROJECT_CREATED" | "PROJECT_STATUS_CHANGED" | "MILESTONE_COMPLETED" | "FILE_UPLOADED" | "INVOICE_CREATED" | "INVOICE_DUE" | "PAYMENT_RECORDED" | "HOSTING_ACCOUNT_CREATED" | "HOSTING_STATUS_CHANGED" | "TICKET_CREATED" | "TICKET_REPLY" | "TICKET_STATUS_CHANGED" | "DOMAIN_REGISTERED" | "DOMAIN_STATUS_CHANGED" | "TEAM_MEMBER_REGISTERED" | "TEAM_MEMBER_APPROVED" | "PROJECT_ASSIGNMENT" | "COURSE_ENROLLED" | "COURSE_ACCESS_ACTIVE";
         /** PaymentCreate */
         PaymentCreate: {
             /** Amount */
@@ -3902,6 +4720,22 @@ export interface components {
              * @default bearer
              */
             token_type: string;
+        };
+        /**
+         * TrainingStats
+         * @description Training module: how many courses are published and students are learning.
+         */
+        TrainingStats: {
+            /**
+             * Published Courses
+             * @default 0
+             */
+            published_courses: number;
+            /**
+             * Active Enrollments
+             * @default 0
+             */
+            active_enrollments: number;
         };
         /**
          * UnreadCountRead
@@ -6123,6 +6957,617 @@ export interface operations {
             };
         };
     };
+    enroll_in_course_api_v1_client_courses__course_id__enroll_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EnrollResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_my_enrollments_api_v1_client_courses_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClientEnrollmentRead"][];
+                };
+            };
+        };
+    };
+    list_lessons_for_enrolled_client_api_v1_client_courses__course_id__lessons_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LessonRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_lesson_for_enrolled_client_api_v1_client_courses__course_id__lessons__lesson_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+                lesson_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LessonRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    download_lesson_material_api_v1_client_courses__course_id__lessons__lesson_id__materials__material_id__download_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+                lesson_id: number;
+                material_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    complete_lesson_api_v1_client_courses__course_id__lessons__lesson_id__complete_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+                lesson_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LessonCompleteResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_public_courses_api_v1_courses_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+                category?: string | null;
+                search?: string | null;
+                include_drafts?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CourseRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_course_api_v1_courses_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CourseCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CourseRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_public_course_api_v1_courses__slug__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CoursePublicDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_course_by_id_api_v1_courses_by_id__course_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CourseRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    deactivate_course_api_v1_courses__course_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CourseRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_course_api_v1_courses__course_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CourseUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CourseRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_course_lessons_api_v1_courses__course_id__lessons_get: {
+        parameters: {
+            query?: {
+                include_inactive?: boolean;
+            };
+            header?: never;
+            path: {
+                course_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LessonRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_lesson_api_v1_courses__course_id__lessons_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LessonCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LessonRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    deactivate_lesson_api_v1_courses__course_id__lessons__lesson_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+                lesson_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LessonRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_lesson_api_v1_courses__course_id__lessons__lesson_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+                lesson_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LessonUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LessonRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    upload_lesson_material_api_v1_courses__course_id__lessons__lesson_id__materials_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+                lesson_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_upload_lesson_material_api_v1_courses__course_id__lessons__lesson_id__materials_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LessonMaterialRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    deactivate_lesson_material_api_v1_courses__course_id__lessons__lesson_id__materials__material_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+                lesson_id: number;
+                material_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LessonMaterialRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_course_enrollments_api_v1_courses__course_id__enrollments_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EnrollmentRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_quote_requests_api_v1_quote_requests_get: {
         parameters: {
             query?: {
@@ -7321,6 +8766,156 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DomainRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_domain_extensions_api_v1_domains_extensions_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainExtensionRead"][];
+                };
+            };
+        };
+    };
+    create_domain_extension_api_v1_domains_extensions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DomainExtensionCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainExtensionRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_all_domain_extensions_api_v1_domains_extensions_manage_get: {
+        parameters: {
+            query?: {
+                include_inactive?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainExtensionRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    deactivate_domain_extension_api_v1_domains_extensions__extension_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                extension_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainExtensionRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_domain_extension_api_v1_domains_extensions__extension_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                extension_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DomainExtensionUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainExtensionRead"];
                 };
             };
             /** @description Validation Error */

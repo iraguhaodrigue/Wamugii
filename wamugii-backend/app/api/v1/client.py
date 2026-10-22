@@ -7,13 +7,16 @@ from sqlalchemy.orm import Session
 from app.api.deps import DbDep, require_roles
 from app.api.v1.support import validate_project_for_ticket
 from app.crud import client as client_crud
+from app.crud import course as course_crud
 from app.crud import company_settings as settings_crud
 from app.crud import domain as domain_crud
+from app.crud import invoice as invoice_crud
 from app.crud import hosting as hosting_crud
 from app.crud import project as project_crud
 from app.crud import project_milestone as milestone_crud
 from app.crud import service as service_crud
 from app.crud import support as support_crud
+from app.models.course import Course, EnrollmentStatus, Lesson
 from app.models.domain import DomainStatus
 from app.models.invoice import InvoiceStatus
 from app.models.project import ProjectStatus
@@ -35,7 +38,15 @@ from app.schemas.client import (
     ClientQuoteListItem,
     ClientUserRead,
 )
+from app.schemas.course import (
+    ClientEnrollmentRead,
+    EnrollResponse,
+    LessonCompleteResponse,
+    LessonMaterialRead,
+    LessonRead,
+)
 from app.schemas.domain import ClientDomainDetail, ClientDomainListItem
+from app.schemas.invoice import InvoiceCreate, InvoiceItemCreate
 from app.schemas.support import (
     ClientTicketDetail,
     ClientTicketListItem,
@@ -419,3 +430,270 @@ def get_quote(quote_id: int, db: DbDep, current_user: ClientOnly):
         detail.converted_project_id = project.id
 
     return detail
+
+
+
+# --- training: enrollments and lesson access -------------------------------
+#
+# The gate: lesson CONTENT is only ever served to a client with an ACTIVE
+# enrollment on that course. PENDING_PAYMENT is a 403 with a clear "complete
+# payment to access" message; no enrollment is a 404. The pattern mirrors
+# domains/hosting -- no new auth code, just the status check per endpoint.
+
+
+def _course_or_404(db, course_id: int) -> Course:
+    course = course_crud.get_course(db, course_id)
+    if not course or not course.is_active:
+        raise HTTPException(status_code=404, detail="Course not found")
+    return course
+
+
+def _active_enrollment_or_block(db, course_id: int, client_id: int):
+    """
+    Resolve the enrollment that gates lesson content.
+
+    404 when there is no enrollment at all -- the client is not a student on
+    this course, so the content is as absent for them as a project they are
+    not on. 403 only when they ARE enrolled but the invoice is still unpaid,
+    because at that point the course does exist for them.
+    """
+    enrollment = course_crud.get_enrollment_for_client(db, course_id, client_id)
+    if enrollment is None or not enrollment.is_active:
+        raise HTTPException(status_code=404, detail="Course not found")
+    if enrollment.status != EnrollmentStatus.ACTIVE:
+        raise HTTPException(
+            status_code=403,
+            detail="Complete payment to access this course.",
+        )
+    return enrollment
+
+
+def _client_enrollment_read(db, enrollment, course: Course) -> ClientEnrollmentRead:
+    total = course_crud.count_active_lessons(db, course.id)
+    completed = course_crud.count_completed_lessons(db, enrollment.id)
+    read = ClientEnrollmentRead.model_validate(enrollment)
+    read.course_title = course.title
+    read.course_slug = course.slug
+    read.is_free = course.is_free
+    read.completed_lessons = completed
+    read.total_lessons = total
+    read.progress_percent = course_crud.progress_percent(completed, total)
+    return read
+
+
+@router.post(
+    "/courses/{course_id}/enroll",
+    response_model=EnrollResponse,
+    summary="Enroll in a course (CLIENT); free courses go ACTIVE instantly",
+)
+def enroll_in_course(course_id: int, db: DbDep, current_user: ClientOnly):
+    """
+    Free course -> enrollment lands ACTIVE and the client reads lessons
+    immediately. Paid course -> an invoice is generated with one line item at
+    the course price, the enrollment stays PENDING_PAYMENT, and the response
+    tells the UI to send them to the invoice.
+
+    Double-enroll returns the existing row (idempotent) rather than erroring;
+    whether that reads as "already active" or "still pending" is on the
+    status in the response.
+    """
+    course = _course_or_404(db, course_id)
+    if course.status.value != "PUBLISHED":
+        raise HTTPException(status_code=404, detail="Course not found")
+
+    existing = course_crud.get_enrollment_for_client(db, course.id, current_user.id)
+    if existing is not None and existing.is_active:
+        message = (
+            "You are already enrolled in this course."
+            if existing.status == EnrollmentStatus.ACTIVE
+            else "You have already enrolled; complete the invoice to unlock the lessons."
+        )
+        return EnrollResponse(
+            enrollment=_client_enrollment_read(db, existing, course),
+            message=message,
+        )
+
+    if course.is_free:
+        enrollment = course_crud.create_enrollment(
+            db,
+            course_id=course.id,
+            client_id=current_user.id,
+            status=EnrollmentStatus.ACTIVE,
+        )
+        message = "You are enrolled -- start learning any time."
+    else:
+        # Create the enrollment first (PENDING_PAYMENT) and link the invoice
+        # back onto it. If the invoice create fails, the row that remains is
+        # a PENDING_PAYMENT enrollment with invoice_id=None, which the admin
+        # can rectify by generating the invoice manually.
+        enrollment = course_crud.create_enrollment(
+            db,
+            course_id=course.id,
+            client_id=current_user.id,
+            status=EnrollmentStatus.PENDING_PAYMENT,
+        )
+        invoice = invoice_crud.create(
+            db,
+            InvoiceCreate(
+                client_id=current_user.id,
+                items=[
+                    InvoiceItemCreate(
+                        description=f"Course enrollment: {course.title}",
+                        quantity=1,
+                        unit_price=course.price or 0,
+                    )
+                ],
+                status=InvoiceStatus.SENT,
+            ),
+        )
+        course_crud.set_enrollment_invoice(db, enrollment, invoice.id)
+        message = (
+            "Enrollment created. An invoice has been generated -- complete "
+            "payment to unlock the lessons."
+        )
+
+    logger.info(
+        "client %s enrolled in course %s (status=%s)",
+        current_user.id, course.id, enrollment.status.value,
+    )
+    notifications.notify_course_enrolled(db, enrollment, course)
+    return EnrollResponse(
+        enrollment=_client_enrollment_read(db, enrollment, course),
+        message=message,
+    )
+
+
+@router.get(
+    "/courses",
+    response_model=list[ClientEnrollmentRead],
+    summary="List the authenticated clients enrollments with progress",
+)
+def list_my_enrollments(db: DbDep, current_user: ClientOnly):
+    enrollments = course_crud.list_enrollments_for_client(db, current_user.id)
+    out: list[ClientEnrollmentRead] = []
+    for enrollment in enrollments:
+        course = course_crud.get_course(db, enrollment.course_id)
+        if course is None or not course.is_active:
+            continue
+        out.append(_client_enrollment_read(db, enrollment, course))
+    return out
+
+
+@router.get(
+    "/courses/{course_id}/lessons",
+    response_model=list[LessonRead],
+    summary="Full lesson content on a course (CLIENT, active enrollment only)",
+)
+def list_lessons_for_enrolled_client(
+    course_id: int, db: DbDep, current_user: ClientOnly
+):
+    """
+    The gate. A PENDING_PAYMENT enrollment is a 403 with the complete-payment
+    message; no enrollment is a 404. Only active lessons are served -- a
+    soft-deleted lesson disappears from the player as well as the catalogue.
+    """
+    _course_or_404(db, course_id)
+    _active_enrollment_or_block(db, course_id, current_user.id)
+
+    lessons = course_crud.list_lessons(db, course_id)
+    out: list[LessonRead] = []
+    for lesson in lessons:
+        read = LessonRead.model_validate(lesson)
+        read.materials = [
+            LessonMaterialRead.model_validate(m)
+            for m in course_crud.list_materials(db, lesson.id)
+        ]
+        out.append(read)
+    return out
+
+
+@router.get(
+    "/courses/{course_id}/lessons/{lesson_id}",
+    response_model=LessonRead,
+    summary="One lesson full content and materials (CLIENT, active enrollment only)",
+)
+def get_lesson_for_enrolled_client(
+    course_id: int, lesson_id: int, db: DbDep, current_user: ClientOnly
+):
+    _course_or_404(db, course_id)
+    _active_enrollment_or_block(db, course_id, current_user.id)
+
+    lesson = course_crud.get_lesson_for_course(db, course_id, lesson_id)
+    if not lesson or not lesson.is_active:
+        raise HTTPException(status_code=404, detail="Lesson not found")
+
+    read = LessonRead.model_validate(lesson)
+    read.materials = [
+        LessonMaterialRead.model_validate(m)
+        for m in course_crud.list_materials(db, lesson.id)
+    ]
+    return read
+
+
+@router.get(
+    "/courses/{course_id}/lessons/{lesson_id}/materials/{material_id}/download",
+    summary="Download a lesson material (CLIENT, active enrollment only)",
+)
+def download_lesson_material(
+    course_id: int,
+    lesson_id: int,
+    material_id: int,
+    db: DbDep,
+    current_user: ClientOnly,
+):
+    """Mirrors the lesson gate: no active enrollment, no material."""
+    _course_or_404(db, course_id)
+    _active_enrollment_or_block(db, course_id, current_user.id)
+
+    lesson = course_crud.get_lesson_for_course(db, course_id, lesson_id)
+    if not lesson or not lesson.is_active:
+        raise HTTPException(status_code=404, detail="Lesson not found")
+    material = course_crud.get_material_for_lesson(db, lesson_id, material_id)
+    if not material or not material.is_active:
+        raise HTTPException(status_code=404, detail="Material not found")
+
+    from fastapi.responses import FileResponse
+    from app.services import storage
+
+    physical_path = storage.get_file(material.storage_path)
+    if not physical_path.is_file():
+        logger.error(
+            "Physical lesson material missing for id=%s at %s",
+            material.id, physical_path,
+        )
+        raise HTTPException(status_code=404, detail="Material file not found")
+    return FileResponse(
+        path=physical_path,
+        media_type=material.content_type,
+        filename=material.original_filename,
+    )
+
+
+@router.post(
+    "/courses/{course_id}/lessons/{lesson_id}/complete",
+    response_model=LessonCompleteResponse,
+    summary="Mark a lesson complete (CLIENT, active enrollment only)",
+)
+def complete_lesson(
+    course_id: int, lesson_id: int, db: DbDep, current_user: ClientOnly
+):
+    """
+    Idempotent: calling twice keeps the first completion timestamp (see
+    `crud.course.mark_lesson_complete`). The response shows the fresh
+    progress so a UI can update without a follow-up list call.
+    """
+    _course_or_404(db, course_id)
+    enrollment = _active_enrollment_or_block(db, course_id, current_user.id)
+
+    lesson = course_crud.get_lesson_for_course(db, course_id, lesson_id)
+    if not lesson or not lesson.is_active:
+        raise HTTPException(status_code=404, detail="Lesson not found")
+
+    course_crud.mark_lesson_complete(db, enrollment.id, lesson.id)
+    total = course_crud.count_active_lessons(db, course_id)
+    completed = course_crud.count_completed_lessons(db, enrollment.id)
+    return LessonCompleteResponse(
+        completed_lessons=completed,
+        total_lessons=total,
+        progress_percent=course_crud.progress_percent(completed, total),
+    )

@@ -1,13 +1,14 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
-import { Activity, ArrowRight, CheckCircle2, Clock, FolderKanban, TrendingUp } from 'lucide-react'
+import { Activity, ArrowRight, CheckCircle2, Clock, FolderKanban, GraduationCap, Lock, TrendingUp } from 'lucide-react'
 import { getClientDashboard } from '@/api/clientPortal'
 import { listClientHosting } from '@/api/hosting'
+import { listMyEnrollments } from '@/api/courses'
 import { paths } from '@/routes/paths'
-import { Badge, EmptyState, ErrorState, Skeleton, StatCard } from '@/components/ui'
+import { Badge, EmptyState, ErrorState, ProgressBar, Skeleton, StatCard } from '@/components/ui'
 import { ClientProjectRow } from '@/components/projects/ClientProjectRow'
 import { formatDate, formatEnumLabel } from '@/utils/format'
-import { hostingStatusVariant, quoteStatusVariant } from '@/utils/statusBadge'
+import { enrollmentStatusVariant, hostingStatusVariant, quoteStatusVariant } from '@/utils/statusBadge'
 
 export function ClientDashboard() {
   const { data, isLoading, isError, refetch } = useQuery({
@@ -19,6 +20,15 @@ export function ClientDashboard() {
   // untouched; the summary simply doesn't render if this is empty or fails.
   const hostingQuery = useQuery({ queryKey: ['client', 'hosting'], queryFn: listClientHosting })
   const hostingAccounts = hostingQuery.data ?? []
+
+  // Adaptive: the dashboard shows learning first when the client has it.
+  // Same CLIENT role, different emphasis -- a pure student sees a
+  // learning-led view; a client with projects still sees everything.
+  const learningQuery = useQuery({
+    queryKey: ['client', 'learning'],
+    queryFn: listMyEnrollments,
+  })
+  const enrollments = learningQuery.data ?? []
 
   if (isLoading) {
     return (
@@ -52,6 +62,69 @@ export function ClientDashboard() {
         </h1>
         <p className="mt-1 text-sm text-slate-500">Here&apos;s what&apos;s happening across your projects.</p>
       </div>
+
+      {enrollments.length > 0 && (
+        <section>
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-slate-900">
+              <span className="inline-flex items-center gap-2">
+                <GraduationCap className="size-5 text-brand-500" aria-hidden="true" />
+                My Learning
+              </span>
+            </h2>
+            <Link
+              to={paths.client.learning}
+              className="inline-flex items-center gap-1 text-sm font-medium text-brand-600 hover:text-brand-700"
+            >
+              View all
+              <ArrowRight className="size-4" aria-hidden="true" />
+            </Link>
+          </div>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            {enrollments.slice(0, 2).map((enrollment) => {
+              const isPending = enrollment.status === 'PENDING_PAYMENT'
+              return (
+                <Link
+                  key={enrollment.id}
+                  to={
+                    isPending && enrollment.invoice_id
+                      ? paths.client.invoiceDetail(enrollment.invoice_id)
+                      : paths.client.courseDetail(enrollment.course_slug)
+                  }
+                  className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-panel p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <p className="text-sm font-semibold text-slate-900">
+                      {enrollment.course_title}
+                    </p>
+                    <Badge variant={enrollmentStatusVariant[enrollment.status]}>
+                      {isPending ? 'Pending' : 'Active'}
+                    </Badge>
+                  </div>
+                  {isPending ? (
+                    <p className="inline-flex items-start gap-1.5 text-xs text-amber-800">
+                      <Lock className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
+                      Complete the invoice to unlock the lessons.
+                    </p>
+                  ) : (
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between text-xs text-slate-500">
+                        <span>
+                          {enrollment.completed_lessons}/{enrollment.total_lessons} lessons
+                        </span>
+                        <span className="font-medium text-slate-700">
+                          {enrollment.progress_percent}%
+                        </span>
+                      </div>
+                      <ProgressBar value={enrollment.progress_percent} />
+                    </div>
+                  )}
+                </Link>
+              )
+            })}
+          </div>
+        </section>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard icon={FolderKanban} label="Total Projects" value={data.summary.total_projects} accent="brand" />

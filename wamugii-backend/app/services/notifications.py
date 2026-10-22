@@ -28,6 +28,7 @@ from app.models.hosting import HostingAccount
 from app.models.invoice import Invoice, Payment
 from app.models.notification import NotificationType
 from app.models.project import Project
+from app.models.course import Course, Enrollment
 from app.models.project_member import ProjectMember
 from app.models.project_milestone import ProjectMilestone
 from app.models.quote_request import QuoteRequest
@@ -632,3 +633,72 @@ def notify_project_assignment(
         related_id=project.id,
     )
     _send_email(user, email_templates.project_assignment_member(project, member, user))
+
+
+# --- training events --------------------------------------------------------
+
+
+def notify_course_enrolled(db: Session, enrollment: Enrollment, course: Course) -> None:
+    """
+    To the student: enrollment confirmation.
+
+    Fires for both free and paid enrollments. For paid courses the body says
+    "complete payment to unlock" -- payment confirmation is a separate event
+    (see notify_course_access_active) so the admin isn't forced to batch the
+    two together.
+    """
+    is_pending = enrollment.status.value == "PENDING_PAYMENT"
+    student = _recipient(db, enrollment.client_id)
+    if student is None:
+        return
+    title = (
+        "Complete payment to unlock your course"
+        if is_pending
+        else "You're enrolled in your course"
+    )
+    if is_pending:
+        message = (
+            f"You've been enrolled in '{course.title}'. Complete the invoice "
+            "to unlock the lessons."
+        )
+    else:
+        message = f"You're enrolled in '{course.title}'. Start learning any time."
+    _emit(
+        db,
+        user_id=enrollment.client_id,
+        type=NotificationType.COURSE_ENROLLED,
+        title=title,
+        message=message,
+        related_type="course",
+        related_id=course.id,
+    )
+    _send_email(
+        student,
+        email_templates.course_enrolled_client(course, enrollment, student),
+    )
+
+
+def notify_course_access_active(db: Session, enrollment: Enrollment, course: Course) -> None:
+    """
+    To the student: payment confirmed, access is now live.
+
+    Fired from `api/v1/invoices.record_payment` when the invoice linked to an
+    enrollment hits PAID -- non-fatal, like every other emit. Not fired on a
+    free enrollment: there was never a wait for them.
+    """
+    student = _recipient(db, enrollment.client_id)
+    if student is None:
+        return
+    _emit(
+        db,
+        user_id=enrollment.client_id,
+        type=NotificationType.COURSE_ACCESS_ACTIVE,
+        title="Your course access is now active",
+        message=f"Payment received for '{course.title}'. You can start the lessons now.",
+        related_type="course",
+        related_id=course.id,
+    )
+    _send_email(
+        student,
+        email_templates.course_access_active_client(course, enrollment, student),
+    )

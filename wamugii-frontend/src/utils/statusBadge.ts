@@ -13,6 +13,8 @@ type TicketPriority = components['schemas']['TicketPriority']
 type Role = components['schemas']['Role']
 type ApprovalStatus = components['schemas']['ApprovalStatus']
 type ProjectRole = components['schemas']['ProjectRole']
+type CourseStatus = components['schemas']['CourseStatus']
+type EnrollmentStatus = components['schemas']['EnrollmentStatus']
 
 export const projectStatusVariant: Record<ProjectStatus, BadgeVariant> = {
   PENDING: 'neutral',
@@ -111,4 +113,17 @@ export const projectRoleVariant: Record<ProjectRole, BadgeVariant> = {
   TESTER: 'info',
   RESEARCHER: 'info',
   DESIGNER: 'info',
+}
+
+/** Draft is a dev state; published is the live catalogue state. */
+export const courseStatusVariant: Record<CourseStatus, BadgeVariant> = {
+  DRAFT: 'neutral',
+  PUBLISHED: 'success',
+}
+
+/** Mirrors invoice status read: pending-money is warning, done is success. */
+export const enrollmentStatusVariant: Record<EnrollmentStatus, BadgeVariant> = {
+  PENDING_PAYMENT: 'warning',
+  ACTIVE: 'success',
+  CANCELLED: 'neutral',
 }

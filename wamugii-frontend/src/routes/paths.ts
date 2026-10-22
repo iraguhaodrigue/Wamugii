@@ -16,6 +16,9 @@ export const paths = {
   /** Shown instead of a dashboard while an account is awaiting approval. */
   pendingApproval: '/pending-approval',
   resetPassword: '/reset-password',
+  /** Public training catalogue. */
+  courses: '/courses',
+  courseDetail: (slug: string) => `/courses/${slug}`,
   client: {
     dashboard: '/client/dashboard',
     projects: '/client/projects',
@@ -26,6 +29,9 @@ export const paths = {
     hostingDetail: (id: string | number) => `/client/hosting/${id}`,
     domains: '/client/domains',
     domainDetail: (id: string | number) => `/client/domains/${id}`,
+    /** My Learning list. */
+    learning: '/client/learning',
+    courseDetail: (slug: string) => `/client/learning/${slug}`,
     quoteDetail: (id: string | number) => `/client/quotes/${id}`,
     tickets: '/client/support',
     ticketDetail: (id: string | number) => `/client/support/${id}`,
@@ -64,6 +70,8 @@ export const paths = {
     tickets: '/admin/support',
     ticketDetail: (id: string | number) => `/admin/support/${id}`,
     teamMembers: '/admin/team-members',
+    courses: '/admin/courses',
+    courseDetail: (id: string | number) => `/admin/courses/${id}`,
     services: '/admin/services',
     serviceDetail: (id: string | number) => `/admin/services/${id}`,
   },

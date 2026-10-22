@@ -4,6 +4,7 @@ from app.api.v1 import (
     admin,
     auth,
     client,
+    courses,
     domains,
     hosting,
     invoices,
@@ -30,6 +31,7 @@ api_router.include_router(project_milestones.router)
 api_router.include_router(project_files.router)
 api_router.include_router(project_members.router)
 api_router.include_router(client.router)
+api_router.include_router(courses.router)
 api_router.include_router(quote_requests.router)
 api_router.include_router(invoices.router)
 api_router.include_router(notifications.router)

@@ -745,3 +745,81 @@ def project_assignment_member(project, member, user) -> tuple[str, str, str]:
         "View Project",
     )
     return subject, html, text
+
+
+# --- training templates ----------------------------------------------------
+
+
+def course_enrolled_client(course, enrollment, user) -> tuple[str, str, str]:
+    """To the student: enrollment confirmation (free or pending payment)."""
+    is_pending = enrollment.status.value == "PENDING_PAYMENT"
+    first_name = user.full_name.split(" ")[0] if user.full_name else "there"
+
+    if is_pending:
+        subject = f"Complete payment to unlock {course.title}"
+        intro = (
+            f"Hi {first_name}, thanks for enrolling in {course.title}. We've "
+            "generated an invoice for this course -- your lessons unlock as "
+            "soon as we've recorded the payment."
+        )
+        cta_path = f"/client/invoices/{enrollment.invoice_id}" if enrollment.invoice_id else "/client/invoices"
+        cta_label = "View Invoice"
+    else:
+        subject = f"You're enrolled in {course.title}"
+        intro = (
+            f"Hi {first_name}, you're enrolled in {course.title}. Start the "
+            "lessons any time -- your progress is saved as you go."
+        )
+        cta_path = f"/client/learning/{course.slug}"
+        cta_label = "Start Learning"
+
+    pairs = [("Course", course.title)]
+    if not course.is_free and course.price is not None:
+        pairs.append(("Price", _money(course.price)))
+    pairs.append(("Status", _enum_label(enrollment.status)))
+
+    url = _cta_url(cta_path)
+    html = _shell(
+        heading="You're enrolled" if not is_pending else "Enrollment pending payment",
+        intro=intro,
+        detail_rows=_rows(pairs),
+        cta=_button(url, cta_label),
+    )
+    text = _plain(
+        "Course enrollment",
+        [f"{label}: {value}" for label, value in pairs],
+        url,
+        cta_label,
+    )
+    return subject, html, text
+
+
+def course_access_active_client(course, enrollment, user) -> tuple[str, str, str]:
+    """To the student: paid invoice recorded, access unlocked."""
+    first_name = user.full_name.split(" ")[0] if user.full_name else "there"
+    subject = f"Your course access is now active: {course.title}"
+    url = _cta_url(f"/client/learning/{course.slug}")
+
+    pairs = [
+        ("Course", course.title),
+        ("Status", "Active"),
+    ]
+    if course.price is not None:
+        pairs.append(("Amount paid", _money(course.price)))
+
+    html = _shell(
+        heading="Your course access is now active",
+        intro=(
+            f"Hi {first_name}, thanks -- we've recorded the payment for "
+            f"{course.title}. Your lessons are now available."
+        ),
+        detail_rows=_rows(pairs),
+        cta=_button(url, "Start Learning"),
+    )
+    text = _plain(
+        "Course access active",
+        [f"{label}: {value}" for label, value in pairs],
+        url,
+        "Start Learning",
+    )
+    return subject, html, text

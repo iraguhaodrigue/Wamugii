@@ -9,6 +9,7 @@ from app.crud import invoice as invoice_crud
 from app.crud import project as project_crud
 from app.crud import quote_request as quote_crud
 from app.crud import service as service_crud
+from app.crud import course as course_crud
 from app.crud import support as support_crud
 from app.crud import user as user_crud
 from app.models.user import ApprovalStatus, Role, User
@@ -21,6 +22,7 @@ from app.schemas.admin import (
     ServiceStats,
     SupportStats,
     TeamStats,
+    TrainingStats,
     UserStats,
 )
 from app.schemas.user import RejectTeamMemberRequest, UserAdminUpdate, UserRead
@@ -66,6 +68,10 @@ def dashboard(db: DbDep, admin: CurrentAdmin):
         hosting=HostingStats(active=hosting_crud.count_active_accounts(db)),
         # TODO: store module not built yet
         support=SupportStats(open_tickets=support_crud.count_open_tickets(db)),
+        training=TrainingStats(
+            published_courses=course_crud.count_published_courses(db),
+            active_enrollments=course_crud.count_active_enrollments(db),
+        ),
         team=TeamStats(
             pending_approvals=user_crud.count_team_members(
                 db, approval_status=ApprovalStatus.PENDING

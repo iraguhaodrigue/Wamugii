@@ -6,6 +6,7 @@ import {
   MessageSquare,
   Boxes,
   UserCheck,
+  GraduationCap,
   Receipt,
   Globe,
   Server,
@@ -25,6 +26,8 @@ import { Services } from '@/pages/public/Services'
 import { ServiceDetail } from '@/pages/public/ServiceDetail'
 import { RequestQuote } from '@/pages/public/RequestQuote'
 import { Hosting } from '@/pages/public/Hosting'
+import { Courses } from '@/pages/public/Courses'
+import { CourseDetail } from '@/pages/public/CourseDetail'
 import { Login } from '@/pages/auth/Login'
 import { Register } from '@/pages/auth/Register'
 import { ForgotPassword } from '@/pages/auth/ForgotPassword'
@@ -39,6 +42,8 @@ import { ClientInvoiceDetail } from '@/pages/client/InvoiceDetail'
 import { ClientHosting } from '@/pages/client/Hosting'
 import { ClientHostingDetail } from '@/pages/client/HostingDetail'
 import { ClientDomains } from '@/pages/client/Domains'
+import { ClientLearning } from '@/pages/client/Learning'
+import { ClientCoursePlayer } from '@/pages/client/CoursePlayer'
 import { ClientDomainDetail } from '@/pages/client/DomainDetail'
 import { ClientQuoteDetail } from '@/pages/client/QuoteDetail'
 import { ClientTickets } from '@/pages/client/Tickets'
@@ -73,6 +78,8 @@ import { AdminDomainDetail } from '@/pages/admin/DomainDetail'
 import { AdminTickets } from '@/pages/admin/Tickets'
 import { AdminTicketDetail } from '@/pages/admin/TicketDetail'
 import { AdminTeamMembers } from '@/pages/admin/TeamMembers'
+import { AdminCourses } from '@/pages/admin/Courses'
+import { AdminCourseDetail } from '@/pages/admin/CourseDetail'
 import { AdminServices } from '@/pages/admin/Services'
 import { AdminServiceDetail } from '@/pages/admin/ServiceDetail'
 import { TeamDashboard } from '@/pages/team/Dashboard'
@@ -87,6 +94,7 @@ const clientNavItems = [
   { label: 'My Invoices', to: paths.client.invoices, icon: Receipt },
   { label: 'My Hosting', to: paths.client.hosting, icon: Server },
   { label: 'My Domains', to: paths.client.domains, icon: Globe },
+  { label: 'My Learning', to: paths.client.learning, icon: GraduationCap },
   { label: 'Support', to: paths.client.tickets, icon: LifeBuoy },
 ]
 
@@ -109,6 +117,7 @@ const adminNavItems = [
   { label: 'Dashboard', to: paths.admin.dashboard, icon: LayoutDashboard },
   { label: 'Users', to: paths.admin.users, icon: Users },
   { label: 'Services', to: paths.admin.services, icon: Boxes },
+  { label: 'Courses', to: paths.admin.courses, icon: GraduationCap },
   { label: 'Projects', to: paths.admin.projects, icon: FolderKanban },
   { label: 'Quote Requests', to: paths.admin.quotes, icon: MessageSquare },
   { label: 'Invoices', to: paths.admin.invoices, icon: Receipt },
@@ -130,6 +139,8 @@ function App() {
         <Route path="/services/:serviceId" element={<ServiceDetail />} />
         <Route path={paths.requestQuote} element={<RequestQuote />} />
         <Route path={paths.hosting} element={<Hosting />} />
+        <Route path={paths.courses} element={<Courses />} />
+        <Route path="/courses/:slug" element={<CourseDetail />} />
       </Route>
 
       {/* Auth */}
@@ -163,6 +174,8 @@ function App() {
             <Route path={paths.client.hosting} element={<ClientHosting />} />
             <Route path="/client/hosting/:accountId" element={<ClientHostingDetail />} />
             <Route path={paths.client.domains} element={<ClientDomains />} />
+            <Route path={paths.client.learning} element={<ClientLearning />} />
+            <Route path="/client/learning/:slug" element={<ClientCoursePlayer />} />
             <Route path="/client/domains/:domainId" element={<ClientDomainDetail />} />
             {/* Detail only: the dashboard lists their recent quotes. */}
             <Route path="/client/quotes/:quoteId" element={<ClientQuoteDetail />} />
@@ -221,6 +234,8 @@ function App() {
             <Route path={paths.admin.services} element={<AdminServices />} />
             <Route path="/admin/services/:serviceId" element={<AdminServiceDetail />} />
             <Route path={paths.admin.teamMembers} element={<AdminTeamMembers />} />
+            <Route path={paths.admin.courses} element={<AdminCourses />} />
+            <Route path="/admin/courses/:courseId" element={<AdminCourseDetail />} />
             <Route path={paths.admin.settings} element={<AdminSettings />} />
           </Route>
         </Route>

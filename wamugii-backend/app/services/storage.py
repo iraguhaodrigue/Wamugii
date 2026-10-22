@@ -64,6 +64,44 @@ def save_file(
     return stored_filename, storage_path, size
 
 
+def save_lesson_material(
+    fileobj, lesson_id: int, extension: str, max_size_bytes: int
+) -> tuple[str, str, int]:
+    """
+    Mirror of `save_file` for lesson materials.
+
+    Stores under `lessons/{lesson_id}/{generated_uuid}{extension}` using the
+    same stream-and-size-check loop, so a lesson-material upload shares the
+    exact disk behaviour as a project-file upload (resumable chunking, atomic
+    cleanup on failure, size cap).
+    """
+    import uuid
+
+    lesson_dir = _resolve_within_root(f"lessons/{lesson_id}")
+    lesson_dir.mkdir(parents=True, exist_ok=True)
+
+    stored_filename = f"{uuid.uuid4().hex}{extension}"
+    storage_path = f"lessons/{lesson_id}/{stored_filename}"
+    dest = lesson_dir / stored_filename
+
+    size = 0
+    try:
+        with open(dest, "wb") as out:
+            while True:
+                chunk = fileobj.read(1024 * 1024)
+                if not chunk:
+                    break
+                size += len(chunk)
+                if size > max_size_bytes:
+                    raise FileTooLargeError(f"File exceeds the {max_size_bytes} byte limit")
+                out.write(chunk)
+    except Exception:
+        dest.unlink(missing_ok=True)
+        raise
+
+    return stored_filename, storage_path, size
+
+
 def get_file(storage_path: str) -> Path:
     """Resolve a stored relative path to an absolute filesystem path."""
     return _resolve_within_root(storage_path)

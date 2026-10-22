@@ -216,6 +216,7 @@ def record_payment(invoice_id: int, data: PaymentCreate, db: DbDep, current_user
         invoice_id,
     )
     notifications.notify_payment_recorded(db, invoice, payment)
+    _unlock_course_access_if_paid(db, invoice)
     return payment
 
 
@@ -229,3 +230,34 @@ def list_payments(invoice_id: int, db: DbDep, current_user: StaffOrAdmin):
     if not invoice:
         raise HTTPException(status_code=404, detail="Invoice not found")
     return invoice_crud.list_payments(db, invoice_id)
+
+def _unlock_course_access_if_paid(db, invoice) -> None:
+    """
+    Side-effect of the payment flow: when the invoice that just got paid
+    is linked to a PENDING_PAYMENT enrollment, flip it to ACTIVE and
+    notify+email the student.
+
+    Non-fatal by design: wrapped in try/except so a bug in the training
+    module can never fail a bookkeeping call. Same contract as every other
+    emit from this file.
+    """
+    try:
+        if invoice.status != InvoiceStatus.PAID:
+            return
+        from app.crud import course as course_crud
+        from app.models.course import EnrollmentStatus
+
+        enrollment = course_crud.get_enrollment_by_invoice(db, invoice.id)
+        if enrollment is None or enrollment.status == EnrollmentStatus.ACTIVE:
+            return
+        enrollment = course_crud.set_enrollment_status(
+            db, enrollment, EnrollmentStatus.ACTIVE
+        )
+        course = course_crud.get_course(db, enrollment.course_id)
+        if course is not None:
+            notifications.notify_course_access_active(db, enrollment, course)
+    except Exception:
+        db.rollback()
+        logger.exception(
+            "failed to unlock course access after payment on invoice %s", invoice.id
+        )

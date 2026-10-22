@@ -15,6 +15,15 @@ from app.models.invoice import (  # noqa: F401
     PaymentMethod,
 )
 from app.models.notification import Notification, NotificationType  # noqa: F401
+from app.models.course import (  # noqa: F401
+    Course,
+    CourseStatus,
+    Enrollment,
+    EnrollmentStatus,
+    Lesson,
+    LessonMaterial,
+    LessonProgress,
+)
 from app.models.password_reset_token import PasswordResetToken  # noqa: F401
 from app.models.project import Project  # noqa: F401
 from app.models.project_member import ProjectMember, ProjectRole  # noqa: F401

@@ -46,6 +46,13 @@ class SupportStats(BaseModel):
     open_tickets: int = 0
 
 
+class TrainingStats(BaseModel):
+    """Training module: how many courses are published and students are learning."""
+
+    published_courses: int = 0
+    active_enrollments: int = 0
+
+
 class TeamStats(BaseModel):
     """Team-member registrations: how many are waiting, how many are live."""
 
@@ -63,3 +70,4 @@ class DashboardStats(BaseModel):
     store: StoreStats = StoreStats()
     support: SupportStats = SupportStats()
     team: TeamStats = TeamStats()
+    training: TrainingStats = TrainingStats()
