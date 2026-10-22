@@ -733,6 +733,7 @@ def test_no_route_outside_team_answers_a_team_member(client, admin_headers, sent
         "/api/v1/services",         # public catalogue, no client data
         "/api/v1/settings/public",  # public company info
         "/api/v1/hosting/plans",    # public pricing page -- marketing copy only
+        "/api/v1/domains/extensions", # public domain-extension price list -- same shape
         "/health",                  # liveness probe, no body to speak of
     )
 

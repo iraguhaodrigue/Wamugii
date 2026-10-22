@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import DbDep, require_roles
 from app.crud import domain as domain_crud
+from app.crud import domain_extension as extension_crud
 from app.crud import hosting as hosting_crud
 from app.crud import user as user_crud
 from app.models.domain import DomainStatus
@@ -16,6 +17,11 @@ from app.schemas.domain import (
     DomainListItem,
     DomainRead,
     DomainUpdate,
+)
+from app.schemas.domain_extension import (
+    DomainExtensionCreate,
+    DomainExtensionRead,
+    DomainExtensionUpdate,
 )
 from app.services import notifications
 
@@ -80,6 +86,20 @@ def create_domain(data: DomainCreate, db: DbDep, current_user: StaffOrAdmin):
         validate_hosting_account(db, data.hosting_account_id, data.client_id)
     validate_settable_status(data.status)
 
+    # Prefill fees from the price list when the admin didn't send them.
+    # "Didn't send" means the field wasn't in the payload at all; an explicit
+    # 0 is left alone, so a legitimate free registration is never overwritten.
+    # Only the matched extension's row is consulted; an unknown TLD still
+    # creates fine, just without prefill.
+    sent = data.model_fields_set
+    if "registration_fee" not in sent or "service_fee" not in sent:
+        matched = extension_crud.match_for_domain_name(db, data.domain_name)
+        if matched is not None and matched.is_active:
+            if "registration_fee" not in sent:
+                data.registration_fee = matched.cost_price
+            if "service_fee" not in sent:
+                data.service_fee = matched.margin
+
     domain = domain_crud.create_domain(db, data)
     logger.info(
         "staff %s registered domain %s (%s) for client %s",
@@ -112,6 +132,98 @@ def list_domains(
         search=search,
         include_inactive=include_inactive,
     )
+
+
+# --- domain extensions (price list) ----------------------------------------
+#
+# Admin-managed per-TLD pricing. The public endpoint drives the price table
+# shown on the Domains page; the write endpoints are admin-only, like the
+# hosting-plans module next door.
+
+
+@router.get(
+    "/extensions",
+    response_model=list[DomainExtensionRead],
+    summary="List active domain extensions with computed client prices (public)",
+)
+def list_domain_extensions(db: DbDep):
+    """
+    Open, because the public Domains page shows a price table and the quote
+    form may reference it. Only active rows come back; staff manage soft-deleted
+    ones through the dedicated admin endpoint below.
+    """
+    return extension_crud.list_extensions(db)
+
+
+@router.get(
+    "/extensions/manage",
+    response_model=list[DomainExtensionRead],
+    dependencies=[Depends(require_roles(Role.ADMIN))],
+    summary="List every extension including soft-deleted ones (ADMIN only)",
+)
+def list_all_domain_extensions(db: DbDep, include_inactive: bool = True):
+    return extension_crud.list_extensions(db, include_inactive=include_inactive)
+
+
+@router.post(
+    "/extensions",
+    response_model=DomainExtensionRead,
+    status_code=201,
+    summary="Add a domain extension (ADMIN only)",
+)
+def create_domain_extension(
+    data: DomainExtensionCreate, db: DbDep, admin: AdminOnly
+):
+    """
+    Rejected with a 409 if the extension already exists -- there is one row
+    per TLD by construction, and silently replacing an admin's price would be
+    worse than making them look it up.
+    """
+    if extension_crud.get_by_extension(db, data.extension) is not None:
+        raise HTTPException(
+            status_code=409, detail=f"Extension {data.extension} already exists"
+        )
+    row = extension_crud.create(db, data)
+    logger.info("admin %s added domain extension %s", admin.id, row.extension)
+    return row
+
+
+@router.patch(
+    "/extensions/{extension_id}",
+    response_model=DomainExtensionRead,
+    summary="Edit a domain extension (ADMIN only)",
+)
+def update_domain_extension(
+    extension_id: int,
+    data: DomainExtensionUpdate,
+    db: DbDep,
+    admin: AdminOnly,
+):
+    row = extension_crud.get_by_id(db, extension_id)
+    if not row:
+        raise HTTPException(status_code=404, detail="Extension not found")
+    updated = extension_crud.update(db, row, data)
+    logger.info(
+        "admin %s edited domain extension %s: %s",
+        admin.id,
+        extension_id,
+        data.model_dump(exclude_unset=True),
+    )
+    return updated
+
+
+@router.delete(
+    "/extensions/{extension_id}",
+    response_model=DomainExtensionRead,
+    summary="Soft-delete a domain extension (ADMIN only)",
+)
+def deactivate_domain_extension(extension_id: int, db: DbDep, admin: AdminOnly):
+    row = extension_crud.get_by_id(db, extension_id)
+    if not row:
+        raise HTTPException(status_code=404, detail="Extension not found")
+    updated = extension_crud.deactivate(db, row)
+    logger.info("admin %s deactivated domain extension %s", admin.id, extension_id)
+    return updated
 
 
 @router.get("/{domain_id}", response_model=DomainRead, summary="Get a domain (ADMIN or STAFF)")

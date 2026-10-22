@@ -1,5 +1,6 @@
 from app.models.company_settings import CompanySettings  # noqa: F401
 from app.models.domain import Domain, DomainStatus  # noqa: F401
+from app.models.domain_extension import DEFAULT_MARGIN, DomainExtension  # noqa: F401
 from app.models.hosting import (  # noqa: F401
     BillingCycle,
     HostingAccount,
