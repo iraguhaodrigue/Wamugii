@@ -325,3 +325,118 @@ body {
     opacity: 0;
   }
 }
+
+/*
+ * Hero entrance — the hero is above the fold, so there is nothing to wait
+ * for: these are plain keyframes with an animation-delay rather than the
+ * Reveal observer, which would cost a frame of hidden content while JS
+ * attaches. `backwards` holds the from-state during the delay so nothing
+ * flashes in before its turn.
+ */
+.hero-in {
+  animation: hero-rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+@keyframes hero-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/*
+ * Slow drift for the hero illustration. Lives on the <img> while `.hero-in`
+ * sits on its wrapper, because both animate `transform` and would otherwise
+ * overwrite each other. Starts after the entrance has finished.
+ */
+.hero-float {
+  animation: hero-float 7s ease-in-out 1.2s infinite;
+}
+
+@keyframes hero-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-in,
+  .hero-float {
+    animation: none;
+  }
+}
+
+/*
+ * Faint dot texture from /graphics/dot-grid.svg (a 40px tile). Opacity is set
+ * on this layer rather than the section so body text keeps full contrast;
+ * the mask fades the texture out before it reaches the section edges, which
+ * stops it ending in a hard line.
+ */
+.dot-texture {
+  background-image: url('/graphics/dot-grid.svg');
+  background-repeat: repeat;
+  background-size: 40px 40px;
+  -webkit-mask-image: radial-gradient(70% 60% at 50% 40%, #000, transparent);
+  mask-image: radial-gradient(70% 60% at 50% 40%, #000, transparent);
+}
+
+/*
+ * Nav links grow a teal→purple hairline on hover and while active. The
+ * pseudo-element is scaled rather than sized, so the nav never reflows, and
+ * `aria-current` is what react-router already sets on the active NavLink.
+ */
+.nav-underline {
+  position: relative;
+}
+.nav-underline::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: -5px;
+  left: 0;
+  height: 1.5px;
+  border-radius: 1px;
+  background-image: linear-gradient(90deg, var(--color-brand-400), var(--color-accent-400));
+  transform: scaleX(0);
+  transition: transform 0.2s ease;
+}
+.nav-underline:hover::after,
+.nav-underline[aria-current='page']::after {
+  transform: scaleX(1);
+}
+
+/*
+ * Card hover accent — a teal→purple hairline along the top edge, faded in on
+ * opacity alone so the hover costs no layout or paint work beyond compositing.
+ * Expects a `position: relative` card with a rounded top.
+ */
+.card-accent::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 2px;
+  border-radius: 0.75rem 0.75rem 0 0;
+  background-image: linear-gradient(90deg, var(--color-brand-400), var(--color-accent-400));
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.card-accent:hover::before {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-underline::after,
+  .card-accent::before {
+    transition: none;
+  }
+}

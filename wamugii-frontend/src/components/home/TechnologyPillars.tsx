@@ -37,7 +37,8 @@ const pillars = [
 export function TechnologyPillars() {
   return (
     <section className="relative overflow-hidden py-20 sm:py-24">
-      <Container>
+      <div className="dot-texture pointer-events-none absolute inset-0 opacity-60" aria-hidden="true" />
+      <Container className="relative">
         <SectionHeading
           label="Our principles"
           title="What every WAMUGII build has in common"

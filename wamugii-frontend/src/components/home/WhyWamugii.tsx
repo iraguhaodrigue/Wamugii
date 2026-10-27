@@ -36,7 +36,8 @@ const supporting = [
 export function WhyWamugii() {
   return (
     <section className="relative overflow-hidden py-20 sm:py-24">
-      <Container>
+      <div className="dot-texture pointer-events-none absolute inset-0 opacity-60" aria-hidden="true" />
+      <Container className="relative">
         <SectionHeading
           label="Why WAMUGII"
           title="An extension of your team, not just a vendor"
@@ -67,7 +68,7 @@ export function WhyWamugii() {
           <div className="grid gap-5 sm:grid-cols-2 lg:col-span-2">
             {supporting.map(({ icon: Icon, title, description }, index) => (
               <Reveal key={title} delay={index * 70} className="h-full">
-                <div className="h-full rounded-2xl border border-slate-200 bg-panel p-6 shadow-[var(--shadow-card)] backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:border-brand-400/30">
+                <div className="card-accent relative h-full overflow-hidden rounded-2xl border border-slate-200 bg-panel p-6 shadow-[var(--shadow-card)] backdrop-blur-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-400/30 hover:shadow-[var(--shadow-glow-brand)]">
                   <div className="flex size-10 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
                     <Icon className="size-5" aria-hidden="true" />
                   </div>

@@ -1,0 +1,72 @@
+<svg width="600" height="480" viewBox="0 0 600 480" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="gTeal" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2DD4BF"/><stop offset="1" stop-color="#06B6D4"/>
+    </linearGradient>
+    <linearGradient id="gPurple" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8B5CF6"/><stop offset="1" stop-color="#6366F1"/>
+    </linearGradient>
+    <linearGradient id="gMix" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2DD4BF"/><stop offset="0.55" stop-color="#06B6D4"/><stop offset="1" stop-color="#8B5CF6"/>
+    </linearGradient>
+    <filter id="soft" x="-40%" y="-40%" width="180%" height="180%">
+      <feDropShadow dx="0" dy="14" stdDeviation="20" flood-color="#0F172A" flood-opacity="0.16"/>
+    </filter>
+    <filter id="blurbig" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="45"/>
+    </filter>
+  </defs>
+
+  <circle cx="150" cy="140" r="95" fill="#2DD4BF" opacity="0.20" filter="url(#blurbig)"/>
+  <circle cx="470" cy="360" r="115" fill="#8B5CF6" opacity="0.18" filter="url(#blurbig)"/>
+
+  <!-- main dashboard card -->
+  <g filter="url(#soft)">
+    <rect x="120" y="110" width="320" height="235" rx="18" fill="#FFFFFF"/>
+    <path d="M120 128 a18 18 0 0 1 18 -18 h284 a18 18 0 0 1 18 18 v22 h-320 z" fill="#F1F5F9"/>
+    <circle cx="146" cy="130" r="5" fill="#F87171"/><circle cx="164" cy="130" r="5" fill="#FBBF24"/><circle cx="182" cy="130" r="5" fill="#34D399"/>
+    <rect x="150" y="172" width="120" height="10" rx="5" fill="#E2E8F0"/>
+    <rect x="150" y="190" width="72" height="8" rx="4" fill="#EEF2F6"/>
+    <rect x="150" y="252" width="26" height="60" rx="6" fill="url(#gTeal)"/>
+    <rect x="190" y="222" width="26" height="90" rx="6" fill="url(#gTeal)"/>
+    <rect x="230" y="237" width="26" height="75" rx="6" fill="url(#gMix)"/>
+    <rect x="270" y="197" width="26" height="115" rx="6" fill="url(#gPurple)"/>
+    <rect x="310" y="232" width="26" height="80" rx="6" fill="url(#gTeal)"/>
+    <rect x="350" y="207" width="26" height="105" rx="6" fill="url(#gPurple)"/>
+    <polyline points="163,247 203,217 243,232 283,192 323,227 363,202" fill="none" stroke="#0EA5E9" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <!-- floating trend card -->
+  <g filter="url(#soft)">
+    <rect x="405" y="68" width="132" height="80" rx="14" fill="#FFFFFF"/>
+    <circle cx="433" cy="100" r="17" fill="#2DD4BF" opacity="0.15"/>
+    <path d="M424 105 l7 -8 l5 4 l8 -10" fill="none" stroke="url(#gMix)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="458" y="90" width="64" height="9" rx="4.5" fill="#E2E8F0"/>
+    <rect x="458" y="107" width="42" height="8" rx="4" fill="#EEF2F6"/>
+    <rect x="420" y="128" width="104" height="8" rx="4" fill="#F1F5F9"/>
+  </g>
+
+  <!-- floating check card -->
+  <g filter="url(#soft)">
+    <rect x="66" y="302" width="152" height="72" rx="14" fill="#FFFFFF"/>
+    <circle cx="98" cy="338" r="18" fill="url(#gMix)"/>
+    <path d="M90 338 l6 6 l12 -13" fill="none" stroke="#FFFFFF" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="126" y="324" width="78" height="9" rx="4.5" fill="#E2E8F0"/>
+    <rect x="126" y="342" width="54" height="8" rx="4" fill="#EEF2F6"/>
+  </g>
+
+  <!-- code chip -->
+  <g filter="url(#soft)">
+    <rect x="432" y="252" width="92" height="66" rx="14" fill="#0F172A"/>
+    <text x="478" y="294" font-family="monospace" font-size="27" fill="#2DD4BF" text-anchor="middle" font-weight="700">&lt;/&gt;</text>
+  </g>
+
+  <g stroke="#94A3B8" stroke-width="2" stroke-dasharray="2 7" stroke-linecap="round" opacity="0.55">
+    <path d="M442 150 C 474 200, 474 212, 478 252" fill="none"/>
+    <path d="M218 334 C 258 352, 300 342, 338 340" fill="none"/>
+  </g>
+  <circle cx="442" cy="150" r="4" fill="#06B6D4"/><circle cx="218" cy="334" r="4" fill="#8B5CF6"/>
+  <circle cx="560" cy="205" r="5" fill="#2DD4BF" opacity="0.75"/>
+  <circle cx="92" cy="92" r="6" fill="#8B5CF6" opacity="0.5"/>
+  <circle cx="300" cy="422" r="5" fill="#06B6D4" opacity="0.6"/>
+</svg>

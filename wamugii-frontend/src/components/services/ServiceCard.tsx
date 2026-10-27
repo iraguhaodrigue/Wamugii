@@ -11,7 +11,7 @@ export function ServiceCard({ service }: { service: Service }) {
   return (
     <Link
       to={paths.serviceDetail(service.id)}
-      className="group relative flex h-full flex-col rounded-xl border border-slate-200 bg-panel p-6 shadow-[var(--shadow-card)] backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:border-brand-400/40 hover:shadow-[var(--shadow-glow-brand)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+      className="card-accent group relative flex h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-panel p-6 shadow-[var(--shadow-card)] backdrop-blur-sm transition-all duration-200 hover:-translate-y-1 hover:border-brand-400/40 hover:shadow-[var(--shadow-glow-brand)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
     >
       <div className="flex size-11 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
         <Layers className="size-5" aria-hidden="true" />

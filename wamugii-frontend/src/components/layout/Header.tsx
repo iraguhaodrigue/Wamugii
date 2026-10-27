@@ -65,7 +65,7 @@ export function Header() {
               end={link.to === paths.home}
               className={({ isActive }) =>
                 cn(
-                  'text-sm font-medium transition-colors hover:text-brand-400',
+                  'nav-underline text-sm font-medium transition-colors duration-200 hover:text-brand-400',
                   isActive ? 'text-brand-400' : 'text-slate-400',
                 )
               }
