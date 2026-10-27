@@ -23,6 +23,17 @@ NEW_NOTIFICATION_TYPES = (
     "PROJECT_ASSIGNMENT",
 )
 
+# `approvalstatus` is the one enum in this project introduced by ADD COLUMN
+# instead of CREATE TABLE, and that difference matters on PostgreSQL: SQLAlchemy
+# emits CREATE TYPE as part of CREATE TABLE -- which is how every other enum
+# here (invoicestatus, hostingstatus, projectrole, coursestatus, ...) gets its
+# type -- but Alembic's add_column renders a bare
+# `ALTER TABLE users ADD COLUMN approval_status approvalstatus`, so the type has
+# to be created by hand first. Enum.create() routes through the dialect impl:
+# CREATE TYPE on PostgreSQL, a no-op on SQLite, where the column is a plain
+# VARCHAR.
+APPROVAL_STATUS = sa.Enum('PENDING', 'APPROVED', 'REJECTED', name='approvalstatus')
+
 
 def _extend_enum(type_name: str, values: Sequence[str]) -> None:
     """
@@ -57,11 +68,12 @@ def upgrade() -> None:
     # added; the explicit UPDATE afterwards covers the (PostgreSQL) case where
     # the column is added nullable first and makes the intent legible either
     # way.
+    APPROVAL_STATUS.create(op.get_bind(), checkfirst=True)
     op.add_column(
         'users',
         sa.Column(
             'approval_status',
-            sa.Enum('PENDING', 'APPROVED', 'REJECTED', name='approvalstatus'),
+            APPROVAL_STATUS,
             nullable=False,
             server_default='APPROVED',
         ),
@@ -131,12 +143,14 @@ def downgrade() -> None:
     op.drop_index(op.f('ix_users_approval_status'), table_name='users')
     op.drop_column('users', 'approval_status')
 
-    # PostgreSQL only: the enum type the dropped column owned goes with it.
-    # `projectrole` is dropped the same way; on SQLite both are no-ops because
-    # the columns were plain VARCHARs.
+    # `approvalstatus` was created explicitly above, so it is dropped explicitly
+    # here -- no-op on SQLite, DROP TYPE on PostgreSQL.
+    APPROVAL_STATUS.drop(op.get_bind(), checkfirst=True)
+
+    # `projectrole` came in with CREATE TABLE, and op.drop_table() reflects no
+    # columns, so its type outlives the table and needs removing by name.
     bind = op.get_bind()
     if bind.dialect.name == "postgresql":
-        op.execute("DROP TYPE IF EXISTS approvalstatus")
         op.execute("DROP TYPE IF EXISTS projectrole")
 
     # The TEAM_MEMBER role label and the three NotificationType values are
