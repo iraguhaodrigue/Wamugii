@@ -36,7 +36,7 @@ const supporting = [
 export function WhyWamugii() {
   return (
     <section className="relative overflow-hidden py-20 sm:py-24">
-      <div className="dot-texture pointer-events-none absolute inset-0 opacity-60" aria-hidden="true" />
+      <div className="dot-texture pointer-events-none absolute inset-0 opacity-80" aria-hidden="true" />
       <Container className="relative">
         <SectionHeading
           label="Why WAMUGII"

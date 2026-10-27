@@ -26,10 +26,12 @@ export function Hero({ services, isLoading }: HeroProps) {
       {/* Ambient teal/purple glow. Decorative only, so it is a background
           layer rather than an <img> — nothing to describe and no layout cost. */}
       <div
-        className="pointer-events-none absolute inset-0 bg-cover bg-top bg-no-repeat opacity-70"
+        className="pointer-events-none absolute inset-0 bg-cover bg-top bg-no-repeat opacity-55"
         style={{ backgroundImage: "url('/graphics/gradient-blobs.svg')" }}
         aria-hidden="true"
       />
+      {/* Static CSS light source, above the blobs and below the content. */}
+      <div className="hero-glow pointer-events-none absolute inset-0" aria-hidden="true" />
       <AnimatedTechBackground intensity="hero" />
 
       <Container className="relative py-20 sm:py-24 lg:py-28">
@@ -44,12 +46,12 @@ export function Hero({ services, isLoading }: HeroProps) {
             </span>
 
             <h1
-              className="hero-in mt-6 text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl"
+              className="hero-in mt-6 text-[2rem] font-extrabold leading-[1.05] tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl"
               style={{ animationDelay: '90ms' }}
             >
               We Build. We Innovate.
               <br className="hidden sm:block" />{' '}
-              <span className="text-gradient-brand">We Empower.</span>
+              <span className="text-gradient-hero">We Empower.</span>
             </h1>
 
             <p

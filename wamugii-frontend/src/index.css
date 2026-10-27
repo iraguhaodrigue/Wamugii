@@ -384,8 +384,8 @@ body {
   background-image: url('/graphics/dot-grid.svg');
   background-repeat: repeat;
   background-size: 40px 40px;
-  -webkit-mask-image: radial-gradient(70% 60% at 50% 40%, #000, transparent);
-  mask-image: radial-gradient(70% 60% at 50% 40%, #000, transparent);
+  -webkit-mask-image: radial-gradient(85% 75% at 50% 40%, #000, transparent);
+  mask-image: radial-gradient(85% 75% at 50% 40%, #000, transparent);
 }
 
 /*
@@ -439,4 +439,44 @@ body {
   .card-accent::before {
     transition: none;
   }
+}
+
+/*
+ * Hero headline gradient — brighter than `.text-gradient-brand` and carrying a
+ * soft glow, for the one headline on the site big enough to need it. Kept as
+ * its own class because `.text-gradient-brand` is also used at 24-32px in
+ * ClientJourney / FeaturePanel / FinalCTA, where this much glow would smear.
+ *
+ * The light stops are literal hex, not brand/accent tokens: the 50-300 tiers
+ * are remapped to translucent washes inside the `.dark` scope the public site
+ * runs in (see the token block above), which would wash the gradient out. The
+ * 400 tier is stable across themes, so the mid and end stops could use tokens,
+ * but all three are spelled out here so the ramp reads in one line.
+ *
+ * `drop-shadow` rather than `text-shadow`: the glyphs are transparent with the
+ * gradient clipped to them, so a text-shadow would paint a solid silhouette.
+ * drop-shadow works off the rendered alpha and follows the letter shapes.
+ */
+.text-gradient-hero {
+  background-image: linear-gradient(100deg, #5eead4 0%, #22d3ee 42%, #c4b5fd 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 26px rgb(34 211 238 / 28%));
+}
+
+/*
+ * A single faint light source behind the hero: one teal pool under the
+ * headline, one violet under the illustration, and a cool highlight along the
+ * top edge. Static — no animation, no JS.
+ *
+ * The softness is in the gradient stops rather than a `filter: blur()`. A blur
+ * over a full-width layer costs a large offscreen rasterisation on first paint
+ * for a result these stops already give, and this sits on every mobile visit.
+ */
+.hero-glow {
+  background:
+    radial-gradient(42rem 28rem at 18% 30%, rgb(34 211 238 / 17%), transparent 70%),
+    radial-gradient(38rem 26rem at 82% 45%, rgb(167 139 250 / 15%), transparent 70%),
+    radial-gradient(30rem 16rem at 50% 0%, rgb(94 234 212 / 9%), transparent 72%);
 }
