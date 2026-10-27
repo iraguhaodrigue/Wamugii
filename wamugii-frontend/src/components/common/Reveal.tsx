@@ -30,6 +30,14 @@ export function Reveal({ children, delay = 0, className }: RevealProps) {
     // Reduced motion is already resolved to `shown` above — no observer needed.
     if (!el || prefersReducedMotion()) return
 
+    // Without observer support, show the content instead of leaving it at
+    // opacity 0. The reveal is an enhancement; seeing the content is not
+    // optional, so every path that can't animate must still end visible.
+    if (typeof IntersectionObserver === 'undefined') {
+      setShown(true)
+      return
+    }
+
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0]?.isIntersecting) {

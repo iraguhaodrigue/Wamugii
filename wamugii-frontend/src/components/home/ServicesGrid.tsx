@@ -24,11 +24,26 @@ export function ServicesGrid({ services, isLoading, isError, onRetry }: Services
     <section className="relative overflow-hidden py-20 sm:py-24">
       <AnimatedTechBackground intensity="medium" />
       <Container className="relative">
-        <SectionHeading
-          label="What we do"
-          title="A focused set of services"
-          description="Covering the full lifecycle of your technology needs — from the first build to long-term support."
-        />
+        <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
+          <SectionHeading
+            align="left"
+            label="What we do"
+            title="A focused set of services"
+            description="Covering the full lifecycle of your technology needs — from the first build to long-term support."
+          />
+
+          <Reveal delay={90} className="reveal-x-right">
+            <img
+              src="/graphics/services-network.svg"
+              alt="WAMUGII's services shown as a connected hub — web, software, hosting, IT and support"
+              width={560}
+              height={460}
+              loading="lazy"
+              decoding="async"
+              className="mx-auto h-auto w-full max-w-md lg:max-w-lg"
+            />
+          </Reveal>
+        </div>
 
         <div className="mt-14">
           {isLoading && (

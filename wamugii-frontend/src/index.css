@@ -480,3 +480,37 @@ body {
     radial-gradient(38rem 26rem at 82% 45%, rgb(167 139 250 / 15%), transparent 70%),
     radial-gradient(30rem 16rem at 50% 0%, rgb(94 234 212 / 9%), transparent 72%);
 }
+
+/*
+ * Directional variants of the Reveal transition, used by the section
+ * illustrations so they arrive from their own side instead of from below.
+ * Passed through `<Reveal className="...">`, so they share the one observer
+ * and the one timing curve.
+ *
+ * Specificity note: `.reveal-in` sets `transform: none` and is defined further
+ * up, so at equal specificity these later rules would win and the element
+ * would stay offset after revealing. The settled state therefore names all
+ * three classes to outrank them. Same reason the reduced-motion override is
+ * repeated here rather than relying on the earlier `.reveal` one.
+ *
+ * Both sections using these clip their overflow, so the horizontal offset
+ * can't produce a scrollbar at narrow widths.
+ */
+.reveal-x-right {
+  transform: translateX(28px) scale(0.985);
+}
+.reveal-x-left {
+  transform: translateX(-28px) scale(0.985);
+}
+.reveal.reveal-in.reveal-x-right,
+.reveal.reveal-in.reveal-x-left {
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal-x-right,
+  .reveal-x-left {
+    transform: none;
+    transition: none;
+  }
+}
