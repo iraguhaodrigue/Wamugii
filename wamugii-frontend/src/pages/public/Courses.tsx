@@ -6,6 +6,7 @@ import { listPublicCourses, type Course } from '@/api/courses'
 import { paths } from '@/routes/paths'
 import { Badge, Container, EmptyState, ErrorState, Input, Skeleton } from '@/components/ui'
 import { formatMoney } from '@/utils/format'
+import { LottieOnView } from '@/components/common/LottieOnView'
 
 /** Public catalogue: every PUBLISHED, active course. */
 export function Courses() {
@@ -32,12 +33,21 @@ export function Courses() {
 
   return (
     <Container className="py-16 sm:py-20">
-      <div className="mx-auto max-w-2xl text-center">
-        <h1 className="text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">Courses</h1>
-        <p className="mt-4 text-base text-slate-500">
-          Learn with us. Free courses give instant access; paid courses unlock once we've recorded
-          the payment.
-        </p>
+      <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
+        <div className="text-center lg:text-left">
+          <h1 className="text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">Courses</h1>
+          <p className="mt-4 text-base text-slate-500">
+            Learn with us. Free courses give instant access; paid courses unlock once we've recorded
+            the payment.
+          </p>
+        </div>
+
+        <LottieOnView
+          src="/graphics/lottie/man-robot.json"
+          ariaLabel="A person and a robot working side by side at their computers"
+          className="mx-auto w-full max-w-[480px]"
+          style={{ aspectRatio: '1072 / 574' }}
+        />
       </div>
 
       <div className="relative mx-auto mt-10 max-w-md">

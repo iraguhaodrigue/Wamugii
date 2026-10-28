@@ -4,6 +4,7 @@ import type { Service } from '@/api/services'
 import { paths } from '@/routes/paths'
 import { Container } from '@/components/ui'
 import { Reveal } from '@/components/common/Reveal'
+import { LottieOnView } from '@/components/common/LottieOnView'
 import { cn } from '@/utils/cn'
 import { SectionHeading } from './SectionHeading'
 
@@ -12,8 +13,21 @@ import { SectionHeading } from './SectionHeading'
  * that service in the live API response so the CTA deep-links to its actual
  * detail page; if the service isn't published, the link falls back to the
  * services index rather than pointing at a page that doesn't exist.
+ *
+ * `animation` is optional: a row that has one shows it above its "What's
+ * included" card. Kept as data rather than a branch in the markup, so adding
+ * or removing one is a one-line change here.
  */
-const deepDives = [
+const deepDives: {
+  match: string
+  icon: typeof Globe
+  name: string
+  promise: string
+  description: string
+  points: string[]
+  animation?: string
+  animationLabel?: string
+}[] = [
   {
     match: 'web design',
     icon: Globe,
@@ -22,6 +36,8 @@ const deepDives = [
     description:
       'A website that represents your business properly — quick to load, readable on a phone, and simple enough that your team can keep it current.',
     points: ['Responsive business websites', 'Landing & corporate sites', 'E-commerce storefronts', 'Ongoing maintenance'],
+    animation: '/graphics/lottie/designer.json',
+    animationLabel: 'A designer laying out a website at their workstation',
   },
   {
     match: 'software development',
@@ -73,7 +89,7 @@ export function ServiceDeepDive({ services }: ServiceDeepDiveProps) {
         />
 
         <div className="mt-16 space-y-14 sm:space-y-20">
-          {deepDives.map(({ match, icon: Icon, name, promise, description, points }, index) => {
+          {deepDives.map(({ match, icon: Icon, name, promise, description, points, animation, animationLabel }, index) => {
             const isReversed = index % 2 === 1
             return (
               <Reveal key={name}>
@@ -95,6 +111,14 @@ export function ServiceDeepDive({ services }: ServiceDeepDiveProps) {
                   </div>
 
                   <div className={cn(isReversed && 'lg:order-1')}>
+                    {animation && (
+                      <LottieOnView
+                        src={animation}
+                        ariaLabel={animationLabel}
+                        className="mx-auto mb-6 w-full max-w-[420px]"
+                        style={{ aspectRatio: '1 / 1' }}
+                      />
+                    )}
                     <div className="rounded-2xl border border-slate-200 bg-panel p-6 shadow-[var(--shadow-card)] backdrop-blur-sm sm:p-7">
                       <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">What's included</p>
                       <ul className="mt-4 space-y-3">

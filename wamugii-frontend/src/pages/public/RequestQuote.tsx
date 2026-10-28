@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { Link, useSearchParams } from 'react-router-dom'
-import { CheckCircle2, Send, Server } from 'lucide-react'
+import { Send, Server } from 'lucide-react'
 import {
   createQuoteRequest,
   type QuoteAnswerSubmit,
@@ -13,6 +13,7 @@ import {
 } from '@/api/quoteRequests'
 import { listServiceQuestions, listServices } from '@/api/services'
 import { paths } from '@/routes/paths'
+import { LottieOnView } from '@/components/common/LottieOnView'
 import { Button, Container, Input, Select, Skeleton, Textarea } from '@/components/ui'
 import { QuestionField, type AnswerMap } from '@/components/services/QuestionField'
 import type { ApiError } from '@/lib/apiClient'
@@ -155,9 +156,12 @@ export function RequestQuote() {
     return (
       <Container className="py-20">
         <div className="mx-auto max-w-lg rounded-xl border border-slate-200 bg-panel p-8 text-center shadow-[var(--shadow-card)] backdrop-blur-sm sm:p-10">
-          <div className="mx-auto flex size-14 items-center justify-center rounded-full bg-green-50 text-green-600">
-            <CheckCircle2 className="size-7" aria-hidden="true" />
-          </div>
+          <LottieOnView
+            src="/graphics/lottie/request-received.json"
+            loop={false}
+            style={{ width: 120, height: 120, margin: '0 auto' }}
+            ariaLabel="Request received"
+          />
           <h1 className="mt-6 text-2xl font-bold text-slate-900">Request received</h1>
           <p className="mt-3 text-sm text-slate-500">
             Thanks, {mutation.data.full_name.split(' ')[0]} — we've received your request for &ldquo;
