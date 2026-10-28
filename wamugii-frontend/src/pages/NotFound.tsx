@@ -1,9 +1,16 @@
 import { Link } from 'react-router-dom'
 import { paths } from '@/routes/paths'
+import { LottieOnView } from '@/components/common/LottieOnView'
 
 export function NotFound() {
   return (
     <div className="dark app-atmosphere flex min-h-svh flex-col items-center justify-center gap-4 px-4 text-center">
+      <LottieOnView
+        src="/graphics/lottie/saying-hi.json"
+        ariaLabel="A friendly character waving hello"
+        className="w-full max-w-[260px]"
+        style={{ aspectRatio: '730 / 760' }}
+      />
       <p className="text-sm font-semibold text-brand-400">404</p>
       <h1 className="text-2xl font-semibold text-slate-900">Page not found</h1>
       <p className="max-w-sm text-sm text-slate-500">

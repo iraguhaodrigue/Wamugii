@@ -27,6 +27,8 @@ const deepDives: {
   points: string[]
   animation?: string
   animationLabel?: string
+  /** Aspect of the animation's own artboard, so the reserved box matches it. */
+  animationAspect?: string
 }[] = [
   {
     match: 'web design',
@@ -38,6 +40,7 @@ const deepDives: {
     points: ['Responsive business websites', 'Landing & corporate sites', 'E-commerce storefronts', 'Ongoing maintenance'],
     animation: '/graphics/lottie/designer.json',
     animationLabel: 'A designer laying out a website at their workstation',
+    animationAspect: '1200 / 1200',
   },
   {
     match: 'software development',
@@ -56,6 +59,9 @@ const deepDives: {
     description:
       'An honest review of what you have, what is holding you back, and what is genuinely worth investing in next — advice first, not a sales pitch.',
     points: ['Systems review', 'Technology recommendations', 'Planning & budget guidance', 'Migration planning'],
+    animation: '/graphics/lottie/seo-marketing.json',
+    animationLabel: 'An analyst reviewing charts and systems across several screens',
+    animationAspect: '820 / 760',
   },
   {
     match: 'hosting',
@@ -89,7 +95,7 @@ export function ServiceDeepDive({ services }: ServiceDeepDiveProps) {
         />
 
         <div className="mt-16 space-y-14 sm:space-y-20">
-          {deepDives.map(({ match, icon: Icon, name, promise, description, points, animation, animationLabel }, index) => {
+          {deepDives.map(({ match, icon: Icon, name, promise, description, points, animation, animationLabel, animationAspect }, index) => {
             const isReversed = index % 2 === 1
             return (
               <Reveal key={name}>
@@ -116,7 +122,7 @@ export function ServiceDeepDive({ services }: ServiceDeepDiveProps) {
                         src={animation}
                         ariaLabel={animationLabel}
                         className="mx-auto mb-6 w-full max-w-[420px]"
-                        style={{ aspectRatio: '1 / 1' }}
+                        style={{ aspectRatio: animationAspect ?? '1 / 1' }}
                       />
                     )}
                     <div className="rounded-2xl border border-slate-200 bg-panel p-6 shadow-[var(--shadow-card)] backdrop-blur-sm sm:p-7">
