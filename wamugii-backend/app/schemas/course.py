@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -194,3 +194,22 @@ class LessonCompleteResponse(BaseModel):
     completed_lessons: int
     total_lessons: int
     progress_percent: int
+
+
+class CertificateRead(BaseModel):
+    """
+    A certificate of completion. Computed from the enrollment's progress on
+    every request rather than stored: there is no certificate record to go
+    stale, and revoking one is just a matter of the progress no longer being
+    complete (a lesson added to the course re-opens it).
+
+    `certificate_id` is derived from the enrollment id, so the same student on
+    the same course always gets the same number back.
+    """
+
+    student_name: str
+    course_title: str
+    course_slug: str
+    lesson_count: int
+    certificate_id: str
+    issued_on: date

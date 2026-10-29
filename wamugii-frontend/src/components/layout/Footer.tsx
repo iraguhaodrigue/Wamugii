@@ -48,9 +48,11 @@ export function Footer() {
           <div className="grid gap-10 md:grid-cols-[minmax(0,1.3fr)_repeat(3,minmax(0,1fr))]">
             <div className="max-w-sm">
               <p className="flex items-center gap-2 text-lg font-bold text-slate-900">
-                <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[var(--color-brand-solid)] to-[var(--color-accent-solid)] text-sm font-bold text-white">
-                  W
-                </span>
+                <img
+                  src="/logo-emblem-128.png"
+                  alt=""
+                  className="size-8 shrink-0 rounded-lg object-cover"
+                />
                 WAMUGII <span className="text-brand-600">TECH</span>
               </p>
               <p className="mt-3 text-sm text-slate-500">We Build. We Innovate. We Empower.</p>

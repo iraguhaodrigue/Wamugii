@@ -51,9 +51,11 @@ export function Header() {
         )}
       >
         <Link to={paths.home} className="flex items-center gap-2 text-base font-bold text-slate-900">
-          <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[var(--color-brand-solid)] to-[var(--color-accent-solid)] text-sm font-bold text-white shadow-[var(--shadow-glow-brand)]">
-            W
-          </span>
+          <img
+            src="/logo-emblem-128.png"
+            alt=""
+            className="size-8 shrink-0 rounded-lg object-cover shadow-[var(--shadow-glow-brand)]"
+          />
           WAMUGII <span className="text-brand-600">TECH</span>
         </Link>
 

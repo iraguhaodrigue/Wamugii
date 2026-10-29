@@ -79,6 +79,12 @@ teaches.
 
 **Takeaway:** AI learns patterns from examples, it predicts rather than knows,
 and your job is to use it well and check its work.
+
+## Try it yourself
+
+Open any AI assistant and ask it to explain one topic from your field in simple
+words. Then find one thing in its answer you should double-check — and check it.
+In two minutes you'll have felt both the power and the limit of the tool.
 """,
     },
     {
@@ -119,6 +125,12 @@ rely on it for that task yet — learn the basics first, then let AI speed you u
 
 **Takeaway:** treat AI as an assistant that augments your work, never a
 replacement for your judgement.
+
+## Try it yourself
+
+Pick one task you do often. In two columns, list the parts AI could help with and
+the parts where *you* must stay in charge. Keep this list — it's your own rule
+for using AI safely on that task.
 """,
     },
     {
@@ -157,6 +169,12 @@ tool is clearly saving you time you'd otherwise sell — then it pays for itself
 
 **Takeaway:** master one general assistant first; add other tools only when a
 specific job calls for them.
+
+## Try it yourself
+
+Create a free account on one general assistant (ChatGPT, Claude, or Gemini). Ask
+it three real questions from your studies or work, and save the most useful
+answer somewhere you'll find it again.
 """,
     },
     {
@@ -197,6 +215,12 @@ Then check the ones that matter. Never paste an AI answer into something
 important without reading every line yourself.
 
 **Takeaway:** give role, task, details, and format — then iterate and verify.
+
+## Try it yourself
+
+Take a weak prompt like "write an email" and rewrite it using the four parts —
+role, task, details, format. Run both versions and compare the answers. Notice
+how much the detail changed the result.
 """,
     },
     {
@@ -233,6 +257,12 @@ day.
 
 **Takeaway:** apply AI to the repetitive parts of your own real work, and keep
 the prompts that work.
+
+## Try it yourself
+
+Choose one repetitive task from your own work or studies. Write a clear prompt for
+it, get a first draft, and edit it to your standard. Save the prompt so you can
+reuse it tomorrow — that saved prompt is the real prize.
 """,
     },
     {
@@ -276,6 +306,12 @@ in charge of those.
 
 **Takeaway:** verify facts, protect private data, stay honest, and keep your own
 skills sharp.
+
+## Try it yourself
+
+Look back at one AI answer you got this week. List every fact in it that matters,
+then check at least one against a real source. The goal is to make verifying a
+habit, not an afterthought.
 """,
     },
     {
@@ -318,6 +354,12 @@ that's exactly what WAMUGII TECH SOLUTIONS does — reach out any time.
 
 **Takeaway:** show real results, position yourself as a careful power-user, and
 keep learning a little every week.
+
+## Try it yourself
+
+Write one honest "result" line for your CV, such as "Used AI to cut report
+writing from 3 hours to 40 minutes." If it isn't true yet, do the task this week
+and make it true — then you have both the skill and the proof.
 """,
     },
 ]

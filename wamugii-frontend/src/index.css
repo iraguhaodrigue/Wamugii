@@ -514,3 +514,36 @@ body {
     transition: none;
   }
 }
+
+/*
+ * Certificate printing. Scoped to `body.certificate-print-mode`, which the
+ * Certificate component adds while it is mounted, because the invoice page
+ * also calls `window.print()` -- an unscoped "hide everything but the
+ * certificate" rule would print that page blank.
+ *
+ * `visibility` rather than `display: none`: the sheet is nested several levels
+ * inside the dashboard shell, and hiding an ancestor outright would take the
+ * sheet with it. Hidden ancestors still occupy space, so the sheet is lifted
+ * out of the flow to the top of the page.
+ */
+@media print {
+  body.certificate-print-mode * {
+    visibility: hidden;
+  }
+  body.certificate-print-mode .certificate-sheet,
+  body.certificate-print-mode .certificate-sheet * {
+    visibility: visible;
+  }
+  body.certificate-print-mode .certificate-sheet {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    max-width: none;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  body.certificate-print-mode .print-hide {
+    display: none;
+  }
+}

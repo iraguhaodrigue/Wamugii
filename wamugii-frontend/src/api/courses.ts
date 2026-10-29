@@ -17,6 +17,7 @@ export type Enrollment = components['schemas']['EnrollmentRead']
 export type EnrollmentStatus = components['schemas']['EnrollmentStatus']
 export type EnrollResponse = components['schemas']['EnrollResponse']
 export type LessonCompleteResponse = components['schemas']['LessonCompleteResponse']
+export type Certificate = components['schemas']['CertificateRead']
 
 export const COURSE_STATUSES: CourseStatus[] = ['DRAFT', 'PUBLISHED']
 
@@ -159,6 +160,20 @@ export async function getMyLesson(
 ): Promise<Lesson> {
   const { data } = await apiClient.get<Lesson>(
     `/client/courses/${courseId}/lessons/${lessonId}`,
+  )
+  return data
+}
+
+/**
+ * The certificate for a completed course.
+ *
+ * 403 until every lesson is complete, and the same 404/403 enrollment gate as
+ * the lesson endpoints otherwise -- nothing is stored server-side, so this is
+ * recomputed each time it is asked for.
+ */
+export async function getCertificate(courseId: number | string): Promise<Certificate> {
+  const { data } = await apiClient.get<Certificate>(
+    `/client/courses/${courseId}/certificate`,
   )
   return data
 }

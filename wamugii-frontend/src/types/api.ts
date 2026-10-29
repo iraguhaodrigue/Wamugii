@@ -1113,6 +1113,32 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/client/courses/{course_id}/certificate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Certificate of completion (CLIENT, active enrollment, 100% only)
+         * @description Same gate as the lesson content -- not enrolled is a 404, unpaid is a 403 --
+         *     with one more condition on top: every active lesson has to be complete.
+         *
+         *     Nothing is stored. The certificate is derived from the enrollment each time
+         *     it is asked for, so a lesson added to the course afterwards re-opens the
+         *     requirement instead of leaving an issued certificate that no longer means
+         *     what it says.
+         */
+        get: operations["get_course_certificate_api_v1_client_courses__course_id__certificate_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/courses": {
         parameters: {
             query?: never;
@@ -1880,6 +1906,33 @@ export interface components {
         Body_upload_lesson_material_api_v1_courses__course_id__lessons__lesson_id__materials_post: {
             /** File */
             file: string;
+        };
+        /**
+         * CertificateRead
+         * @description A certificate of completion. Computed from the enrollment's progress on
+         *     every request rather than stored: there is no certificate record to go
+         *     stale, and revoking one is just a matter of the progress no longer being
+         *     complete (a lesson added to the course re-opens it).
+         *
+         *     `certificate_id` is derived from the enrollment id, so the same student on
+         *     the same course always gets the same number back.
+         */
+        CertificateRead: {
+            /** Student Name */
+            student_name: string;
+            /** Course Title */
+            course_title: string;
+            /** Course Slug */
+            course_slug: string;
+            /** Lesson Count */
+            lesson_count: number;
+            /** Certificate Id */
+            certificate_id: string;
+            /**
+             * Issued On
+             * Format: date
+             */
+            issued_on: string;
         };
         /**
          * ClientActivityItem
@@ -7123,6 +7176,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LessonCompleteResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_course_certificate_api_v1_client_courses__course_id__certificate_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CertificateRead"];
                 };
             };
             /** @description Validation Error */

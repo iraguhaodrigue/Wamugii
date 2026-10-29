@@ -7,6 +7,8 @@ list, the one-lesson detail, and the material download -- plus the admin
 paid-unlock flow where recording a payment flips the enrollment to ACTIVE.
 """
 
+from datetime import date
+
 import pytest
 
 from app.core.security import create_access_token
@@ -540,3 +542,65 @@ def test_a_soft_deleted_lesson_is_removed_from_the_player(
         headers=_auth(c),
     ).status_code == 404
     _ = l1
+
+
+def test_certificate_locked_until_every_lesson_is_complete(
+    client, admin_headers, sent_emails
+):
+    """
+    The certificate is the lesson gate plus one more condition. Before the last
+    lesson it is a 403 with the unlock message; after it, a 200 carrying the
+    student's real name and a stable id.
+    """
+    course = _create_course(client, admin_headers, title="Certifiable Course")
+    l1 = _add_lesson(client, admin_headers, course["id"], title="One", display_order=1)
+    l2 = _add_lesson(client, admin_headers, course["id"], title="Two", display_order=2)
+    c = _make_client("certificate@example.com", name="Ada Mugisha")
+    client.post(f"/api/v1/client/courses/{course['id']}/enroll", headers=_auth(c))
+
+    url = f"/api/v1/client/courses/{course['id']}/certificate"
+
+    # Nothing completed yet.
+    blocked = client.get(url, headers=_auth(c))
+    assert blocked.status_code == 403
+    assert "complete every lesson" in blocked.json()["detail"].lower()
+
+    # Half way is still locked.
+    client.post(
+        f"/api/v1/client/courses/{course['id']}/lessons/{l1['id']}/complete",
+        headers=_auth(c),
+    )
+    assert client.get(url, headers=_auth(c)).status_code == 403
+
+    # The last lesson unlocks it.
+    client.post(
+        f"/api/v1/client/courses/{course['id']}/lessons/{l2['id']}/complete",
+        headers=_auth(c),
+    )
+    issued = client.get(url, headers=_auth(c))
+    assert issued.status_code == 200
+    body = issued.json()
+    assert body["student_name"] == "Ada Mugisha"
+    assert body["course_title"] == "Certifiable Course"
+    assert body["course_slug"] == course["slug"]
+    assert body["lesson_count"] == 2
+    assert body["certificate_id"].startswith("WAMUGII-CERT-")
+    assert body["issued_on"] == date.today().isoformat()
+
+    # Stable: asking twice gives the same certificate number.
+    assert client.get(url, headers=_auth(c)).json()["certificate_id"] == body["certificate_id"]
+
+
+def test_certificate_follows_the_same_gate_as_lesson_content(
+    client, admin_headers, sent_emails
+):
+    """Not enrolled is a 404, exactly like the lessons endpoint."""
+    course = _create_course(client, admin_headers)
+    _add_lesson(client, admin_headers, course["id"])
+    outsider = _make_client("certoutsider@example.com")
+
+    r = client.get(
+        f"/api/v1/client/courses/{course['id']}/certificate",
+        headers=_auth(outsider),
+    )
+    assert r.status_code == 404

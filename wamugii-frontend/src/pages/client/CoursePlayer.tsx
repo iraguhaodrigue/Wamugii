@@ -7,16 +7,19 @@ import {
   Circle,
   Download,
   FileText,
+  Award,
   Lock,
   SearchX,
 } from 'lucide-react'
 import {
   downloadLessonMaterial,
+  getCertificate,
   getPublicCourse,
   type CoursePublicDetail,
   listMyEnrollments,
   listMyLessons,
   markLessonComplete,
+  type Certificate as CertificateData,
   type ClientEnrollment,
   type Lesson,
 } from '@/api/courses'
@@ -31,6 +34,7 @@ import {
   Skeleton,
 } from '@/components/ui'
 import { VideoEmbed, VideoPlaceholder } from '@/components/courses/VideoEmbed'
+import { Certificate } from '@/components/courses/Certificate'
 import { formatFileSize } from '@/utils/format'
 import { cn } from '@/utils/cn'
 
@@ -98,6 +102,15 @@ export function ClientCoursePlayer() {
     () => lessonsQuery.data?.find((l) => l.id === activeLessonId),
     [lessonsQuery.data, activeLessonId],
   )
+
+  // Only fetched once the student asks for it: the endpoint 403s until every
+  // lesson is complete, so there is nothing to prefetch.
+  const [showCertificate, setShowCertificate] = useState(false)
+  const certificateQuery = useQuery<CertificateData, ApiError>({
+    queryKey: ['client', 'certificate', course?.id],
+    queryFn: () => getCertificate(course!.id),
+    enabled: showCertificate && Boolean(course),
+  })
 
   const completeMutation = useMutation<unknown, ApiError, number>({
     mutationFn: (lessonId) => markLessonComplete(course!.id, lessonId),
@@ -212,6 +225,32 @@ export function ClientCoursePlayer() {
 
   const lessons = lessonsQuery.data ?? []
 
+  if (showCertificate) {
+    if (certificateQuery.isLoading) {
+      return <Skeleton className="mx-auto aspect-[297/210] w-full max-w-[1000px] rounded-lg" />
+    }
+    // Never a blank sheet: a failure explains itself and offers a way back.
+    if (certificateQuery.isError || !certificateQuery.data) {
+      return (
+        <ErrorState
+          title="Couldn't load your certificate"
+          message={
+            certificateQuery.error?.status === 403
+              ? 'Every lesson needs to be marked complete before the certificate is issued.'
+              : "We had trouble reaching the server. Please try again."
+          }
+          onRetry={() => certificateQuery.refetch()}
+        />
+      )
+    }
+    return (
+      <Certificate
+        certificate={certificateQuery.data}
+        onClose={() => setShowCertificate(false)}
+      />
+    )
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -233,6 +272,23 @@ export function ClientCoursePlayer() {
           </div>
           <ProgressBar value={enrollment.progress_percent} />
         </div>
+
+        {enrollment.progress_percent === 100 && (
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-brand-400/30 bg-brand-50 p-4">
+            <div className="flex items-start gap-3">
+              <Award className="mt-0.5 size-5 shrink-0 text-brand-600" aria-hidden="true" />
+              <div>
+                <p className="text-sm font-semibold text-slate-900">Course complete</p>
+                <p className="mt-0.5 text-sm text-slate-500">
+                  You've finished every lesson — your certificate is ready.
+                </p>
+              </div>
+            </div>
+            <Button size="sm" onClick={() => setShowCertificate(true)}>
+              Get your certificate
+            </Button>
+          </div>
+        )}
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">

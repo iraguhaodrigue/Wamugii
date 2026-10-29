@@ -1,4 +1,5 @@
 import logging
+from datetime import date
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -39,6 +40,7 @@ from app.schemas.client import (
     ClientUserRead,
 )
 from app.schemas.course import (
+    CertificateRead,
     ClientEnrollmentRead,
     EnrollResponse,
     LessonCompleteResponse,
@@ -696,4 +698,44 @@ def complete_lesson(
         completed_lessons=completed,
         total_lessons=total,
         progress_percent=course_crud.progress_percent(completed, total),
+    )
+
+
+@router.get(
+    "/courses/{course_id}/certificate",
+    response_model=CertificateRead,
+    summary="Certificate of completion (CLIENT, active enrollment, 100% only)",
+)
+def get_course_certificate(
+    course_id: int, db: DbDep, current_user: ClientOnly
+):
+    """
+    Same gate as the lesson content -- not enrolled is a 404, unpaid is a 403 --
+    with one more condition on top: every active lesson has to be complete.
+
+    Nothing is stored. The certificate is derived from the enrollment each time
+    it is asked for, so a lesson added to the course afterwards re-opens the
+    requirement instead of leaving an issued certificate that no longer means
+    what it says.
+    """
+    course = _course_or_404(db, course_id)
+    enrollment = _active_enrollment_or_block(db, course_id, current_user.id)
+
+    total = course_crud.count_active_lessons(db, course_id)
+    completed = course_crud.count_completed_lessons(db, enrollment.id)
+    # `progress_percent` is 0 when there is nothing to complete, so a course
+    # with no lessons yet can never issue a certificate.
+    if course_crud.progress_percent(completed, total) < 100:
+        raise HTTPException(
+            status_code=403,
+            detail="Complete every lesson to unlock your certificate.",
+        )
+
+    return CertificateRead(
+        student_name=current_user.full_name,
+        course_title=course.title,
+        course_slug=course.slug,
+        lesson_count=total,
+        certificate_id=f"WAMUGII-CERT-{enrollment.id:05d}",
+        issued_on=date.today(),
     )
