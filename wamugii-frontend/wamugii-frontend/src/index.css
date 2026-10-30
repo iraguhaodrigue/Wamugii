@@ -1,0 +1,747 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-sans:
+    'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  /* Brand — teal/cyan, the primary action color. Every "brand" reference in
+     the app reads from this scale, so a rebrand is a one-file change.
+     50-300 are light tints (chip backgrounds); 400-500 are the vivid
+     decorative tone (icons, rings, gradients); 600-800 are tuned for AA
+     contrast under white text (buttons, links, active states); 900-950 are
+     near-black, used for deep gradient backdrops. */
+  --color-brand-50: #ecfeff;
+  --color-brand-100: #cffafe;
+  --color-brand-200: #a5f3fc;
+  --color-brand-300: #67e8f9;
+  --color-brand-400: #22d3ee;
+  --color-brand-500: #06b6d4;
+  --color-brand-600: #0e7490;
+  --color-brand-700: #155e75;
+  --color-brand-800: #164e63;
+  --color-brand-900: #0b3b49;
+  --color-brand-950: #052730;
+
+  /* Accent — purple, the gradient partner to brand teal. Used at the far end
+     of gradients, decorative glow, and secondary highlights — never as the
+     primary action color. Same tiering convention as brand above. */
+  --color-accent-50: #f3e8ff;
+  --color-accent-100: #ede9fe;
+  --color-accent-200: #ddd6fe;
+  --color-accent-300: #c4b5fd;
+  --color-accent-400: #a78bfa;
+  --color-accent-500: #8b5cf6;
+  --color-accent-600: #7c3aed;
+  --color-accent-700: #6d28d9;
+  --color-accent-800: #5b21b6;
+  --color-accent-900: #4c1d95;
+  --color-accent-950: #2e1065;
+
+  /* Solid-fill anchors — deliberately NOT remapped in dark mode. Anything
+     that paints white text/icons directly on a brand-colored fill (buttons,
+     avatars, progress bars) reads from these instead of brand-600/accent-600,
+     because those two get brightened under `.dark` for on-dark-surface text
+     legibility, which would ruin white-on-fill contrast if buttons shared
+     the same token. Keeping one pair of constants avoids that collision. */
+  --color-brand-solid: #0e7490;
+  --color-accent-solid: #6d28d9;
+
+  /* Background — page backdrop, sits behind sidebar/panel for layered depth. */
+  --color-bg: #f5f7fb;
+
+  /* Panel — card/table/modal background. Its own token instead of literal
+     `white`, because `white` is also used app-wide for text/overlays that
+     must stay pure white on a saturated background (primary button labels,
+     CTA text) regardless of theme — those must NOT flip dark. */
+  --color-panel: #ffffff;
+
+  /* Sidebar — its own token because in dark mode it sits at a third distinct
+     depth between the page background and cards (bg < sidebar < panel). */
+  --color-sidebar: #ffffff;
+}
+
+:root {
+  color-scheme: light;
+
+  /* Atmosphere — the soft gradient wash behind dashboard/public shells.
+     Static by design (no continuous animation) so it stays lightweight; see
+     `.app-atmosphere` below. Barely-there in light mode, a real glow in dark
+     mode (see the `.dark` block). */
+  --gradient-atmosphere: radial-gradient(
+      1100px circle at 10% 10%,
+      rgb(6 182 212 / 5%),
+      transparent 55%
+    ),
+    radial-gradient(1100px circle at 90% 90%, rgb(124 58 237 / 4%), transparent 55%);
+
+  /* Glow — selective, theme-aware box-shadow tokens. Subtle in light mode,
+     a real halo in dark mode. Applied via `shadow-[var(--shadow-glow-brand)]`
+     sparingly (primary buttons, active nav, a hero/featured card) — never on
+     every surface. */
+  --shadow-glow-brand: 0 1px 2px rgb(15 23 42 / 6%);
+  --shadow-glow-accent: 0 1px 2px rgb(15 23 42 / 6%);
+  --shadow-card: 0 1px 2px rgb(15 23 42 / 4%), 0 1px 1px rgb(15 23 42 / 3%);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background-color: var(--color-bg);
+  color: #0f172a;
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+}
+
+::selection {
+  background-color: var(--color-brand-200);
+  color: var(--color-brand-950);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-brand-500);
+  outline-offset: 2px;
+}
+
+/* Tailwind's ring-offset utilities default to white, which would punch a
+   bright white gap around every focused control on the new near-black dark
+   surfaces. Point the default at the page background instead; components
+   that explicitly set their own `ring-offset-*` (e.g. the Home hero CTAs on
+   a colored section) still win, since that's set directly on the element. */
+:root {
+  --tw-ring-offset-color: var(--color-bg);
+}
+.dark {
+  --tw-ring-offset-color: var(--color-bg);
+}
+
+/* Applied to the root wrapper of every shell (AdminLayout, DashboardLayout,
+   PublicLayout, AuthLayout) in place of a flat `bg-slate-50`/`bg-white`. One
+   centralized class instead of repeating the gradient wash in four places. */
+.app-atmosphere {
+  background-color: var(--color-bg);
+  background-image: var(--gradient-atmosphere);
+  background-attachment: fixed;
+}
+
+/*
+ * Logged-in dark theme — scoped to a class toggled on <body> by whichever
+ * shell is mounted (AdminLayout for staff/admin, DashboardLayout for
+ * clients), driven by ThemeContext. Not a wrapper div: Modal/ConfirmDialog
+ * portal straight onto document.body, so the scope has to live above the
+ * portal target for dialogs to pick it up too. PublicLayout and AuthLayout
+ * apply this same class unconditionally on their own root element (the
+ * public site and auth pages are permanently dark, matching the reference's
+ * always-dark marketing site — see PublicLayout/AuthLayout for that).
+ *
+ * This is a pure token remap: every component still writes the exact same
+ * `bg-panel` / `text-slate-500` / `border-slate-200` utility classes it
+ * always did. Only the CSS variables those utilities resolve to change
+ * inside this scope, so no component is hand-colored for dark mode, and no
+ * `dark:` utility variants are used anywhere in the app.
+ *
+ * `white`/`black` are intentionally never remapped — see the --color-panel
+ * comment above, and it's why overlay scrims use `bg-black/50` instead of a
+ * slate token (slate-900 flips to a *light* color in here).
+ *
+ * brand-50..300 / accent-50..300 flip from near-white tints to translucent
+ * on-brand washes (badges' green/amber/red/blue stay literal light tints in
+ * both themes on purpose — see Badge.tsx — this only applies to the
+ * teal/purple scales). brand-600..800 / accent-600..800 are brightened for
+ * legibility as text/icons/borders directly on the new near-black surfaces.
+ * Solid-fill components (Button primary, Avatar, ProgressBar) deliberately
+ * read from --color-brand-solid/--color-accent-solid instead, which are
+ * NOT remapped here, so white-on-fill contrast never regresses.
+ */
+.dark {
+  color-scheme: dark;
+
+  --color-bg: #05070d;
+  /* Translucent, not opaque — every `bg-panel` surface (cards, tables,
+     modals, inputs) picks this up automatically, so the atmosphere gradient
+     behind the shell shows through faintly without touching each page. */
+  --color-panel: rgb(13 20 36 / 82%);
+  --color-sidebar: rgb(9 14 26 / 90%);
+
+  --color-brand-50: rgb(34 211 238 / 10%);
+  --color-brand-100: rgb(34 211 238 / 16%);
+  --color-brand-200: rgb(34 211 238 / 24%);
+  --color-brand-300: rgb(34 211 238 / 34%);
+  --color-brand-600: #22d3ee;
+  --color-brand-700: #06b6d4;
+  --color-brand-800: #0e7490;
+
+  --color-accent-50: rgb(167 139 250 / 10%);
+  --color-accent-100: rgb(167 139 250 / 16%);
+  --color-accent-200: rgb(167 139 250 / 24%);
+  --color-accent-300: rgb(167 139 250 / 34%);
+  --color-accent-600: #a78bfa;
+  --color-accent-700: #8b5cf6;
+  --color-accent-800: #7c3aed;
+
+  --color-slate-50: rgb(255 255 255 / 4%);
+  --color-slate-100: rgb(255 255 255 / 6%);
+  --color-slate-200: rgb(255 255 255 / 10%);
+  --color-slate-300: rgb(255 255 255 / 16%);
+  --color-slate-400: #8a96ad;
+  --color-slate-500: #98a4ba;
+  --color-slate-600: #b8c2d6;
+  --color-slate-700: #d8dfec;
+  --color-slate-800: #e8ecf5;
+  --color-slate-900: #f8fafc;
+  --color-slate-950: #f8fafc;
+
+  --gradient-atmosphere: radial-gradient(
+      900px circle at 8% 8%,
+      rgb(6 182 212 / 22%),
+      transparent 48%
+    ),
+    radial-gradient(1000px circle at 92% 92%, rgb(124 58 237 / 20%), transparent 50%),
+    radial-gradient(700px circle at 78% 12%, rgb(34 211 238 / 10%), transparent 45%);
+
+  --shadow-glow-brand: 0 0 0 1px rgb(34 211 238 / 8%), 0 16px 40px -14px rgb(6 182 212 / 45%);
+  --shadow-glow-accent: 0 0 0 1px rgb(167 139 250 / 8%), 0 16px 40px -14px rgb(124 58 237 / 45%);
+  --shadow-card: 0 1px 0 rgb(255 255 255 / 4%) inset, 0 12px 28px -16px rgb(0 0 0 / 60%);
+}
+
+/*
+ * AnimatedTechBackground support styles (src/components/common/AnimatedTechBackground.tsx).
+ * The grid + light streaks are plain CSS layers so they composite on the GPU
+ * (`transform`/`opacity`/`background-position` only — never box-shadow/filter);
+ * the particle network itself is drawn on a <canvas> by the component. Motion
+ * is opt-in via the `no-preference` media query below, so `prefers-reduced-
+ * motion: reduce` users get the same layers fully static with zero JS changes
+ * needed — the component's own rAF loop separately checks the same setting.
+ */
+/*
+ * Scroll-reveal — driven by the Reveal component (IntersectionObserver adds
+ * `.reveal-in` once, then disconnects). Only opacity/transform animate, so
+ * every reveal composites on the GPU. Stagger comes from an inline
+ * transition-delay, not from extra classes.
+ */
+.reveal {
+  opacity: 0;
+  transform: translateY(18px) scale(0.985);
+  transition:
+    opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal-in {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* Teal→purple text gradient for the one or two words per page that carry the
+   headline's emphasis. Needs a background-clip fallback colour for browsers
+   that drop the clip, hence the explicit transparent text. */
+.text-gradient-brand {
+  background-image: linear-gradient(100deg, var(--color-brand-400), var(--color-accent-400));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Decorative light pools for sections that don't carry a full canvas layer —
+   cheaper than another AnimatedTechBackground instance, and lets section
+   rhythm alternate between "lit" and "calm". */
+.glow-pool-teal {
+  background: radial-gradient(620px circle at 15% 0%, rgb(6 182 212 / 12%), transparent 62%);
+}
+.glow-pool-purple {
+  background: radial-gradient(620px circle at 85% 100%, rgb(124 58 237 / 12%), transparent 62%);
+}
+
+.tech-grid {
+  background-image:
+    linear-gradient(rgb(103 232 249 / 60%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(103 232 249 / 60%) 1px, transparent 1px);
+  background-size: 44px 44px;
+}
+
+.tech-streak {
+  position: absolute;
+  top: -15%;
+  bottom: -15%;
+  width: 160px;
+  opacity: 0;
+  background: linear-gradient(180deg, transparent, rgb(34 211 238 / 16%), transparent);
+  will-change: transform, opacity;
+}
+.tech-streak-accent {
+  background: linear-gradient(180deg, transparent, rgb(167 139 250 / 14%), transparent);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .tech-grid {
+    animation: tech-grid-pan 70s linear infinite;
+  }
+  .tech-streak-a {
+    animation: tech-streak-sweep 10s ease-in-out infinite;
+    animation-delay: 0.5s;
+  }
+  .tech-streak-b {
+    animation: tech-streak-sweep 13s ease-in-out infinite;
+    animation-delay: 4s;
+  }
+}
+
+@keyframes tech-grid-pan {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 220px 220px;
+  }
+}
+
+@keyframes tech-streak-sweep {
+  0% {
+    transform: translateX(-15%) rotate(10deg);
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  55% {
+    opacity: 0.7;
+  }
+  100% {
+    transform: translateX(130%) rotate(10deg);
+    opacity: 0;
+  }
+}
+
+/*
+ * Hero entrance — the hero is above the fold, so there is nothing to wait
+ * for: these are plain keyframes with an animation-delay rather than the
+ * Reveal observer, which would cost a frame of hidden content while JS
+ * attaches. `backwards` holds the from-state during the delay so nothing
+ * flashes in before its turn.
+ */
+.hero-in {
+  animation: hero-rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+@keyframes hero-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/*
+ * Slow drift for the hero illustration. Lives on the <img> while `.hero-in`
+ * sits on its wrapper, because both animate `transform` and would otherwise
+ * overwrite each other. Starts after the entrance has finished.
+ */
+.hero-float {
+  animation: hero-float 7s ease-in-out 1.2s infinite;
+}
+
+@keyframes hero-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-in,
+  .hero-float {
+    animation: none;
+  }
+}
+
+/*
+ * Faint dot texture from /graphics/dot-grid.svg (a 40px tile). Opacity is set
+ * on this layer rather than the section so body text keeps full contrast;
+ * the mask fades the texture out before it reaches the section edges, which
+ * stops it ending in a hard line.
+ */
+.dot-texture {
+  background-image: url('/graphics/dot-grid.svg');
+  background-repeat: repeat;
+  background-size: 40px 40px;
+  -webkit-mask-image: radial-gradient(85% 75% at 50% 40%, #000, transparent);
+  mask-image: radial-gradient(85% 75% at 50% 40%, #000, transparent);
+}
+
+/*
+ * Nav links grow a teal→purple hairline on hover and while active. The
+ * pseudo-element is scaled rather than sized, so the nav never reflows, and
+ * `aria-current` is what react-router already sets on the active NavLink.
+ */
+.nav-underline {
+  position: relative;
+}
+.nav-underline::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: -5px;
+  left: 0;
+  height: 1.5px;
+  border-radius: 1px;
+  background-image: linear-gradient(90deg, var(--color-brand-400), var(--color-accent-400));
+  transform: scaleX(0);
+  transition: transform 0.2s ease;
+}
+.nav-underline:hover::after,
+.nav-underline[aria-current='page']::after {
+  transform: scaleX(1);
+}
+
+/*
+ * Card hover accent — a teal→purple hairline along the top edge, faded in on
+ * opacity alone so the hover costs no layout or paint work beyond compositing.
+ * Expects a `position: relative` card with a rounded top.
+ */
+.card-accent::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 2px;
+  border-radius: 0.75rem 0.75rem 0 0;
+  background-image: linear-gradient(90deg, var(--color-brand-400), var(--color-accent-400));
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.card-accent:hover::before {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-underline::after,
+  .card-accent::before {
+    transition: none;
+  }
+}
+
+/*
+ * Hero headline gradient — brighter than `.text-gradient-brand` and carrying a
+ * soft glow, for the one headline on the site big enough to need it. Kept as
+ * its own class because `.text-gradient-brand` is also used at 24-32px in
+ * ClientJourney / FeaturePanel / FinalCTA, where this much glow would smear.
+ *
+ * The light stops are literal hex, not brand/accent tokens: the 50-300 tiers
+ * are remapped to translucent washes inside the `.dark` scope the public site
+ * runs in (see the token block above), which would wash the gradient out. The
+ * 400 tier is stable across themes, so the mid and end stops could use tokens,
+ * but all three are spelled out here so the ramp reads in one line.
+ *
+ * `drop-shadow` rather than `text-shadow`: the glyphs are transparent with the
+ * gradient clipped to them, so a text-shadow would paint a solid silhouette.
+ * drop-shadow works off the rendered alpha and follows the letter shapes.
+ */
+.text-gradient-hero {
+  background-image: linear-gradient(100deg, #5eead4 0%, #22d3ee 42%, #c4b5fd 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 26px rgb(34 211 238 / 28%));
+}
+
+/*
+ * A single faint light source behind the hero: one teal pool under the
+ * headline, one violet under the illustration, and a cool highlight along the
+ * top edge. Static — no animation, no JS.
+ *
+ * The softness is in the gradient stops rather than a `filter: blur()`. A blur
+ * over a full-width layer costs a large offscreen rasterisation on first paint
+ * for a result these stops already give, and this sits on every mobile visit.
+ */
+.hero-glow {
+  background:
+    radial-gradient(42rem 28rem at 18% 30%, rgb(34 211 238 / 17%), transparent 70%),
+    radial-gradient(38rem 26rem at 82% 45%, rgb(167 139 250 / 15%), transparent 70%),
+    radial-gradient(30rem 16rem at 50% 0%, rgb(94 234 212 / 9%), transparent 72%);
+}
+
+/*
+ * Directional variants of the Reveal transition, used by the section
+ * illustrations so they arrive from their own side instead of from below.
+ * Passed through `<Reveal className="...">`, so they share the one observer
+ * and the one timing curve.
+ *
+ * Specificity note: `.reveal-in` sets `transform: none` and is defined further
+ * up, so at equal specificity these later rules would win and the element
+ * would stay offset after revealing. The settled state therefore names all
+ * three classes to outrank them. Same reason the reduced-motion override is
+ * repeated here rather than relying on the earlier `.reveal` one.
+ *
+ * Both sections using these clip their overflow, so the horizontal offset
+ * can't produce a scrollbar at narrow widths.
+ */
+.reveal-x-right {
+  transform: translateX(28px) scale(0.985);
+}
+.reveal-x-left {
+  transform: translateX(-28px) scale(0.985);
+}
+.reveal.reveal-in.reveal-x-right,
+.reveal.reveal-in.reveal-x-left {
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal-x-right,
+  .reveal-x-left {
+    transform: none;
+    transition: none;
+  }
+}
+
+/*
+ * Certificate printing. Scoped to `body.certificate-print-mode`, which the
+ * Certificate component adds while it is mounted, because the invoice page
+ * also calls `window.print()` -- an unscoped "hide everything but the
+ * certificate" rule would print that page blank.
+ *
+ * `visibility` rather than `display: none`: the sheet is nested several levels
+ * inside the dashboard shell, and hiding an ancestor outright would take the
+ * sheet with it. Hidden ancestors still occupy space, so the sheet is lifted
+ * out of the flow to the top of the page.
+ */
+@media print {
+  body.certificate-print-mode * {
+    visibility: hidden;
+  }
+  body.certificate-print-mode .certificate-sheet,
+  body.certificate-print-mode .certificate-sheet * {
+    visibility: visible;
+  }
+  body.certificate-print-mode .certificate-sheet {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    max-width: none;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  body.certificate-print-mode .print-hide {
+    display: none;
+  }
+}
+
+/*
+ * Course experience — the animated course page, organised lesson view and the
+ * homepage course spotlight. Every loop sits behind `no-preference`, so a
+ * reduced-motion visitor gets the same layout standing still.
+ */
+.neural-signal {
+  stroke-dasharray: 6 160;
+  stroke-dashoffset: 166;
+  opacity: 0;
+}
+.neural-ping {
+  opacity: 0;
+}
+.neural-chip {
+  position: absolute;
+  border-radius: 9999px;
+  border: 1px solid rgb(255 255 255 / 14%);
+  background: rgb(8 30 40 / 70%);
+  padding: 0.35rem 0.8rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #a5f3fc;
+  backdrop-filter: blur(6px);
+  box-shadow: 0 10px 30px -12px rgb(6 182 212 / 60%);
+  white-space: nowrap;
+}
+
+/* The learning path's connector line grows down as the section scrolls in. */
+.path-line {
+  transform-origin: top;
+  transform: scaleY(0);
+  transition: transform 1.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal-in .path-line,
+.path-line.path-line-in {
+  transform: scaleY(1);
+}
+
+/* Lesson view: a soft vertical rail behind the numbered step badges. */
+.lesson-timeline::before {
+  content: '';
+  position: absolute;
+  left: 17px;
+  top: 12px;
+  bottom: 12px;
+  width: 2px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, var(--color-brand-400), var(--color-accent-400));
+  opacity: 0.35;
+}
+
+.course-marquee {
+  mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .neural-signal {
+    animation: neural-flow 2.6s linear infinite;
+  }
+  .neural-ping {
+    animation: neural-ping 2.4s ease-out infinite;
+  }
+  .neural-breathe {
+    transform-origin: 250px 220px;
+    animation: neural-breathe 6s ease-in-out infinite;
+  }
+  .neural-chip {
+    animation: neural-bob 5s ease-in-out infinite;
+  }
+  .course-marquee-track {
+    animation: course-marquee 38s linear infinite;
+  }
+  .course-marquee:hover .course-marquee-track {
+    animation-play-state: paused;
+  }
+  .lesson-term {
+    animation: lesson-term-in 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .lesson-pop {
+    animation: lesson-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .lesson-takeaway::after,
+  .shine::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(110deg, transparent 35%, rgb(255 255 255 / 18%) 50%, transparent 65%);
+    transform: translateX(-100%);
+    animation: shine 4.5s ease-in-out infinite 1s;
+    pointer-events: none;
+  }
+  .course-orbit {
+    animation: course-orbit 24s linear infinite;
+  }
+  .course-orbit > * {
+    animation: course-orbit 24s linear infinite reverse;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .neural-signal {
+    opacity: 0.5;
+    stroke-dasharray: none;
+  }
+  .path-line {
+    transform: none;
+    transition: none;
+  }
+}
+
+@keyframes neural-flow {
+  0% {
+    stroke-dashoffset: 166;
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+}
+@keyframes neural-ping {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.9;
+  }
+  70%,
+  100% {
+    transform: scale(2.1);
+    opacity: 0;
+  }
+}
+@keyframes neural-breathe {
+  0%,
+  100% {
+    transform: scale(0.92);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 1;
+  }
+}
+@keyframes neural-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+@keyframes course-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+@keyframes lesson-term-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes lesson-pop {
+  0% {
+    transform: scale(0.3);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@keyframes shine {
+  0% {
+    transform: translateX(-100%);
+  }
+  40%,
+  100% {
+    transform: translateX(100%);
+  }
+}
+@keyframes course-orbit {
+  to {
+    transform: rotate(360deg);
+  }
+}

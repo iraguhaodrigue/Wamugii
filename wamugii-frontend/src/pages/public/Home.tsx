@@ -15,6 +15,7 @@ import { WhyWamugii } from '@/components/home/WhyWamugii'
 import { ClientJourney } from '@/components/home/ClientJourney'
 import { FaqSection } from '@/components/home/FaqSection'
 import { FinalCTA } from '@/components/home/FinalCTA'
+import { CourseSpotlight } from '@/components/home/CourseSpotlight'
 
 /**
  * The homepage is a composition of section components (src/components/home).
@@ -35,6 +36,7 @@ export function Home() {
       <Hero services={list} isLoading={isLoading} />
       <CapabilityChips services={list} isLoading={isLoading} />
       <MetricCards serviceCount={list.length} />
+      <CourseSpotlight />
       <ServicesGrid services={services} isLoading={isLoading} isError={isError} onRetry={() => refetch()} />
       <ProcessSection />
       <SolutionShowcase />

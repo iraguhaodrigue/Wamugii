@@ -3,7 +3,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useParams } from 'react-router-dom'
 import {
   ArrowLeft,
+  ArrowRight,
   CheckCircle2,
+  Clock,
   Circle,
   Download,
   FileText,
@@ -35,6 +37,7 @@ import {
 } from '@/components/ui'
 import { VideoEmbed, VideoPlaceholder } from '@/components/courses/VideoEmbed'
 import { Certificate } from '@/components/courses/Certificate'
+import { LessonContent, sectionTitles } from '@/components/courses/LessonContent'
 import { formatFileSize } from '@/utils/format'
 import { cn } from '@/utils/cn'
 
@@ -224,6 +227,17 @@ export function ClientCoursePlayer() {
   }
 
   const lessons = lessonsQuery.data ?? []
+  const activeIndex = Math.max(0, lessons.findIndex((l) => l.id === activeLessonId))
+  const prevLesson = activeIndex > 0 ? lessons[activeIndex - 1] : undefined
+  const nextLesson = activeIndex < lessons.length - 1 ? lessons[activeIndex + 1] : undefined
+  const lessonText = activeLesson?.content ?? ''
+  const sections = sectionTitles(lessonText)
+  const readingMinutes = Math.max(3, Math.round(lessonText.split(/\s+/).length / 180))
+
+  function goTo(lessonId: number) {
+    setActiveLessonId(lessonId)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   if (showCertificate) {
     if (certificateQuery.isLoading) {
@@ -317,11 +331,11 @@ export function ClientCoursePlayer() {
                     <li key={lesson.id}>
                       <button
                         type="button"
-                        onClick={() => setActiveLessonId(lesson.id)}
+                        onClick={() => goTo(lesson.id)}
                         className={cn(
                           'flex w-full items-start gap-2.5 rounded-lg p-2.5 text-left text-sm transition-colors',
                           isActive
-                            ? 'bg-brand-50 text-brand-900'
+                            ? 'bg-brand-50 text-slate-900 ring-1 ring-brand-400/40'
                             : 'text-slate-700 hover:bg-slate-50',
                         )}
                       >
@@ -332,11 +346,14 @@ export function ClientCoursePlayer() {
                           />
                         ) : (
                           <Circle
-                            className="mt-0.5 size-4 shrink-0 text-slate-300"
+                            className="mt-0.5 size-4 shrink-0 text-white/75"
                             aria-hidden="true"
                           />
                         )}
                         <span className="min-w-0 flex-1">
+                          <span className="block text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                            Lesson {index + 1}
+                          </span>
                           <span className="font-medium">{lesson.title}</span>
                         </span>
                       </button>
@@ -353,16 +370,49 @@ export function ClientCoursePlayer() {
             <EmptyState title="Nothing to show yet" description="This course has no lessons." />
           ) : (
             <>
-              <h2 className="text-xl font-semibold text-slate-900">{activeLesson.title}</h2>
+              <div className="hero-in relative overflow-hidden rounded-2xl bg-[var(--color-brand-950)] p-6 text-white" key={activeLesson.id}>
+                <div
+                  className="pointer-events-none absolute inset-0 bg-cover bg-center opacity-60"
+                  style={{ backgroundImage: "url('/graphics/gradient-blobs.svg')" }}
+                  aria-hidden="true"
+                />
+                <div className="relative">
+                  <p className="text-xs font-bold uppercase tracking-wider text-cyan-300">
+                    Lesson {activeIndex + 1} of {lessons.length}
+                  </p>
+                  <h2 className="mt-1 text-2xl font-bold tracking-tight sm:text-3xl">{activeLesson.title}</h2>
+                  <p className="mt-2 inline-flex items-center gap-1.5 text-sm text-white/75">
+                    <Clock className="size-4" aria-hidden="true" />
+                    About {readingMinutes} min
+                  </p>
+                  {sections.length > 1 && (
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {sections.map((title, i) => (
+                        <a
+                          key={i}
+                          href={`#lesson-step-${i}`}
+                          onClick={(e) => {
+                            e.preventDefault()
+                            document
+                              .getElementById(`lesson-step-${i}`)
+                              ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                          }}
+                          className="rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-medium text-white/85 transition-colors hover:border-cyan-300 hover:text-white"
+                        >
+                          {title}
+                        </a>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
               {activeLesson.video_url ? (
                 <VideoEmbed url={activeLesson.video_url} title={activeLesson.title} />
+              ) : null}
+              {activeLesson.content ? (
+                <LessonContent content={activeLesson.content} lessonKey={activeLesson.id} />
               ) : (
-                <VideoPlaceholder />
-              )}
-              {activeLesson.content && (
-                <div className="whitespace-pre-line rounded-xl border border-slate-200 bg-panel p-6 text-sm leading-relaxed text-slate-700">
-                  {activeLesson.content}
-                </div>
+                !activeLesson.video_url && <VideoPlaceholder />
               )}
               {activeLesson.materials.length > 0 && (
                 <div className="rounded-xl border border-slate-200 bg-panel p-6">
@@ -431,13 +481,28 @@ export function ClientCoursePlayer() {
                 </p>
               )}
 
-              <div className="flex justify-end">
+              <div className="flex flex-col-reverse gap-3 border-t border-slate-200 pt-6 sm:flex-row sm:items-center sm:justify-between">
+                <Button
+                  variant="outline"
+                  disabled={!prevLesson}
+                  leftIcon={<ArrowLeft className="size-4" />}
+                  onClick={() => prevLesson && goTo(prevLesson.id)}
+                >
+                  Previous
+                </Button>
                 <Button
                   isLoading={completeMutation.isPending}
                   leftIcon={<CheckCircle2 className="size-4" />}
-                  onClick={() => completeMutation.mutate(activeLesson.id)}
+                  onClick={() =>
+                    completeMutation.mutate(activeLesson.id, {
+                      onSuccess: () => {
+                        if (nextLesson) goTo(nextLesson.id)
+                      },
+                    })
+                  }
                 >
-                  Mark lesson complete
+                  {nextLesson ? 'Complete & next lesson' : 'Complete course'}
+                  {nextLesson && <ArrowRight className="size-4" aria-hidden="true" />}
                 </Button>
               </div>
             </>
