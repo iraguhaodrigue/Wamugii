@@ -2,10 +2,13 @@ import { Cpu, Layers, LifeBuoy, ShieldCheck } from 'lucide-react'
 import { Container } from '@/components/ui'
 import { Reveal } from '@/components/common/Reveal'
 import { SectionHeading } from './SectionHeading'
+import { AnimInView } from '@/components/common/AnimInView'
+import { PrincipleArt, type PrincipleKind } from './TeamArt'
 
 const pillars = [
   {
     icon: Cpu,
+    art: 'needs' as PrincipleKind,
     title: 'Built around your needs',
     description:
       'We scope every build around how your business actually works, rather than bending your process to fit an off-the-shelf product.',
@@ -13,6 +16,7 @@ const pillars = [
   },
   {
     icon: ShieldCheck,
+    art: 'secure' as PrincipleKind,
     title: 'Secure by design',
     description:
       'Access control and careful data handling are part of the build from the start, not a checklist someone runs at the end.',
@@ -20,6 +24,7 @@ const pillars = [
   },
   {
     icon: Layers,
+    art: 'scale' as PrincipleKind,
     title: 'Ready to scale',
     description:
       'Systems designed to handle your first users and your busiest day, so growth means adding capacity rather than starting over.',
@@ -27,6 +32,7 @@ const pillars = [
   },
   {
     icon: LifeBuoy,
+    art: 'support' as PrincipleKind,
     title: 'Supported beyond launch',
     description:
       'Software needs looking after. We stay reachable for the fixes, updates and questions that come up once real people are using it.',
@@ -46,13 +52,16 @@ export function TechnologyPillars() {
         />
 
         <div className="mt-14 grid gap-5 sm:grid-cols-2">
-          {pillars.map(({ icon: Icon, title, description, support }, index) => (
+          {pillars.map(({ icon: Icon, art, title, description, support }, index) => (
             <Reveal key={title} delay={index * 80} className="h-full">
               <div className="group relative h-full overflow-hidden rounded-2xl border border-slate-200 bg-panel p-7 shadow-[var(--shadow-card)] backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:border-brand-400/30 hover:shadow-[var(--shadow-glow-brand)] sm:p-8">
                 <div
                   className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand-400/40 to-transparent opacity-0 transition-opacity group-hover:opacity-100"
                   aria-hidden="true"
                 />
+                <AnimInView className="relative mb-6 h-36 overflow-hidden rounded-xl border border-white/10 bg-[#06131c] p-2 transition-transform duration-500 group-hover:scale-[1.02]">
+                  <PrincipleArt kind={art} />
+                </AnimInView>
                 <div className="icon-live flex size-12 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500/15 to-accent-500/15 text-brand-400 ring-1 ring-inset ring-brand-400/20">
                   <Icon className="size-6" aria-hidden="true" />
                 </div>

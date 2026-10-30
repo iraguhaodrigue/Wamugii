@@ -4,6 +4,7 @@ import { paths } from '@/routes/paths'
 import { Container } from '@/components/ui'
 import { Reveal } from '@/components/common/Reveal'
 import { SectionHeading } from './SectionHeading'
+import { AnimInView } from '@/components/common/AnimInView'
 
 const capabilities = [
   'Maintainable systems that are cheap to change later',
@@ -36,6 +37,10 @@ function StackVisual() {
         }}
         aria-hidden="true"
       />
+      <div
+        className="ba-scanline pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-transparent via-brand-400/15 to-transparent opacity-0"
+        aria-hidden="true"
+      />
       <div className="relative space-y-3">
         {layers.map(({ label, hint, width }, index) => (
           <Reveal key={label} delay={index * 90}>
@@ -48,12 +53,14 @@ function StackVisual() {
               </div>
               <div className="mt-2.5 flex gap-1">
                 {Array.from({ length: 5 }).map((_, i) => (
-                  <span
-                    key={i}
-                    className={`h-1 flex-1 rounded-full ${
-                      i <= index ? 'bg-gradient-to-r from-brand-400/70 to-accent-400/50' : 'bg-white/10'
-                    }`}
-                  />
+                  <span key={i} className="h-1 flex-1 overflow-hidden rounded-full bg-white/10">
+                    {i <= index && (
+                      <span
+                        className="seg-fill block h-full origin-left rounded-full bg-gradient-to-r from-brand-400/70 to-accent-400/50"
+                        style={{ animationDelay: `${index * 0.35 + i * 0.12}s` }}
+                      />
+                    )}
+                  </span>
                 ))}
               </div>
             </div>
@@ -106,7 +113,9 @@ export function TechnologyCapabilities() {
           </div>
 
           <Reveal delay={100}>
-            <StackVisual />
+            <AnimInView decorative={false}>
+              <StackVisual />
+            </AnimInView>
           </Reveal>
         </div>
       </Container>

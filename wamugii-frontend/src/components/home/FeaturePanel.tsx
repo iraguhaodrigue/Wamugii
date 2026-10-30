@@ -4,6 +4,8 @@ import { paths } from '@/routes/paths'
 import { Container } from '@/components/ui'
 import { AnimatedTechBackground } from '@/components/common/AnimatedTechBackground'
 import { Reveal } from '@/components/common/Reveal'
+import { AnimInView } from '@/components/common/AnimInView'
+import { IdeaToTechArt } from './TeamArt'
 
 const stages = ['Planning', 'Design', 'Development', 'Deployment', 'Support']
 
@@ -23,7 +25,7 @@ export function FeaturePanel() {
               aria-hidden="true"
             />
 
-            <div className="relative grid items-center gap-10 lg:grid-cols-2 lg:gap-14">
+            <AnimInView decorative={false} className="relative grid items-center gap-10 lg:grid-cols-2 lg:gap-14">
               <div className="text-center lg:text-left">
                 <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
                   From idea to <span className="text-gradient-brand">working technology</span>
@@ -37,9 +39,10 @@ export function FeaturePanel() {
                   {stages.map((stage, index) => (
                     <span
                       key={stage}
-                      className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3.5 py-1.5 text-xs font-medium text-slate-400 backdrop-blur-sm"
+                      className="stage-chip inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3.5 py-1.5 text-xs font-medium text-slate-400 backdrop-blur-sm"
+                      style={{ animationDelay: `${index * 2}s` }}
                     >
-                      <span className="size-1.5 rounded-full bg-brand-400" aria-hidden="true" />
+                      <span className="stage-dot size-1.5 rounded-full bg-brand-400" aria-hidden="true" />
                       {stage}
                       {index < stages.length - 1 && (
                         <ArrowRight className="ml-1 size-3 text-slate-500" aria-hidden="true" />
@@ -58,17 +61,15 @@ export function FeaturePanel() {
               </div>
 
               <Reveal delay={90} className="reveal-x-right">
-                <img
-                  src="/graphics/build-process.svg"
-                  alt="A website being assembled — wireframe, layout blocks and a finished responsive page"
-                  width={560}
-                  height={460}
-                  loading="lazy"
-                  decoding="async"
-                  className="mx-auto h-auto w-full max-w-md lg:max-w-lg"
-                />
+                <div
+                  className="mx-auto w-full max-w-md lg:max-w-lg"
+                  role="img"
+                  aria-label="One laptop screen moving through planning, design, development, deployment and support"
+                >
+                  <IdeaToTechArt />
+                </div>
               </Reveal>
-            </div>
+            </AnimInView>
           </div>
         </Reveal>
       </Container>

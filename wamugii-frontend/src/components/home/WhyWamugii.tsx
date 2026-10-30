@@ -2,6 +2,8 @@ import { Eye, Lightbulb, ShieldCheck, Users, Zap } from 'lucide-react'
 import { Container } from '@/components/ui'
 import { Reveal } from '@/components/common/Reveal'
 import { SectionHeading } from './SectionHeading'
+import { AnimInView } from '@/components/common/AnimInView'
+import { WhyArt, type WhyKind } from './TeamArt'
 
 const lead = {
   icon: Eye,
@@ -13,21 +15,25 @@ const lead = {
 const supporting = [
   {
     icon: ShieldCheck,
+    art: 'delivery' as WhyKind,
     title: 'Reliable delivery',
     description: 'Clear milestones and honest timelines, so you always know where your project stands.',
   },
   {
     icon: Users,
+    art: 'listen' as WhyKind,
     title: 'A team that listens',
     description: 'We start with your goals, not a template — every build is scoped around what you actually need.',
   },
   {
     icon: Zap,
+    art: 'scale' as WhyKind,
     title: 'Built to scale',
     description: 'Solid engineering foundations that keep working as your business grows.',
   },
   {
     icon: Lightbulb,
+    art: 'pricing' as WhyKind,
     title: 'Transparent pricing',
     description: 'No surprise invoices. You approve the scope and budget before we start.',
   },
@@ -62,13 +68,19 @@ export function WhyWamugii() {
                 <h3 className="mt-6 text-xl font-semibold text-white">{lead.title}</h3>
                 <p className="mt-3 text-sm leading-relaxed text-slate-400">{lead.description}</p>
               </div>
+              <AnimInView className="relative mt-6 h-48 sm:h-56">
+                <WhyArt kind="portal" />
+              </AnimInView>
             </div>
           </Reveal>
 
           <div className="grid gap-5 sm:grid-cols-2 lg:col-span-2">
-            {supporting.map(({ icon: Icon, title, description }, index) => (
+            {supporting.map(({ icon: Icon, art, title, description }, index) => (
               <Reveal key={title} delay={index * 70} className="h-full">
-                <div className="card-accent relative h-full overflow-hidden rounded-2xl border border-slate-200 bg-panel p-6 shadow-[var(--shadow-card)] backdrop-blur-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-400/30 hover:shadow-[var(--shadow-glow-brand)]">
+                <div className="card-accent group relative h-full overflow-hidden rounded-2xl border border-slate-200 bg-panel p-6 shadow-[var(--shadow-card)] backdrop-blur-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-400/30 hover:shadow-[var(--shadow-glow-brand)]">
+                  <AnimInView className="mb-5 h-28 overflow-hidden rounded-xl border border-white/10 bg-[#06131c] p-1.5 transition-transform duration-500 group-hover:scale-[1.03]">
+                    <WhyArt kind={art} />
+                  </AnimInView>
                   <div className="icon-live flex size-10 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
                     <Icon className="size-5" aria-hidden="true" />
                   </div>

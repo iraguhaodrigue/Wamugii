@@ -2,6 +2,7 @@ import { Cloud, Database, Headset, LayoutGrid, ShieldCheck } from 'lucide-react'
 import { Container } from '@/components/ui'
 import { Reveal } from '@/components/common/Reveal'
 import { SectionHeading } from './SectionHeading'
+import { AnimInView } from '@/components/common/AnimInView'
 
 const layers = [
   {
@@ -51,17 +52,22 @@ export function SolutionArchitecture() {
             />
           </div>
 
-          <div className="relative">
+          <AnimInView decorative={false} className="relative">
             <div
               className="absolute bottom-6 left-[22px] top-6 w-px bg-gradient-to-b from-brand-400/40 via-accent-400/30 to-transparent"
               aria-hidden="true"
-            />
+            >
+              <span className="arch-signal absolute -left-[3px] size-[7px] rounded-full bg-brand-400 opacity-0 shadow-[0_0_12px_3px_rgb(34_211_238/0.7)]" />
+            </div>
             <ul className="space-y-4">
               {layers.map(({ icon: Icon, title, detail }, index) => (
                 <li key={title}>
                   <Reveal delay={index * 80}>
                     <div className="flex gap-4">
-                      <div className="icon-live relative z-10 flex size-11 shrink-0 items-center justify-center rounded-xl border border-brand-400/20 bg-panel text-brand-400 backdrop-blur-sm">
+                      <div
+                        className="arch-node icon-live relative z-10 flex size-11 shrink-0 items-center justify-center rounded-xl border border-brand-400/20 bg-panel text-brand-400 backdrop-blur-sm"
+                        style={{ animationDelay: `${index}s` }}
+                      >
                         <Icon className="size-5" aria-hidden="true" />
                       </div>
                       <div className="min-w-0 flex-1 rounded-xl border border-slate-200 bg-panel p-4 shadow-[var(--shadow-card)] backdrop-blur-sm transition-colors hover:border-brand-400/30">
@@ -73,7 +79,7 @@ export function SolutionArchitecture() {
                 </li>
               ))}
             </ul>
-          </div>
+          </AnimInView>
         </div>
       </Container>
     </section>

@@ -8,7 +8,16 @@ import { cn } from '@/utils/cn'
  * users never get motion: those animations are declared inside a
  * `prefers-reduced-motion: no-preference` block.
  */
-export function AnimInView({ children, className }: { children: ReactNode; className?: string }) {
+export function AnimInView({
+  children,
+  className,
+  decorative = true,
+}: {
+  children: ReactNode
+  className?: string
+  /** Hide from screen readers (pure illustration). Set false when wrapping real content. */
+  decorative?: boolean
+}) {
   const ref = useRef<HTMLDivElement>(null)
   const [live, setLive] = useState(false)
 
@@ -23,7 +32,7 @@ export function AnimInView({ children, className }: { children: ReactNode; class
   }, [])
 
   return (
-    <div ref={ref} className={cn('ba-art', live && 'anim-live', className)} aria-hidden="true">
+    <div ref={ref} className={cn('ba-art', live && 'anim-live', className)} aria-hidden={decorative || undefined}>
       {children}
     </div>
   )

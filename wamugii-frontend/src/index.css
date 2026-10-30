@@ -1096,3 +1096,91 @@ body {
   0%, 20%, 100% { transform: none; }
   8% { transform: translateY(-3px) scale(1.12); }
 }
+
+/* TeamArt.tsx — extra moves for the principles, why-us and idea-to-tech art. */
+@media (prefers-reduced-motion: no-preference) {
+  .anim-live .ba-swing { animation: ba-swing var(--d, 3s) ease-in-out infinite; }
+  .anim-live .ba-eq { animation: ba-eq var(--d, 0.5s) ease-in-out infinite alternate; }
+  .anim-live .ba-drop { animation: ba-drop var(--d, 6s) ease-out infinite both; }
+  .anim-live .ba-print { animation: ba-print var(--d, 6s) ease-in-out infinite both; }
+  .anim-live .ba-stamp { animation: ba-stamp var(--d, 6s) ease-out infinite both; }
+  .anim-live .ba-stage { animation: ba-stage var(--d, 10s) ease infinite both; }
+  .anim-live .stage-chip { animation: stage-chip 10s ease infinite; }
+  .anim-live .stage-chip .stage-dot { animation: stage-dot 10s ease infinite; animation-delay: inherit; }
+  .anim-live .ba-scanline { animation: ba-scanline 4s ease-in-out infinite; }
+  .anim-live .arch-signal { animation: arch-signal 5s linear infinite; }
+  .anim-live .arch-node { animation: arch-node 5s ease-out infinite; }
+  .anim-live .seg-fill { animation: seg-fill 4s ease infinite both; }
+}
+/* Static frames: the idea-to-tech screen rests on its last stage. */
+.ba-stage {
+  opacity: 0;
+}
+.ba-stage:last-of-type {
+  opacity: 1;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .anim-live .ba-stage:last-of-type { opacity: 0; }
+}
+
+@keyframes ba-swing {
+  0%, 100% { transform: rotate(var(--r1, -20deg)); }
+  50% { transform: rotate(var(--r2, 20deg)); }
+}
+@keyframes ba-eq {
+  from { transform: scaleY(0.25); }
+  to { transform: scaleY(1); }
+}
+@keyframes ba-drop {
+  0% { transform: translateY(-70px); opacity: 0; }
+  10% { transform: translateY(0); opacity: 1; }
+  14% { transform: translateY(-6px); }
+  18% { transform: translateY(0); }
+  86% { transform: translateY(0); opacity: 1; }
+  96%, 100% { transform: translateY(0); opacity: 0; }
+}
+@keyframes ba-print {
+  0% { transform: translateY(-92px); opacity: 1; }
+  38%, 86% { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(0); opacity: 0; }
+}
+@keyframes ba-stamp {
+  0% { transform: scale(2.2) rotate(-12deg); opacity: 0; }
+  8% { transform: scale(0.94) rotate(-12deg); opacity: 1; }
+  12%, 80% { transform: scale(1) rotate(-12deg); opacity: 1; }
+  92%, 100% { transform: scale(1) rotate(-12deg); opacity: 0; }
+}
+@keyframes ba-stage {
+  0% { opacity: 0; transform: translateY(8px); }
+  4%, 18% { opacity: 1; transform: none; }
+  21%, 100% { opacity: 0; transform: none; }
+}
+@keyframes stage-chip {
+  0%, 21%, 100% { border-color: rgb(255 255 255 / 10%); background-color: rgb(255 255 255 / 5%); color: #94a3b8; }
+  3%, 18% { border-color: rgb(34 211 238 / 60%); background-color: rgb(34 211 238 / 16%); color: #ffffff; }
+}
+@keyframes stage-dot {
+  0%, 21%, 100% { transform: none; box-shadow: none; }
+  3%, 18% { transform: scale(1.6); box-shadow: 0 0 10px 2px rgb(34 211 238 / 70%); }
+}
+@keyframes ba-scanline {
+  0% { transform: translateY(-20%); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateY(520%); opacity: 0; }
+}
+@keyframes arch-signal {
+  0% { top: 0%; opacity: 0; }
+  5% { opacity: 1; }
+  95% { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+@keyframes arch-node {
+  0%, 100% { box-shadow: 0 0 0 0 rgb(34 211 238 / 0%); }
+  6% { box-shadow: 0 0 0 6px rgb(34 211 238 / 30%); }
+  16% { box-shadow: 0 0 0 0 rgb(34 211 238 / 0%); }
+}
+@keyframes seg-fill {
+  0% { transform: scaleX(0); }
+  30%, 100% { transform: scaleX(1); }
+}
