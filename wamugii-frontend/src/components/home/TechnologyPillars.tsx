@@ -53,7 +53,7 @@ export function TechnologyPillars() {
                   className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand-400/40 to-transparent opacity-0 transition-opacity group-hover:opacity-100"
                   aria-hidden="true"
                 />
-                <div className="flex size-12 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500/15 to-accent-500/15 text-brand-400 ring-1 ring-inset ring-brand-400/20">
+                <div className="icon-live flex size-12 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500/15 to-accent-500/15 text-brand-400 ring-1 ring-inset ring-brand-400/20">
                   <Icon className="size-6" aria-hidden="true" />
                 </div>
                 <h3 className="mt-5 text-lg font-semibold text-slate-900">{title}</h3>

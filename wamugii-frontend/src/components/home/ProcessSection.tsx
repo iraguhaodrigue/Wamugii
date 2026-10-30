@@ -5,10 +5,13 @@ import { Container } from '@/components/ui'
 import { AnimatedTechBackground } from '@/components/common/AnimatedTechBackground'
 import { Reveal } from '@/components/common/Reveal'
 import { SectionHeading } from './SectionHeading'
+import { AnimInView } from '@/components/common/AnimInView'
+import { ProcessArt, type ProcessKind } from './BusinessArt'
 
 const steps = [
   {
     number: '01',
+    art: 'discover' as ProcessKind,
     icon: Compass,
     title: 'Discover',
     description:
@@ -16,6 +19,7 @@ const steps = [
   },
   {
     number: '02',
+    art: 'scope' as ProcessKind,
     icon: ClipboardList,
     title: 'Scope',
     description:
@@ -23,6 +27,7 @@ const steps = [
   },
   {
     number: '03',
+    art: 'build' as ProcessKind,
     icon: Rocket,
     title: 'Build & track',
     description:
@@ -30,6 +35,7 @@ const steps = [
   },
   {
     number: '04',
+    art: 'launch' as ProcessKind,
     icon: LifeBuoy,
     title: 'Launch & support',
     description:
@@ -49,23 +55,26 @@ export function ProcessSection() {
         />
 
         <div className="mt-14 grid gap-5 lg:grid-cols-2">
-          {steps.map(({ number, icon: Icon, title, description }, index) => (
+          {steps.map(({ number, art, icon: Icon, title, description }, index) => (
             <Reveal key={number} delay={index * 80}>
-              <div className="group relative h-full overflow-hidden rounded-2xl border border-slate-200 bg-panel p-7 shadow-[var(--shadow-card)] backdrop-blur-sm transition-colors hover:border-brand-400/30 sm:p-8">
+              <div className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-panel p-7 shadow-[var(--shadow-card)] backdrop-blur-sm transition-colors hover:border-brand-400/30 sm:p-8">
                 <span
                   className="pointer-events-none absolute right-5 top-3 text-6xl font-bold leading-none text-brand-500/10 sm:text-7xl"
                   aria-hidden="true"
                 >
                   {number}
                 </span>
-                <div className="relative flex size-12 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500/15 to-accent-500/15 text-brand-400 ring-1 ring-inset ring-brand-400/20">
+                <div className="icon-live relative flex size-12 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500/15 to-accent-500/15 text-brand-400 ring-1 ring-inset ring-brand-400/20">
                   <Icon className="size-6" aria-hidden="true" />
                 </div>
                 <p className="relative mt-5 text-xs font-semibold uppercase tracking-wider text-brand-400">
                   Step {number}
                 </p>
                 <h3 className="relative mt-1.5 text-xl font-semibold text-slate-900">{title}</h3>
-                <p className="relative mt-2.5 text-sm leading-relaxed text-slate-500">{description}</p>
+                <p className="relative mt-2.5 flex-1 text-sm leading-relaxed text-slate-500">{description}</p>
+                <AnimInView className="relative mt-6 h-36 rounded-xl border border-white/10 bg-[#06131c] p-2">
+                  <ProcessArt kind={art} />
+                </AnimInView>
               </div>
             </Reveal>
           ))}

@@ -61,7 +61,7 @@ export function SolutionArchitecture() {
                 <li key={title}>
                   <Reveal delay={index * 80}>
                     <div className="flex gap-4">
-                      <div className="relative z-10 flex size-11 shrink-0 items-center justify-center rounded-xl border border-brand-400/20 bg-panel text-brand-400 backdrop-blur-sm">
+                      <div className="icon-live relative z-10 flex size-11 shrink-0 items-center justify-center rounded-xl border border-brand-400/20 bg-panel text-brand-400 backdrop-blur-sm">
                         <Icon className="size-5" aria-hidden="true" />
                       </div>
                       <div className="min-w-0 flex-1 rounded-xl border border-slate-200 bg-panel p-4 shadow-[var(--shadow-card)] backdrop-blur-sm transition-colors hover:border-brand-400/30">

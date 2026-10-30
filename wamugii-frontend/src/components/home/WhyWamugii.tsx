@@ -56,7 +56,7 @@ export function WhyWamugii() {
                 aria-hidden="true"
               />
               <div className="relative">
-                <div className="flex size-12 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-brand-400">
+                <div className="icon-live flex size-12 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-brand-400">
                   <lead.icon className="size-6" aria-hidden="true" />
                 </div>
                 <h3 className="mt-6 text-xl font-semibold text-white">{lead.title}</h3>
@@ -69,7 +69,7 @@ export function WhyWamugii() {
             {supporting.map(({ icon: Icon, title, description }, index) => (
               <Reveal key={title} delay={index * 70} className="h-full">
                 <div className="card-accent relative h-full overflow-hidden rounded-2xl border border-slate-200 bg-panel p-6 shadow-[var(--shadow-card)] backdrop-blur-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-400/30 hover:shadow-[var(--shadow-glow-brand)]">
-                  <div className="flex size-10 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
+                  <div className="icon-live flex size-10 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
                     <Icon className="size-5" aria-hidden="true" />
                   </div>
                   <h3 className="mt-4 text-base font-semibold text-slate-900">{title}</h3>

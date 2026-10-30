@@ -947,3 +947,152 @@ body {
   6% { transform: scale(1.25); box-shadow: 0 0 0 6px rgb(34 211 238 / 25%); }
   16%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgb(34 211 238 / 0%); }
 }
+
+/*
+ * Business illustrations (BusinessArt.tsx): solutions, process steps and
+ * service cards. One small shared vocabulary of looping animations, tuned per
+ * element with inline `animation-delay` and CSS variables (--d duration,
+ * --tx/--ty/--tx2/--ty2 travel, --ty scroll, --dash-end flow). They run only
+ * inside `.anim-live` (AnimInView: on screen) and never under reduced motion,
+ * where every element rests on its finished frame.
+ */
+.ba-art svg * {
+  transform-box: view-box;
+}
+.ba-draw {
+  stroke-dasharray: 100;
+  stroke-dashoffset: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .anim-live .ba-pop { animation: ba-pop var(--d, 6s) ease-out infinite both; }
+  .anim-live .ba-draw { animation: ba-draw var(--d, 5s) ease-in-out infinite both; }
+  .anim-live .ba-spin { animation: ba-spin var(--d, 8s) linear infinite; }
+  .anim-live .ba-spin-r { animation: ba-spin var(--d, 8s) linear infinite reverse; }
+  .anim-live .ba-blink { animation: ba-blink var(--d, 1.4s) ease-in-out infinite alternate both; }
+  .anim-live .ba-ping { animation: ba-ping var(--d, 2.4s) ease-out infinite both; }
+  .anim-live .ba-flow { animation: ba-flow var(--d, 1s) linear infinite; }
+  .anim-live .ba-grow { animation: ba-grow var(--d, 5s) cubic-bezier(0.16, 1, 0.3, 1) infinite both; }
+  .anim-live .ba-growy { animation: ba-growy var(--d, 5s) cubic-bezier(0.16, 1, 0.3, 1) infinite both; }
+  .anim-live .ba-float { animation: ba-float var(--d, 4s) ease-in-out infinite; }
+  .anim-live .ba-move { animation: ba-move var(--d, 6s) cubic-bezier(0.45, 0, 0.2, 1) infinite both; }
+  .anim-live .ba-scroll { animation: ba-scroll var(--d, 6s) ease-in-out infinite both; }
+  .anim-live .ba-type { animation: ba-type var(--d, 6s) steps(14, end) infinite both; }
+  .anim-live .ba-twinkle { animation: ba-twinkle var(--d, 2s) ease-in-out infinite both; }
+
+  /* Icon tiles elsewhere on the homepage: a gentle bob and a soft halo. */
+  .reveal-in .icon-live {
+    animation: icon-bob 4.5s ease-in-out infinite;
+  }
+  .reveal-in .icon-live::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: inherit;
+    border: 1.5px solid rgb(34 211 238 / 45%);
+    animation: icon-halo 3s ease-out infinite;
+    pointer-events: none;
+  }
+  .group:hover .icon-live svg,
+  .icon-live:hover svg {
+    animation: icon-wiggle 0.6s ease-in-out;
+  }
+}
+.icon-live {
+  position: relative;
+}
+
+@keyframes ba-pop {
+  0% { opacity: 0; transform: translateY(6px); }
+  8%, 85% { opacity: 1; transform: none; }
+  95%, 100% { opacity: 0; transform: none; }
+}
+@keyframes ba-draw {
+  0% { stroke-dashoffset: 100; opacity: 1; }
+  40%, 86% { stroke-dashoffset: 0; opacity: 1; }
+  100% { stroke-dashoffset: 0; opacity: 0; }
+}
+@keyframes ba-spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes ba-blink {
+  from { opacity: 0.2; }
+  to { opacity: 1; }
+}
+@keyframes ba-ping {
+  0% { transform: scale(0.6); opacity: 0.9; }
+  70%, 100% { transform: scale(2.2); opacity: 0; }
+}
+@keyframes ba-flow {
+  to { stroke-dashoffset: var(--dash-end, -24); }
+}
+@keyframes ba-grow {
+  0% { transform: scaleX(0); opacity: 1; }
+  70%, 88% { transform: scaleX(1); opacity: 1; }
+  100% { transform: scaleX(1); opacity: 0; }
+}
+@keyframes ba-growy {
+  0% { transform: scaleY(0); opacity: 0; }
+  10%, 85% { transform: scaleY(1); opacity: 1; }
+  96%, 100% { transform: scaleY(1); opacity: 0; }
+}
+@keyframes ba-float {
+  50% { transform: translateY(-7px); }
+}
+@keyframes ba-move {
+  0% { transform: translate(0, 0); opacity: 0; }
+  5%, 15% { transform: translate(0, 0); opacity: 1; }
+  40%, 55% { transform: translate(var(--tx, 0), var(--ty, 0)); opacity: 1; }
+  80%, 92% { transform: translate(var(--tx2, 0), var(--ty2, 0)); opacity: 1; }
+  100% { transform: translate(var(--tx2, 0), var(--ty2, 0)); opacity: 0; }
+}
+@keyframes ba-scroll {
+  0%, 15% { transform: translateY(0); }
+  45%, 60% { transform: translateY(var(--ty, -40px)); }
+  90%, 100% { transform: translateY(0); }
+}
+@keyframes ba-type {
+  0% { clip-path: inset(0 100% 0 0); opacity: 1; }
+  18%, 82% { clip-path: inset(0 0 0 0); opacity: 1; }
+  92%, 100% { clip-path: inset(0 0 0 0); opacity: 0; }
+}
+@keyframes ba-twinkle {
+  0%, 100% { transform: scale(0.4); opacity: 0.25; }
+  50% { transform: scale(1); opacity: 1; }
+}
+@keyframes icon-bob {
+  50% { transform: translateY(-4px); }
+}
+@keyframes icon-halo {
+  0% { transform: scale(0.9); opacity: 0.9; }
+  70%, 100% { transform: scale(1.35); opacity: 0; }
+}
+@keyframes icon-wiggle {
+  25% { transform: rotate(-12deg); }
+  75% { transform: rotate(10deg); }
+}
+
+/* "What happens next" — a light passes along the five steps in order. */
+.journey-sweep {
+  left: -50%;
+  opacity: 0;
+}
+.journey-step {
+  display: inline-block;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .reveal-in .journey-sweep {
+    animation: journey-sweep 4.5s ease-in-out infinite;
+  }
+  .reveal-in .journey-step {
+    animation: journey-step 4.5s ease-out infinite;
+  }
+}
+@keyframes journey-sweep {
+  0% { left: -50%; opacity: 1; }
+  20%, 100% { left: 100%; opacity: 1; }
+}
+@keyframes journey-step {
+  0%, 20%, 100% { transform: none; }
+  8% { transform: translateY(-3px) scale(1.12); }
+}

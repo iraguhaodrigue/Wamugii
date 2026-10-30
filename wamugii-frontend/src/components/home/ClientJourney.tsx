@@ -54,10 +54,17 @@ export function ClientJourney() {
               <Reveal delay={index * 80} className="h-full">
                 <div className="relative flex h-full flex-col rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm transition-colors hover:border-brand-400/30">
                   <div
-                    className="absolute inset-x-5 top-0 h-px bg-gradient-to-r from-brand-400/50 to-accent-400/30"
+                    className="absolute inset-x-5 top-0 h-px overflow-hidden bg-gradient-to-r from-brand-400/50 to-accent-400/30"
                     aria-hidden="true"
-                  />
-                  <span className="text-2xl font-bold tracking-tight text-gradient-brand">{step}</span>
+                  >
+                    <span
+                      className="journey-sweep absolute inset-y-0 w-1/2 bg-gradient-to-r from-transparent via-white to-transparent"
+                      style={{ animationDelay: `${index * 0.9}s` }}
+                    />
+                  </div>
+                  <span className="journey-step text-2xl font-bold tracking-tight text-gradient-brand" style={{ animationDelay: `${index * 0.9}s` }}>
+                    {step}
+                  </span>
                   <h3 className="mt-3 text-sm font-semibold text-white">{title}</h3>
                   <p className="mt-2 text-sm leading-relaxed text-slate-400">{detail}</p>
                 </div>

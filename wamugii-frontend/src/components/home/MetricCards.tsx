@@ -49,7 +49,7 @@ export function MetricCards({ serviceCount }: MetricCardsProps) {
           {metrics.map(({ icon: Icon, value, label, description }, index) => (
             <Reveal key={label} delay={index * 70}>
               <div className="h-full rounded-xl border border-slate-200 bg-panel p-5 shadow-[var(--shadow-card)] backdrop-blur-sm transition-colors hover:border-brand-400/30">
-                <div className="flex size-10 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
+                <div className="icon-live flex size-10 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
                   <Icon className="size-5" aria-hidden="true" />
                 </div>
                 <p className="mt-4 text-2xl font-bold tracking-tight text-slate-900">{value}</p>
