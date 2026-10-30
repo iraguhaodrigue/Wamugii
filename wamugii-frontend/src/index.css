@@ -745,3 +745,205 @@ body {
     transform: rotate(360deg);
   }
 }
+
+/*
+ * AI Program section (homepage) — each course card's own illustration
+ * (ProgramArt.tsx). Animations start once the card has revealed and are off
+ * under reduced motion; the default (un-animated) styles below are each
+ * illustration's finished frame.
+ */
+.pa-art svg * {
+  transform-box: view-box;
+}
+.pa-dots {
+  opacity: 0;
+}
+.pa-spin-slow,
+.pa-spin-mid,
+.pa-spin-fast,
+.pa-spin-rev,
+.pa-breathe {
+  transform-origin: 160px 80px;
+}
+.pa-draw,
+.pa-check {
+  stroke-dasharray: 100;
+  stroke-dashoffset: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .reveal-in .pa-pop {
+    animation: pa-pop 6s ease-out infinite both;
+  }
+  .reveal-in .pa-dots {
+    animation: pa-dots 6s linear infinite both;
+    animation-delay: 0.7s;
+  }
+  .reveal-in .pa-dot {
+    animation: pa-dot 0.6s ease-in-out infinite alternate;
+  }
+  .reveal-in .pa-grow {
+    animation: pa-grow 6s cubic-bezier(0.16, 1, 0.3, 1) infinite both;
+  }
+  .reveal-in .pa-spin-slow {
+    animation: pa-spin 18s linear infinite;
+  }
+  .reveal-in .pa-spin-mid {
+    animation: pa-spin 10s linear infinite reverse;
+  }
+  .reveal-in .pa-spin-fast {
+    animation: pa-spin 5s linear infinite;
+  }
+  .reveal-in .pa-spin-rev {
+    animation: pa-spin 40s linear infinite reverse;
+  }
+  .reveal-in .pa-breathe {
+    animation: pa-breathe 2.4s ease-in-out infinite;
+  }
+  .reveal-in .pa-type {
+    animation: pa-type 6s steps(18, end) infinite both;
+  }
+  .reveal-in .pa-blink {
+    animation: pa-blink 1s steps(2, start) infinite;
+  }
+  .reveal-in .pa-draw {
+    animation: pa-draw 5s ease-in-out infinite both;
+  }
+  .reveal-in .pa-check {
+    animation: pa-check 5s ease-out infinite both;
+  }
+  .reveal-in .pa-point {
+    animation: pa-point 5s cubic-bezier(0.34, 1.56, 0.64, 1) infinite both;
+  }
+  .reveal-in .pa-fit {
+    animation: pa-fit 5s cubic-bezier(0.45, 0, 0.2, 1) infinite both;
+  }
+  .reveal-in .pa-residual {
+    animation: pa-residual 5s ease infinite both;
+  }
+  .reveal-in .pa-scan-x {
+    animation: pa-scan-x 2s steps(4, end) infinite;
+  }
+  .reveal-in .pa-scan-y {
+    animation: pa-scan-y 8s steps(4, end) infinite;
+  }
+  .reveal-in .pa-feature {
+    animation: pa-feature 8s ease-out infinite both;
+  }
+  .reveal-in .pa-token {
+    animation: pa-token 7s cubic-bezier(0.16, 1, 0.3, 1) infinite both;
+  }
+  .reveal-in .pa-prob {
+    animation: pa-prob 2.4s ease-in-out infinite alternate both;
+  }
+  .reveal-in .pa-flow {
+    animation: pa-flow 0.9s linear infinite;
+  }
+  .reveal-in .pa-led {
+    animation: pa-led 1.3s ease-in-out infinite alternate both;
+  }
+  .reveal-in .pa-track-pulse {
+    animation: pa-track-pulse 4.2s linear infinite;
+  }
+  .reveal-in .pa-track-node {
+    animation: pa-track-node 4.2s ease-out infinite both;
+  }
+}
+
+@keyframes pa-pop {
+  0% { opacity: 0; transform: translateY(8px); }
+  8%, 88% { opacity: 1; transform: none; }
+  96%, 100% { opacity: 0; transform: none; }
+}
+@keyframes pa-dots {
+  0%, 6% { opacity: 0; }
+  10%, 20% { opacity: 1; }
+  23%, 100% { opacity: 0; }
+}
+@keyframes pa-dot {
+  to { transform: translateY(-4px); }
+}
+@keyframes pa-grow {
+  0% { opacity: 0; transform: scaleX(0); }
+  7%, 50% { opacity: 1; transform: scaleX(1); }
+  56%, 100% { opacity: 0; transform: scaleX(1); }
+}
+@keyframes pa-spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes pa-breathe {
+  50% { transform: scale(1.6); opacity: 0.6; }
+}
+@keyframes pa-type {
+  0% { clip-path: inset(0 100% 0 0); opacity: 1; }
+  14%, 80% { clip-path: inset(0 0 0 0); opacity: 1; }
+  90%, 100% { clip-path: inset(0 0 0 0); opacity: 0; }
+}
+@keyframes pa-blink {
+  to { opacity: 0; }
+}
+@keyframes pa-draw {
+  0% { stroke-dashoffset: 100; opacity: 1; }
+  40%, 86% { stroke-dashoffset: 0; opacity: 1; }
+  100% { stroke-dashoffset: 0; opacity: 0; }
+}
+@keyframes pa-check {
+  0%, 38% { stroke-dashoffset: 100; opacity: 1; }
+  52%, 86% { stroke-dashoffset: 0; opacity: 1; }
+  100% { stroke-dashoffset: 0; opacity: 0; }
+}
+@keyframes pa-point {
+  0% { transform: scale(0); opacity: 0; }
+  8%, 88% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(1); opacity: 0; }
+}
+@keyframes pa-fit {
+  0%, 25% { transform: rotate(-32deg); opacity: 0.35; }
+  50% { transform: rotate(6deg); opacity: 1; }
+  60%, 88% { transform: rotate(0); opacity: 1; }
+  100% { transform: rotate(0); opacity: 0; }
+}
+@keyframes pa-residual {
+  0%, 58% { opacity: 0; }
+  68%, 86% { opacity: 1; }
+  100% { opacity: 0; }
+}
+@keyframes pa-scan-x {
+  from { transform: translateX(0); }
+  to { transform: translateX(64px); }
+}
+@keyframes pa-scan-y {
+  from { transform: translateY(0); }
+  to { transform: translateY(64px); }
+}
+@keyframes pa-feature {
+  0% { opacity: 0.15; }
+  3% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { opacity: 0.15; }
+}
+@keyframes pa-token {
+  0% { opacity: 0; transform: translateY(8px) scale(0.9); }
+  6%, 60% { opacity: 1; transform: none; }
+  66%, 100% { opacity: 0; transform: none; }
+}
+@keyframes pa-prob {
+  from { transform: scaleX(0.55); }
+  to { transform: scaleX(1); }
+}
+@keyframes pa-flow {
+  to { stroke-dashoffset: -24; }
+}
+@keyframes pa-led {
+  from { opacity: 0.25; }
+  to { opacity: 1; }
+}
+@keyframes pa-track-pulse {
+  from { left: -6rem; }
+  to { left: 100%; }
+}
+@keyframes pa-track-node {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgb(34 211 238 / 0%); }
+  6% { transform: scale(1.25); box-shadow: 0 0 0 6px rgb(34 211 238 / 25%); }
+  16%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgb(34 211 238 / 0%); }
+}

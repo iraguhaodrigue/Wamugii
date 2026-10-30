@@ -61,12 +61,16 @@ export function CourseSpotlight() {
                   Start learning free
                   <ArrowRight className="size-4" aria-hidden="true" />
                 </Link>
-                <Link
-                  to={paths.courses}
+                <a
+                  href="#ai-program"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    document.getElementById('ai-program')?.scrollIntoView({ behavior: 'smooth' })
+                  }}
                   className="inline-flex h-12 items-center justify-center rounded-lg border border-white/20 bg-white/5 px-6 text-sm font-semibold text-white transition-colors hover:bg-white/10"
                 >
                   See the full AI Program
-                </Link>
+                </a>
               </div>
             </Reveal>
             <Reveal delay={120} className="mx-auto w-full max-w-md">

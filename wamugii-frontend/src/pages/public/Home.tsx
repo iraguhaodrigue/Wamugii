@@ -16,6 +16,7 @@ import { ClientJourney } from '@/components/home/ClientJourney'
 import { FaqSection } from '@/components/home/FaqSection'
 import { FinalCTA } from '@/components/home/FinalCTA'
 import { CourseSpotlight } from '@/components/home/CourseSpotlight'
+import { AIProgram } from '@/components/home/AIProgram'
 
 /**
  * The homepage is a composition of section components (src/components/home).
@@ -37,6 +38,7 @@ export function Home() {
       <CapabilityChips services={list} isLoading={isLoading} />
       <MetricCards serviceCount={list.length} />
       <CourseSpotlight />
+      <AIProgram />
       <ServicesGrid services={services} isLoading={isLoading} isError={isError} onRetry={() => refetch()} />
       <ProcessSection />
       <SolutionShowcase />
