@@ -1184,3 +1184,131 @@ body {
   0% { transform: scaleX(0); }
   30%, 100% { transform: scaleX(1); }
 }
+
+/*
+ * Metric cards (MetricArt.tsx) — one small badge per card, inside AnimInView.
+ */
+.mt-parcel {
+  offset-anchor: center;
+  offset-rotate: 0deg;
+  offset-distance: 100%;
+}
+.mt-road {
+  stroke-dasharray: 100;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .anim-live .mt-tile { animation: mt-tile 4.5s ease infinite both; }
+  .anim-live .mt-road { animation: mt-road 4s ease-in-out infinite both; }
+  .anim-live .mt-parcel { animation: mt-parcel 4s ease-in-out infinite both; }
+  .anim-live .mt-flag { animation: mt-flag 4s ease-out infinite both; transform-origin: 110px 26px; }
+  .anim-live .mt-knob { animation: mt-knob 5s cubic-bezier(0.65, 0, 0.35, 1) infinite both; }
+  .anim-live .mt-hand-slow { animation: ba-spin 12s linear infinite; }
+  .anim-live .mt-hand-fast { animation: ba-spin 3s steps(60, end) infinite; }
+  .anim-live .mt-glow { animation: ba-blink 1.6s ease-in-out infinite alternate both; }
+}
+@keyframes mt-tile {
+  0% { opacity: 0; transform: scale(0.6); }
+  8%, 80% { opacity: 0.9; transform: none; }
+  92%, 100% { opacity: 0; transform: none; }
+}
+@keyframes mt-road {
+  0% { stroke-dashoffset: 100; }
+  70%, 90% { stroke-dashoffset: 0; opacity: 1; }
+  100% { stroke-dashoffset: 0; opacity: 0; }
+}
+@keyframes mt-parcel {
+  0% { offset-distance: 0%; opacity: 1; }
+  70%, 90% { offset-distance: 100%; opacity: 1; }
+  100% { offset-distance: 100%; opacity: 0; }
+}
+@keyframes mt-flag {
+  0%, 66% { transform: scaleY(0); }
+  76%, 100% { transform: scaleY(1); }
+}
+@keyframes mt-knob {
+  0%, 100% { transform: translateX(var(--k1)); }
+  33% { transform: translateX(var(--k2)); }
+  66% { transform: translateX(var(--k3)); }
+}
+
+/*
+ * Hero backdrop (HeroBackdrop.tsx): drifting aurora, rising tech glyphs and
+ * shooting lights. Only the aurora shows under reduced motion, standing still.
+ */
+.hb-aurora {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(60px);
+  opacity: 0.7;
+  will-change: transform;
+}
+.hb-aurora-a {
+  width: 46vw;
+  height: 46vw;
+  left: -10vw;
+  top: -18vw;
+  background: radial-gradient(circle, rgb(6 182 212 / 55%), transparent 65%);
+}
+.hb-aurora-b {
+  width: 40vw;
+  height: 40vw;
+  right: -8vw;
+  top: 10%;
+  background: radial-gradient(circle, rgb(124 58 237 / 50%), transparent 65%);
+}
+.hb-aurora-c {
+  width: 36vw;
+  height: 30vw;
+  left: 30%;
+  bottom: -16vw;
+  background: radial-gradient(circle, rgb(45 212 191 / 35%), transparent 65%);
+}
+.hb-glyph {
+  position: absolute;
+  opacity: 0;
+  font-family: ui-monospace, Menlo, monospace;
+  font-weight: 700;
+  color: rgb(165 243 252 / 90%);
+  text-shadow: 0 0 14px rgb(34 211 238 / 80%);
+  font-size: 1.1rem;
+}
+.hb-star {
+  position: absolute;
+  width: 140px;
+  height: 2px;
+  opacity: 0;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 90%));
+  transform: rotate(-24deg);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .hb-aurora-a { animation: hb-drift-a 22s ease-in-out infinite alternate; }
+  .hb-aurora-b { animation: hb-drift-b 26s ease-in-out infinite alternate; }
+  .hb-aurora-c { animation: hb-drift-c 19s ease-in-out infinite alternate; }
+  .hb-glyph { animation: hb-rise 15s linear infinite both; }
+  .hb-star { animation: hb-star 15s ease-in infinite both; }
+}
+@media (max-width: 640px) {
+  .hb-glyph:nth-child(n + 9) { display: none; }
+}
+@keyframes hb-drift-a {
+  to { transform: translate(18vw, 10vw) scale(1.15); }
+}
+@keyframes hb-drift-b {
+  to { transform: translate(-16vw, 6vw) scale(0.9); }
+}
+@keyframes hb-drift-c {
+  to { transform: translate(-12vw, -8vw) scale(1.2); }
+}
+@keyframes hb-rise {
+  0% { transform: translateY(0) scale(0.9); opacity: 0; }
+  12% { opacity: 0.7; }
+  70% { opacity: 0.5; }
+  100% { transform: translateY(-200px) scale(1.1); opacity: 0; }
+}
+@keyframes hb-star {
+  0% { transform: rotate(-24deg) translateX(0) scaleX(0.2); opacity: 0; }
+  2% { opacity: 1; }
+  7% { transform: rotate(-24deg) translateX(-420px) scaleX(1); opacity: 0; }
+  100% { transform: rotate(-24deg) translateX(-420px) scaleX(1); opacity: 0; }
+}

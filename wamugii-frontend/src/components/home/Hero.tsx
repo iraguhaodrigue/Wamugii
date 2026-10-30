@@ -5,6 +5,7 @@ import { paths } from '@/routes/paths'
 import { Container } from '@/components/ui'
 import { AnimatedTechBackground } from '@/components/common/AnimatedTechBackground'
 import { ServiceExplorer } from './ServiceExplorer'
+import { HeroBackdrop } from './HeroBackdrop'
 
 export interface HeroProps {
   services: Service[]
@@ -32,6 +33,7 @@ export function Hero({ services, isLoading }: HeroProps) {
       />
       {/* Static CSS light source, above the blobs and below the content. */}
       <div className="hero-glow pointer-events-none absolute inset-0" aria-hidden="true" />
+      <HeroBackdrop />
       <AnimatedTechBackground intensity="hero" />
 
       <Container className="relative py-20 sm:py-24 lg:py-28">
