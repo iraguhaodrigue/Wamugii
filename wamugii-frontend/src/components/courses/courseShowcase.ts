@@ -1,6 +1,10 @@
 import {
+  BarChart3,
   Briefcase,
   Brain,
+  GitBranch,
+  Layers,
+  Scale,
   Code,
   Sigma,
   Table2,
@@ -200,6 +204,58 @@ const SHOWCASES: Record<string, CourseShowcase> = {
       { icon: GraduationCap, title: 'Students', text: 'The base for machine learning and data science.' },
       { icon: Briefcase, title: 'Professionals', text: 'Automate reports and analyse data with Python.' },
       { icon: Users, title: 'Future AI builders', text: 'Step 2 of the WAMUGII AI Program.' },
+    ],
+  },
+  'machine-learning-fundamentals': {
+    tagline:
+      'A hands-on 4-week course in classic machine learning with scikit-learn — build, evaluate, tune and deploy models you can trust. Runs free in your browser.',
+    level: 'Intermediate',
+    lessonCount: 24,
+    hours: 22,
+    weeks: [
+      {
+        title: 'Week 1 · Your First Models with scikit-learn',
+        summary: 'The workflow, encoding and scaling, linear and logistic regression and k-NN.',
+        icon: TrendingDown,
+      },
+      {
+        title: 'Week 2 · Trees, Ensembles and More',
+        summary: 'Decision trees, random forests, boosting, SVMs and Naive Bayes on real medical data.',
+        icon: GitBranch,
+      },
+      {
+        title: 'Week 3 · Evaluating and Improving Models',
+        summary: 'Cross-validation, precision and recall, ROC and thresholds, regularisation and tuning.',
+        icon: BarChart3,
+      },
+      {
+        title: 'Week 4 · Unsupervised Learning and Real Projects',
+        summary: 'k-means, PCA, pipelines, imbalanced data, fairness and saving models.',
+        icon: Layers,
+      },
+    ],
+    highlights: [
+      'Linear & Logistic Regression',
+      'k-Nearest Neighbours',
+      'Decision Trees',
+      'Random Forests',
+      'Gradient Boosting',
+      'Support Vector Machines',
+      'Cross-Validation',
+      'Precision, Recall & ROC',
+      'k-Means & PCA',
+      'Pipelines & Fairness',
+    ],
+    outcomes: [
+      { icon: Brain, title: 'Build real models', text: 'Seven families of algorithms, all with the same scikit-learn workflow.' },
+      { icon: BarChart3, title: 'Evaluate honestly', text: 'Cross-validation, the right metrics and thresholds chosen from real costs.' },
+      { icon: Wrench, title: 'Ship it properly', text: 'Pipelines, tuning, saved models, model cards and drift checks.' },
+      { icon: Scale, title: 'Use it responsibly', text: 'Imbalanced data, proxies and fairness audits by group.' },
+    ],
+    audience: [
+      { icon: GraduationCap, title: 'Students', text: 'The core of every data science and AI degree.' },
+      { icon: Briefcase, title: 'Analysts and developers', text: 'Add prediction to your reports and apps.' },
+      { icon: Users, title: 'Future AI builders', text: 'Step 3 of the WAMUGII AI Program, before deep learning.' },
     ],
   },
 }

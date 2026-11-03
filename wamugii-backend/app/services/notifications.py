@@ -715,6 +715,29 @@ def notify_course_completed(db: Session, enrollment: Enrollment, course: Course)
     student = _recipient(db, enrollment.client_id)
     if student is None:
         return
+    from app.services.exam import has_exam
+
+    if has_exam(db, course.id):
+        # The certificate now waits for the final exam.
+        from app.crud import exam as exam_crud
+
+        count = min(course.exam_question_count, exam_crud.count_active_exam_questions(db, course.id))
+        _emit(
+            db,
+            user_id=enrollment.client_id,
+            type=NotificationType.COURSE_COMPLETED,
+            title="All lessons complete -- your final exam is unlocked",
+            message=f"You finished every lesson of '{course.title}'. Take the final exam to earn your certificate.",
+            related_type="course",
+            related_id=course.id,
+        )
+        _send_email(
+            student,
+            email_templates.course_lessons_done_exam_client(
+                course, student, course.exam_minutes, count, course.exam_pass_percent
+            ),
+        )
+        return
     _emit(
         db,
         user_id=enrollment.client_id,
@@ -728,6 +751,89 @@ def notify_course_completed(db: Session, enrollment: Enrollment, course: Course)
         student,
         email_templates.course_completed_client(course, enrollment, student),
     )
+
+
+def notify_exam_passed(db: Session, enrollment: Enrollment, course: Course, attempt) -> None:
+    """To the student, on their first passing exam attempt: certificate ready."""
+    student = _recipient(db, enrollment.client_id)
+    if student is None:
+        return
+    _emit(
+        db,
+        user_id=enrollment.client_id,
+        type=NotificationType.EXAM_PASSED,
+        title="You passed the final exam -- your certificate is ready",
+        message=f"You scored {attempt.percent}% in the '{course.title}' final exam.",
+        related_type="course",
+        related_id=course.id,
+    )
+    _send_email(student, email_templates.exam_passed_client(course, enrollment, student, attempt.percent or 0))
+
+
+def notify_lesson_question(db: Session, course: Course, lesson, question, student: User) -> None:
+    """To the course's instructors (or every admin when it has none): a new lesson question."""
+    from app.crud import exam as exam_crud
+
+    try:
+        recipients = exam_crud.instructors_for_course(db, course.id)
+    except Exception:
+        db.rollback()
+        logger.exception("failed to resolve instructors for a lesson question")
+        recipients = []
+    if not recipients:
+        recipients = _emit_to_admins(
+            db,
+            type=NotificationType.LESSON_QUESTION,
+            title=f"New question: {lesson.title}",
+            message=f"{student.full_name} asked a question in '{course.title}'.",
+            related_type="lesson_question",
+            related_id=question.id,
+        )
+    else:
+        for r in recipients:
+            _emit(
+                db,
+                user_id=r.id,
+                type=NotificationType.LESSON_QUESTION,
+                title=f"New question: {lesson.title}",
+                message=f"{student.full_name} asked a question in '{course.title}'.",
+                related_type="lesson_question",
+                related_id=question.id,
+            )
+    for r in recipients:
+        _send_email(r, email_templates.lesson_question_instructor(course, lesson, question, student.full_name))
+
+
+def notify_lesson_answer(db: Session, course: Course, lesson, question, answerer: User) -> None:
+    """To the student who asked, when someone else replies."""
+    if question.author_id == answerer.id:
+        return
+    student = _recipient(db, question.author_id)
+    if student is None:
+        return
+    _emit(
+        db,
+        user_id=student.id,
+        type=NotificationType.LESSON_ANSWER,
+        title="Your question has an answer",
+        message=f"{answerer.full_name} replied to your question on '{lesson.title}'.",
+        related_type="lesson_question",
+        related_id=question.id,
+    )
+    _send_email(student, email_templates.lesson_answer_client(course, lesson, student, answerer.full_name))
+
+
+def notify_course_assigned(db: Session, course: Course, instructor: User) -> None:
+    _emit(
+        db,
+        user_id=instructor.id,
+        type=NotificationType.COURSE_ASSIGNED,
+        title=f"You are now an instructor on {course.title}",
+        message="Open your instructor area to manage lessons, questions and the final exam.",
+        related_type="course",
+        related_id=course.id,
+    )
+    _send_email(instructor, email_templates.course_assigned_instructor(course, instructor))
 
 
 def send_course_reminder(db: Session, enrollment: Enrollment, course: Course, next_lesson_title: str | None, percent: int) -> bool:

@@ -1375,6 +1375,400 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/client/courses/{course_id}/exam": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Final-exam rules, eligibility and my attempts */
+        get: operations["exam_overview_api_v1_client_courses__course_id__exam_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/client/courses/{course_id}/exam/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Start the final exam (or continue the attempt in progress) */
+        post: operations["start_exam_api_v1_client_courses__course_id__exam_start_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/client/exam-attempts/{attempt_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Reload an exam in progress (after a refresh) */
+        get: operations["get_exam_session_api_v1_client_exam_attempts__attempt_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/client/exam-attempts/{attempt_id}/answers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Save answers as the student goes */
+        put: operations["save_exam_answers_api_v1_client_exam_attempts__attempt_id__answers_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/client/exam-attempts/{attempt_id}/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Report leaving the exam screen; the last allowed leave submits the exam */
+        post: operations["report_exam_event_api_v1_client_exam_attempts__attempt_id__events_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/client/exam-attempts/{attempt_id}/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Submit the exam for marking */
+        post: operations["submit_exam_api_v1_client_exam_attempts__attempt_id__submit_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/client/exam-attempts/{attempt_id}/result": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The result of a submitted attempt */
+        get: operations["exam_result_api_v1_client_exam_attempts__attempt_id__result_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/client/courses/{course_id}/lessons/{lesson_id}/questions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Questions and answers under a lesson */
+        get: operations["lesson_questions_api_v1_client_courses__course_id__lessons__lesson_id__questions_get"];
+        put?: never;
+        /** Ask a question under a lesson; the course instructors are notified */
+        post: operations["ask_question_api_v1_client_courses__course_id__lessons__lesson_id__questions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/client/courses/{course_id}/questions/{question_id}/answers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reply in a lesson question thread (students can help each other) */
+        post: operations["reply_to_question_api_v1_client_courses__course_id__questions__question_id__answers_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/courses/{course_id}/exam": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The final-exam rules and question bank (course staff) */
+        get: operations["get_exam_bank_api_v1_courses__course_id__exam_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/courses/{course_id}/exam/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Change the final-exam rules (course staff) */
+        put: operations["update_exam_settings_api_v1_courses__course_id__exam_settings_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/courses/{course_id}/exam/questions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add one or more questions to the exam bank (course staff) */
+        post: operations["add_exam_questions_api_v1_courses__course_id__exam_questions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/courses/{course_id}/exam/questions/{question_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Edit an exam question (course staff) */
+        put: operations["edit_exam_question_api_v1_courses__course_id__exam_questions__question_id__put"];
+        post?: never;
+        /** Remove an exam question (course staff) */
+        delete: operations["remove_exam_question_api_v1_courses__course_id__exam_questions__question_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/courses/{course_id}/exam/ai-draft": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Draft exam questions from lesson notes with AI -- nothing is saved (course staff) */
+        post: operations["ai_draft_questions_api_v1_courses__course_id__exam_ai_draft_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/courses/{course_id}/exam/attempts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Every final-exam attempt on a course, with proctoring events (course staff) */
+        get: operations["list_exam_attempts_api_v1_courses__course_id__exam_attempts_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/courses/{course_id}/enrollments/{enrollment_id}/exam/extra-attempt": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Give a student one more final-exam attempt (course staff) */
+        post: operations["grant_extra_attempt_api_v1_courses__course_id__enrollments__enrollment_id__exam_extra_attempt_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/courses/{course_id}/instructors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Instructors assigned to a course */
+        get: operations["list_instructors_api_v1_courses__course_id__instructors_get"];
+        put?: never;
+        /** Assign an instructor by email (ADMIN). A client account becomes an INSTRUCTOR. */
+        post: operations["assign_instructor_api_v1_courses__course_id__instructors_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/courses/{course_id}/instructors/{user_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove an instructor from a course (ADMIN) */
+        delete: operations["unassign_instructor_api_v1_courses__course_id__instructors__user_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/courses/{course_id}/questions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Students' lesson questions on a course (course staff) */
+        get: operations["list_course_questions_api_v1_courses__course_id__questions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/courses/{course_id}/questions/{question_id}/answers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Answer a student's lesson question (course staff) */
+        post: operations["answer_question_api_v1_courses__course_id__questions__question_id__answers_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/courses/{course_id}/questions/{question_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Hide a lesson question (course staff) */
+        delete: operations["hide_question_api_v1_courses__course_id__questions__question_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/instructor/courses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The courses assigned to me (INSTRUCTOR) */
+        get: operations["my_courses_api_v1_instructor_courses_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/instructor/questions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Questions from students on all my courses (INSTRUCTOR) */
+        get: operations["my_questions_api_v1_instructor_questions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/quote-requests": {
         parameters: {
             query?: never;
@@ -1912,6 +2306,28 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AiDraftRequest */
+        AiDraftRequest: {
+            /** Lesson Ids */
+            lesson_ids?: number[];
+            /**
+             * Count
+             * @default 10
+             */
+            count: number;
+            /** Kinds */
+            kinds?: components["schemas"]["ExamQuestionKind"][];
+        };
+        /** AiDraftResponse */
+        AiDraftResponse: {
+            /** Drafts */
+            drafts: components["schemas"]["ExamQuestionWrite"][];
+            /**
+             * Note
+             * @default
+             */
+            note: string;
+        };
         /**
          * ApprovalStatus
          * @description Whether an account has been cleared to use the app.
@@ -1991,6 +2407,8 @@ export interface components {
              * Format: date
              */
             issued_on: string;
+            /** Exam Percent */
+            exam_percent?: number | null;
         };
         /**
          * ClientActivityItem
@@ -2140,6 +2558,38 @@ export interface components {
              * @default 0
              */
             progress_percent: number;
+            /**
+             * Student Name
+             * @default
+             */
+            student_name: string;
+            /**
+             * Student Email
+             * @default
+             */
+            student_email: string;
+            /**
+             * Quizzes Passed
+             * @default 0
+             */
+            quizzes_passed: number;
+            /**
+             * Exam Attempts
+             * @default 0
+             */
+            exam_attempts: number;
+            /** Exam Best Percent */
+            exam_best_percent?: number | null;
+            /**
+             * Exam Passed
+             * @default false
+             */
+            exam_passed: boolean;
+            /**
+             * Exam Extra Attempts
+             * @default 0
+             */
+            exam_extra_attempts: number;
             /**
              * Course Title
              * @default
@@ -3146,6 +3596,38 @@ export interface components {
              * @default 0
              */
             progress_percent: number;
+            /**
+             * Student Name
+             * @default
+             */
+            student_name: string;
+            /**
+             * Student Email
+             * @default
+             */
+            student_email: string;
+            /**
+             * Quizzes Passed
+             * @default 0
+             */
+            quizzes_passed: number;
+            /**
+             * Exam Attempts
+             * @default 0
+             */
+            exam_attempts: number;
+            /** Exam Best Percent */
+            exam_best_percent?: number | null;
+            /**
+             * Exam Passed
+             * @default false
+             */
+            exam_passed: boolean;
+            /**
+             * Exam Extra Attempts
+             * @default 0
+             */
+            exam_extra_attempts: number;
         };
         /**
          * EnrollmentStatus
@@ -3154,6 +3636,367 @@ export interface components {
          * @enum {string}
          */
         EnrollmentStatus: "PENDING_PAYMENT" | "ACTIVE" | "CANCELLED";
+        /** ExamAnswersSave */
+        ExamAnswersSave: {
+            /** Answers */
+            answers: {
+                [key: string]: number | number[] | string | null;
+            };
+        };
+        /**
+         * ExamAttemptAdmin
+         * @description Management view: who, when, score, and every proctoring event.
+         */
+        ExamAttemptAdmin: {
+            /** Id */
+            id: number;
+            status: components["schemas"]["ExamAttemptStatus"];
+            /**
+             * Started At
+             * Format: date-time
+             */
+            started_at: string;
+            /** Submitted At */
+            submitted_at: string | null;
+            /** Submit Reason */
+            submit_reason: string | null;
+            /** Score */
+            score: number | null;
+            /** Total */
+            total: number;
+            /** Percent */
+            percent: number | null;
+            /** Passed */
+            passed: boolean;
+            /** Leave Count */
+            leave_count: number;
+            /** Client Id */
+            client_id: number;
+            /** Enrollment Id */
+            enrollment_id: number;
+            /**
+             * Student Name
+             * @default
+             */
+            student_name: string;
+            /**
+             * Student Email
+             * @default
+             */
+            student_email: string;
+            /**
+             * Events
+             * @default []
+             */
+            events: {
+                [key: string]: unknown;
+            }[];
+            /** Topic Scores */
+            topic_scores?: components["schemas"]["TopicScore"][] | null;
+        };
+        /**
+         * ExamAttemptStatus
+         * @enum {string}
+         */
+        ExamAttemptStatus: "IN_PROGRESS" | "SUBMITTED";
+        /** ExamAttemptSummary */
+        ExamAttemptSummary: {
+            /** Id */
+            id: number;
+            status: components["schemas"]["ExamAttemptStatus"];
+            /**
+             * Started At
+             * Format: date-time
+             */
+            started_at: string;
+            /** Submitted At */
+            submitted_at: string | null;
+            /** Submit Reason */
+            submit_reason: string | null;
+            /** Score */
+            score: number | null;
+            /** Total */
+            total: number;
+            /** Percent */
+            percent: number | null;
+            /** Passed */
+            passed: boolean;
+            /** Leave Count */
+            leave_count: number;
+        };
+        /** ExamBankSummary */
+        ExamBankSummary: {
+            settings: components["schemas"]["ExamSettings"];
+            /** Questions */
+            questions: components["schemas"]["ExamQuestionAdmin"][];
+            /** Counts */
+            counts: {
+                [key: string]: number;
+            };
+            /**
+             * Ai Drafting Available
+             * @default false
+             */
+            ai_drafting_available: boolean;
+        };
+        /** ExamEvent */
+        ExamEvent: {
+            /** Type */
+            type: string;
+            /**
+             * Detail
+             * @default
+             */
+            detail: string;
+        };
+        /** ExamEventResult */
+        ExamEventResult: {
+            /** Leave Count */
+            leave_count: number;
+            /** Max Leaves */
+            max_leaves: number;
+            /** Submitted */
+            submitted: boolean;
+            result?: components["schemas"]["ExamResult"] | null;
+        };
+        /** ExamOption */
+        ExamOption: {
+            /** Id */
+            id: number;
+            /** Text */
+            text: string;
+        };
+        /** ExamOverview */
+        ExamOverview: {
+            /** Available */
+            available: boolean;
+            /** Eligible */
+            eligible: boolean;
+            /**
+             * Reason
+             * @default
+             */
+            reason: string;
+            /** Lessons Complete */
+            lessons_complete: boolean;
+            /** Question Count */
+            question_count: number;
+            /** Minutes */
+            minutes: number;
+            /** Pass Percent */
+            pass_percent: number;
+            /** Max Attempts */
+            max_attempts: number;
+            /** Attempts Used */
+            attempts_used: number;
+            /** Attempts Left */
+            attempts_left: number;
+            /** Next Attempt At */
+            next_attempt_at?: string | null;
+            /** Max Leaves */
+            max_leaves: number;
+            /** Passed */
+            passed: boolean;
+            /** Best Percent */
+            best_percent?: number | null;
+            /** In Progress Attempt Id */
+            in_progress_attempt_id?: number | null;
+            /**
+             * Type Counts
+             * @default {}
+             */
+            type_counts: {
+                [key: string]: number;
+            };
+            /**
+             * Attempts
+             * @default []
+             */
+            attempts: components["schemas"]["ExamAttemptSummary"][];
+        };
+        /** ExamQuestionAdmin */
+        ExamQuestionAdmin: {
+            /** Id */
+            id: number;
+            /** Course Id */
+            course_id: number;
+            kind: components["schemas"]["ExamQuestionKind"];
+            /** Question */
+            question: string;
+            /** Options */
+            options: string[];
+            /** Correct */
+            correct: (number | string)[];
+            /** Explanation */
+            explanation: string;
+            /** Topic */
+            topic: string | null;
+            /** Is Active */
+            is_active: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /**
+         * ExamQuestionKind
+         * @enum {string}
+         */
+        ExamQuestionKind: "SINGLE" | "MULTIPLE" | "TRUE_FALSE" | "FILL_BLANK";
+        /** ExamQuestionPublic */
+        ExamQuestionPublic: {
+            /** Id */
+            id: number;
+            /** Number */
+            number: number;
+            kind: components["schemas"]["ExamQuestionKind"];
+            /** Question */
+            question: string;
+            /**
+             * Options
+             * @default []
+             */
+            options: components["schemas"]["ExamOption"][];
+        };
+        /**
+         * ExamQuestionWrite
+         * @description One bank question. `correct` is option indexes for SINGLE / MULTIPLE /
+         *     TRUE_FALSE and the accepted answers for FILL_BLANK.
+         */
+        ExamQuestionWrite: {
+            kind: components["schemas"]["ExamQuestionKind"];
+            /** Question */
+            question: string;
+            /** Options */
+            options?: string[];
+            /** Correct */
+            correct: (number | string)[];
+            /**
+             * Explanation
+             * @default
+             */
+            explanation: string;
+            /** Topic */
+            topic?: string | null;
+            /**
+             * Is Active
+             * @default true
+             */
+            is_active: boolean;
+        };
+        /** ExamResult */
+        ExamResult: {
+            /** Attempt Id */
+            attempt_id: number;
+            /** Score */
+            score: number;
+            /** Total */
+            total: number;
+            /** Percent */
+            percent: number;
+            /** Pass Percent */
+            pass_percent: number;
+            /** Passed */
+            passed: boolean;
+            /** Submit Reason */
+            submit_reason: string;
+            /**
+             * Topic Scores
+             * @default []
+             */
+            topic_scores: components["schemas"]["TopicScore"][];
+            /** Attempts Left */
+            attempts_left: number;
+            /** Next Attempt At */
+            next_attempt_at?: string | null;
+            /**
+             * Certificate Ready
+             * @default false
+             */
+            certificate_ready: boolean;
+        };
+        /** ExamSession */
+        ExamSession: {
+            /** Attempt Id */
+            attempt_id: number;
+            /** Course Id */
+            course_id: number;
+            /** Course Title */
+            course_title: string;
+            /**
+             * Started At
+             * Format: date-time
+             */
+            started_at: string;
+            /**
+             * Deadline At
+             * Format: date-time
+             */
+            deadline_at: string;
+            /**
+             * Server Now
+             * Format: date-time
+             */
+            server_now: string;
+            /** Leave Count */
+            leave_count: number;
+            /** Max Leaves */
+            max_leaves: number;
+            /** Pass Percent */
+            pass_percent: number;
+            /** Questions */
+            questions: components["schemas"]["ExamQuestionPublic"][];
+            /**
+             * Answers
+             * @default {}
+             */
+            answers: {
+                [key: string]: number | number[] | string | null;
+            };
+        };
+        /** ExamSettings */
+        ExamSettings: {
+            /** Exam Question Count */
+            exam_question_count: number;
+            /** Exam Minutes */
+            exam_minutes: number;
+            /** Exam Pass Percent */
+            exam_pass_percent: number;
+            /** Exam Max Attempts */
+            exam_max_attempts: number;
+            /** Exam Cooldown Hours */
+            exam_cooldown_hours: number;
+            /** Exam Max Leaves */
+            exam_max_leaves: number;
+        };
+        /** ExamSettingsUpdate */
+        ExamSettingsUpdate: {
+            /** Exam Question Count */
+            exam_question_count?: number | null;
+            /** Exam Minutes */
+            exam_minutes?: number | null;
+            /** Exam Pass Percent */
+            exam_pass_percent?: number | null;
+            /** Exam Max Attempts */
+            exam_max_attempts?: number | null;
+            /** Exam Cooldown Hours */
+            exam_cooldown_hours?: number | null;
+            /** Exam Max Leaves */
+            exam_max_leaves?: number | null;
+        };
+        /**
+         * ExtraVideo
+         * @description A longer "full lecture" video shown under a lesson's main video.
+         */
+        ExtraVideo: {
+            /** Title */
+            title: string;
+            /** Url */
+            url: string;
+            /** Minutes */
+            minutes?: number | null;
+        };
         /**
          * FileCategory
          * @enum {string}
@@ -3375,6 +4218,44 @@ export interface components {
          * @enum {string}
          */
         HostingStatus: "PENDING" | "ACTIVE" | "SUSPENDED" | "EXPIRED" | "CANCELLED";
+        /** InstructorAssign */
+        InstructorAssign: {
+            /** Email */
+            email: string;
+        };
+        /** InstructorCourseRead */
+        InstructorCourseRead: {
+            /** Id */
+            id: number;
+            /** Title */
+            title: string;
+            /** Slug */
+            slug: string;
+            /** Status */
+            status: string;
+            /** Lesson Count */
+            lesson_count: number;
+            /** Student Count */
+            student_count: number;
+            /** Unanswered Questions */
+            unanswered_questions: number;
+            /** Exam Question Count */
+            exam_question_count: number;
+        };
+        /** InstructorRead */
+        InstructorRead: {
+            /** User Id */
+            user_id: number;
+            /** Full Name */
+            full_name: string;
+            /** Email */
+            email: string;
+            /**
+             * Assigned At
+             * Format: date-time
+             */
+            assigned_at: string;
+        };
         /**
          * InvoiceCompanyBlock
          * @description The issuer details printed at the top of an invoice.
@@ -3584,6 +4465,27 @@ export interface components {
             /** Items */
             items?: components["schemas"]["InvoiceItemCreate"][] | null;
         };
+        /** LessonAnswerCreate */
+        LessonAnswerCreate: {
+            /** Body */
+            body: string;
+        };
+        /** LessonAnswerRead */
+        LessonAnswerRead: {
+            /** Id */
+            id: number;
+            /** Body */
+            body: string;
+            /** Author Name */
+            author_name: string;
+            /** Author Role */
+            author_role: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
         /**
          * LessonBrief
          * @description Public lesson view -- title only. Content and video_url are deliberately
@@ -3634,6 +4536,8 @@ export interface components {
             module_title?: string | null;
             /** Duration Minutes */
             duration_minutes?: number | null;
+            /** Extra Videos */
+            extra_videos?: components["schemas"]["ExtraVideo"][] | null;
             /**
              * Display Order
              * @default 0
@@ -3658,6 +4562,49 @@ export interface components {
              */
             created_at: string;
         };
+        /** LessonQuestionCreate */
+        LessonQuestionCreate: {
+            /** Body */
+            body: string;
+        };
+        /** LessonQuestionRead */
+        LessonQuestionRead: {
+            /** Id */
+            id: number;
+            /** Course Id */
+            course_id: number;
+            /** Lesson Id */
+            lesson_id: number;
+            /**
+             * Lesson Title
+             * @default
+             */
+            lesson_title: string;
+            /** Body */
+            body: string;
+            /** Author Name */
+            author_name: string;
+            /**
+             * Is Mine
+             * @default false
+             */
+            is_mine: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Answered By Instructor
+             * @default false
+             */
+            answered_by_instructor: boolean;
+            /**
+             * Answers
+             * @default []
+             */
+            answers: components["schemas"]["LessonAnswerRead"][];
+        };
         /**
          * LessonRead
          * @description Full lesson view, including materials. Served only to enrolled clients.
@@ -3677,6 +4624,8 @@ export interface components {
             module_title?: string | null;
             /** Duration Minutes */
             duration_minutes?: number | null;
+            /** Extra Videos */
+            extra_videos?: components["schemas"]["ExtraVideo"][] | null;
             /** Display Order */
             display_order: number;
             /** Is Active */
@@ -3714,6 +4663,8 @@ export interface components {
             module_title?: string | null;
             /** Duration Minutes */
             duration_minutes?: number | null;
+            /** Extra Videos */
+            extra_videos?: components["schemas"]["ExtraVideo"][] | null;
             /** Display Order */
             display_order?: number | null;
             /** Is Active */
@@ -3786,7 +4737,7 @@ export interface components {
          * NotificationType
          * @enum {string}
          */
-        NotificationType: "QUOTE_SUBMITTED" | "QUOTE_STATUS_CHANGED" | "PROJECT_CREATED" | "PROJECT_STATUS_CHANGED" | "MILESTONE_COMPLETED" | "FILE_UPLOADED" | "INVOICE_CREATED" | "INVOICE_DUE" | "PAYMENT_RECORDED" | "HOSTING_ACCOUNT_CREATED" | "HOSTING_STATUS_CHANGED" | "TICKET_CREATED" | "TICKET_REPLY" | "TICKET_STATUS_CHANGED" | "DOMAIN_REGISTERED" | "DOMAIN_STATUS_CHANGED" | "TEAM_MEMBER_REGISTERED" | "TEAM_MEMBER_APPROVED" | "PROJECT_ASSIGNMENT" | "COURSE_ENROLLED" | "COURSE_ACCESS_ACTIVE" | "COURSE_COMPLETED";
+        NotificationType: "QUOTE_SUBMITTED" | "QUOTE_STATUS_CHANGED" | "PROJECT_CREATED" | "PROJECT_STATUS_CHANGED" | "MILESTONE_COMPLETED" | "FILE_UPLOADED" | "INVOICE_CREATED" | "INVOICE_DUE" | "PAYMENT_RECORDED" | "HOSTING_ACCOUNT_CREATED" | "HOSTING_STATUS_CHANGED" | "TICKET_CREATED" | "TICKET_REPLY" | "TICKET_STATUS_CHANGED" | "DOMAIN_REGISTERED" | "DOMAIN_STATUS_CHANGED" | "TEAM_MEMBER_REGISTERED" | "TEAM_MEMBER_APPROVED" | "PROJECT_ASSIGNMENT" | "COURSE_ENROLLED" | "COURSE_ACCESS_ACTIVE" | "COURSE_COMPLETED" | "EXAM_PASSED" | "LESSON_QUESTION" | "LESSON_ANSWER" | "COURSE_ASSIGNED";
         /** PaymentCreate */
         PaymentCreate: {
             /** Amount */
@@ -4480,7 +5431,7 @@ export interface components {
          * Role
          * @enum {string}
          */
-        Role: "ADMIN" | "STAFF" | "CLIENT" | "TEAM_MEMBER";
+        Role: "ADMIN" | "STAFF" | "CLIENT" | "TEAM_MEMBER" | "INSTRUCTOR";
         /** ServiceCreate */
         ServiceCreate: {
             /** Name */
@@ -4994,6 +5945,15 @@ export interface components {
              * @default bearer
              */
             token_type: string;
+        };
+        /** TopicScore */
+        TopicScore: {
+            /** Topic */
+            topic: string;
+            /** Correct */
+            correct: number;
+            /** Total */
+            total: number;
         };
         /**
          * TrainingStats
@@ -8027,6 +8987,850 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["EnrollmentRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    exam_overview_api_v1_client_courses__course_id__exam_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExamOverview"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    start_exam_api_v1_client_courses__course_id__exam_start_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExamSession"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_exam_session_api_v1_client_exam_attempts__attempt_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                attempt_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExamSession"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_exam_answers_api_v1_client_exam_attempts__attempt_id__answers_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                attempt_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExamAnswersSave"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    report_exam_event_api_v1_client_exam_attempts__attempt_id__events_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                attempt_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExamEvent"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExamEventResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    submit_exam_api_v1_client_exam_attempts__attempt_id__submit_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                attempt_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["ExamAnswersSave"] | null;
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExamResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    exam_result_api_v1_client_exam_attempts__attempt_id__result_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                attempt_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExamResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    lesson_questions_api_v1_client_courses__course_id__lessons__lesson_id__questions_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+                lesson_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LessonQuestionRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    ask_question_api_v1_client_courses__course_id__lessons__lesson_id__questions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+                lesson_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LessonQuestionCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LessonQuestionRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reply_to_question_api_v1_client_courses__course_id__questions__question_id__answers_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+                question_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LessonAnswerCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LessonQuestionRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_exam_bank_api_v1_courses__course_id__exam_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExamBankSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_exam_settings_api_v1_courses__course_id__exam_settings_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExamSettingsUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExamSettings"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_exam_questions_api_v1_courses__course_id__exam_questions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExamQuestionWrite"][];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExamQuestionAdmin"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    edit_exam_question_api_v1_courses__course_id__exam_questions__question_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+                question_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExamQuestionWrite"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExamQuestionAdmin"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_exam_question_api_v1_courses__course_id__exam_questions__question_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+                question_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    ai_draft_questions_api_v1_courses__course_id__exam_ai_draft_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AiDraftRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AiDraftResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_exam_attempts_api_v1_courses__course_id__exam_attempts_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExamAttemptAdmin"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    grant_extra_attempt_api_v1_courses__course_id__enrollments__enrollment_id__exam_extra_attempt_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+                enrollment_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_instructors_api_v1_courses__course_id__instructors_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InstructorRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    assign_instructor_api_v1_courses__course_id__instructors_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InstructorAssign"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InstructorRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    unassign_instructor_api_v1_courses__course_id__instructors__user_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+                user_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_course_questions_api_v1_courses__course_id__questions_get: {
+        parameters: {
+            query?: {
+                unanswered?: boolean;
+            };
+            header?: never;
+            path: {
+                course_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LessonQuestionRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    answer_question_api_v1_courses__course_id__questions__question_id__answers_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+                question_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LessonAnswerCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LessonQuestionRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    hide_question_api_v1_courses__course_id__questions__question_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+                question_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    my_courses_api_v1_instructor_courses_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InstructorCourseRead"][];
+                };
+            };
+        };
+    };
+    my_questions_api_v1_instructor_questions_get: {
+        parameters: {
+            query?: {
+                unanswered?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LessonQuestionRead"][];
                 };
             };
             /** @description Validation Error */

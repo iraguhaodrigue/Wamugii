@@ -24,7 +24,7 @@ import { roleVariant } from '@/utils/statusBadge'
 import { cn } from '@/utils/cn'
 
 const LIMIT = 15
-const ROLES: Role[] = ['ADMIN', 'STAFF', 'CLIENT']
+const ROLES: Role[] = ['ADMIN', 'STAFF', 'INSTRUCTOR', 'CLIENT']
 
 export function AdminUsers() {
   usePageTitle('Users')

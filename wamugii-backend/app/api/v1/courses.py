@@ -21,7 +21,7 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Upload
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
-from app.api.deps import DbDep, OptionalUser, require_roles
+from app.api.deps import ActiveUser, DbDep, OptionalUser, require_roles
 from app.core.config import settings
 from app.crud import course as course_crud
 from app.models.course import Course, CourseStatus, Lesson
@@ -47,6 +47,25 @@ logger = logging.getLogger(__name__)
 
 StaffOrAdmin = Annotated[User, Depends(require_roles(Role.ADMIN, Role.STAFF))]
 AdminOnly = Annotated[User, Depends(require_roles(Role.ADMIN))]
+
+
+def get_course_editor(course_id: int, db: DbDep, current_user: ActiveUser) -> User:
+    """
+    ADMIN / STAFF on any course; an INSTRUCTOR only on the courses an admin
+    assigned to them. Everyone else gets a 403. Used for lesson content,
+    materials, quizzes, the exam bank, students' results and lesson Q&A --
+    never for price, publishing or deleting a course.
+    """
+    from app.crud import exam as exam_crud
+
+    if current_user.role in (Role.ADMIN, Role.STAFF):
+        return current_user
+    if current_user.role == Role.INSTRUCTOR and exam_crud.is_course_instructor(db, course_id, current_user.id):
+        return current_user
+    raise HTTPException(status_code=403, detail="You are not an instructor on this course.")
+
+
+CourseEditor = Annotated[User, Depends(get_course_editor)]
 
 # PDF-first, same tight list as project files. Matched case-insensitively.
 MATERIAL_EXTENSIONS = {".pdf", ".doc", ".docx", ".ppt", ".pptx", ".xls", ".xlsx", ".zip", ".txt"}
@@ -166,7 +185,7 @@ def create_course(data: CourseCreate, db: DbDep):
 @router.get(
     "/by-id/{course_id}",
     response_model=CourseRead,
-    dependencies=[Depends(require_roles(Role.ADMIN, Role.STAFF))],
+    dependencies=[Depends(get_course_editor)],
     summary="Get a course by id for management (ADMIN or STAFF)",
 )
 def get_course_by_id(course_id: int, db: DbDep):
@@ -232,7 +251,7 @@ def deactivate_course(course_id: int, db: DbDep):
 @router.get(
     "/{course_id}/lessons",
     response_model=list[LessonRead],
-    dependencies=[Depends(require_roles(Role.ADMIN, Role.STAFF))],
+    dependencies=[Depends(get_course_editor)],
     summary="List all lessons on a course for management (ADMIN or STAFF)",
 )
 def list_course_lessons(course_id: int, db: DbDep, include_inactive: bool = True):
@@ -251,7 +270,7 @@ def list_course_lessons(course_id: int, db: DbDep, include_inactive: bool = True
 @router.get(
     "/{course_id}/lessons/{lesson_id}/quiz",
     response_model=list[QuizQuestionAdmin],
-    dependencies=[Depends(require_roles(Role.ADMIN, Role.STAFF))],
+    dependencies=[Depends(get_course_editor)],
     summary="A lesson's quiz with answers (ADMIN or STAFF)",
 )
 def get_lesson_quiz_admin(course_id: int, lesson_id: int, db: DbDep):
@@ -263,7 +282,7 @@ def get_lesson_quiz_admin(course_id: int, lesson_id: int, db: DbDep):
 @router.put(
     "/{course_id}/lessons/{lesson_id}/quiz",
     response_model=list[QuizQuestionAdmin],
-    dependencies=[Depends(require_roles(Role.ADMIN, Role.STAFF))],
+    dependencies=[Depends(get_course_editor)],
     summary="Replace a lesson's quiz (ADMIN or STAFF); an empty list removes it",
 )
 def replace_lesson_quiz(
@@ -280,7 +299,7 @@ def replace_lesson_quiz(
     "/{course_id}/lessons",
     response_model=LessonRead,
     status_code=201,
-    dependencies=[Depends(require_roles(Role.ADMIN, Role.STAFF))],
+    dependencies=[Depends(get_course_editor)],
     summary="Add a lesson to a course (ADMIN or STAFF)",
 )
 def create_lesson(course_id: int, data: LessonCreate, db: DbDep):
@@ -295,7 +314,7 @@ def create_lesson(course_id: int, data: LessonCreate, db: DbDep):
 @router.patch(
     "/{course_id}/lessons/{lesson_id}",
     response_model=LessonRead,
-    dependencies=[Depends(require_roles(Role.ADMIN, Role.STAFF))],
+    dependencies=[Depends(get_course_editor)],
     summary="Edit a lesson (ADMIN or STAFF)",
 )
 def update_lesson(course_id: int, lesson_id: int, data: LessonUpdate, db: DbDep):
@@ -337,7 +356,7 @@ def upload_lesson_material(
     course_id: int,
     lesson_id: int,
     db: DbDep,
-    current_user: StaffOrAdmin,
+    current_user: CourseEditor,
     file: UploadFile = File(...),
 ):
     _get_course_or_404(db, course_id)
@@ -377,7 +396,7 @@ def upload_lesson_material(
 @router.delete(
     "/{course_id}/lessons/{lesson_id}/materials/{material_id}",
     response_model=LessonMaterialRead,
-    dependencies=[Depends(require_roles(Role.ADMIN, Role.STAFF))],
+    dependencies=[Depends(get_course_editor)],
     summary="Soft-delete a lesson material (ADMIN or STAFF)",
 )
 def deactivate_lesson_material(
@@ -397,7 +416,7 @@ def deactivate_lesson_material(
 @router.get(
     "/{course_id}/enrollments",
     response_model=list[EnrollmentRead],
-    dependencies=[Depends(require_roles(Role.ADMIN, Role.STAFF))],
+    dependencies=[Depends(get_course_editor)],
     summary="List enrollments on a course with progress (ADMIN or STAFF)",
 )
 def list_course_enrollments(course_id: int, db: DbDep):
@@ -405,11 +424,26 @@ def list_course_enrollments(course_id: int, db: DbDep):
     total = course_crud.count_active_lessons(db, course.id)
     enrollments = course_crud.list_enrollments_for_course(db, course.id)
     out: list[EnrollmentRead] = []
+    from app.crud import exam as exam_crud
+    from app.models.course import ExamAttemptStatus
+
     for enrollment in enrollments:
         completed = course_crud.count_completed_lessons(db, enrollment.id)
         read = EnrollmentRead.model_validate(enrollment)
         read.completed_lessons = completed
         read.total_lessons = total
         read.progress_percent = course_crud.progress_percent(completed, total)
+        if enrollment.client is not None:
+            read.student_name = enrollment.client.full_name
+            read.student_email = enrollment.client.email
+        read.quizzes_passed = len(course_crud.passed_quiz_lesson_ids(db, enrollment.id))
+        attempts = [
+            a for a in exam_crud.list_attempts_for_enrollment(db, enrollment.id)
+            if a.status == ExamAttemptStatus.SUBMITTED
+        ]
+        read.exam_attempts = len(attempts)
+        read.exam_best_percent = max((a.percent for a in attempts if a.percent is not None), default=None)
+        read.exam_passed = any(a.passed for a in attempts)
+        read.exam_extra_attempts = enrollment.exam_extra_attempts or 0
         out.append(read)
     return out

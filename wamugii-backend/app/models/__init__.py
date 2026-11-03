@@ -17,8 +17,15 @@ from app.models.invoice import (  # noqa: F401
 from app.models.notification import Notification, NotificationType  # noqa: F401
 from app.models.course import (  # noqa: F401
     Course,
+    CourseInstructor,
     CourseStatus,
     Enrollment,
+    ExamAttempt,
+    ExamAttemptStatus,
+    ExamQuestion,
+    ExamQuestionKind,
+    LessonAnswer,
+    LessonQuestion,
     EnrollmentStatus,
     Lesson,
     LessonMaterial,

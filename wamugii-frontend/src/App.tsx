@@ -44,6 +44,9 @@ import { ClientHostingDetail } from '@/pages/client/HostingDetail'
 import { ClientDomains } from '@/pages/client/Domains'
 import { ClientLearning } from '@/pages/client/Learning'
 import { ClientCoursePlayer } from '@/pages/client/CoursePlayer'
+import { ClientCourseExam } from '@/pages/client/CourseExam'
+import { InstructorDashboard } from '@/pages/instructor/InstructorDashboard'
+import { InstructorQuestions } from '@/pages/instructor/InstructorQuestions'
 import { ClientDomainDetail } from '@/pages/client/DomainDetail'
 import { ClientQuoteDetail } from '@/pages/client/QuoteDetail'
 import { ClientTickets } from '@/pages/client/Tickets'
@@ -101,6 +104,11 @@ const clientNavItems = [
 const teamNavItems = [
   { label: 'Dashboard', to: paths.team.dashboard, icon: LayoutDashboard },
   { label: 'My Projects', to: paths.team.projects, icon: FolderKanban },
+]
+
+const instructorNavItems = [
+  { label: 'My Courses', to: paths.instructor.dashboard, icon: GraduationCap, end: true },
+  { label: 'Student Questions', to: paths.instructor.questions, icon: MessageSquare },
 ]
 
 const staffNavItems = [
@@ -165,6 +173,8 @@ function App() {
       <Route element={<ProtectedRoute />}>
         {/* Client area */}
         <Route element={<RoleProtectedRoute allowedRoles={['CLIENT']} />}>
+          {/* The final exam runs full screen, without the dashboard around it. */}
+          <Route path="/client/learning/:slug/exam" element={<ClientCourseExam />} />
           <Route element={<DashboardLayout roleLabel="Client" navItems={clientNavItems} />}>
             <Route path={paths.client.dashboard} element={<ClientDashboard />} />
             <Route path={paths.client.projects} element={<ClientProjects />} />
@@ -190,6 +200,15 @@ function App() {
             <Route path={paths.team.dashboard} element={<TeamDashboard />} />
             <Route path={paths.team.projects} element={<TeamProjects />} />
             <Route path="/team/projects/:projectId" element={<TeamProjectDetail />} />
+          </Route>
+        </Route>
+
+        {/* Instructor area — only the courses an admin assigned to them */}
+        <Route element={<RoleProtectedRoute allowedRoles={['INSTRUCTOR']} />}>
+          <Route element={<AdminLayout navItems={instructorNavItems} />}>
+            <Route path={paths.instructor.dashboard} element={<InstructorDashboard />} />
+            <Route path={paths.instructor.questions} element={<InstructorQuestions />} />
+            <Route path="/instructor/courses/:courseId" element={<AdminCourseDetail />} />
           </Route>
         </Route>
 

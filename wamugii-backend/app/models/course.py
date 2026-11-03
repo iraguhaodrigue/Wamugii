@@ -72,6 +72,16 @@ class Course(Base):
     display_order: Mapped[int] = mapped_column(Integer, default=0, index=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
 
+    # Final exam rules (see services/exam.py). The exam only exists once the
+    # course has active exam questions; until then the certificate needs the
+    # lessons alone.
+    exam_question_count: Mapped[int] = mapped_column(Integer, default=60, server_default="60")
+    exam_minutes: Mapped[int] = mapped_column(Integer, default=90, server_default="90")
+    exam_pass_percent: Mapped[int] = mapped_column(Integer, default=60, server_default="60")
+    exam_max_attempts: Mapped[int] = mapped_column(Integer, default=3, server_default="3")
+    exam_cooldown_hours: Mapped[int] = mapped_column(Integer, default=24, server_default="24")
+    exam_max_leaves: Mapped[int] = mapped_column(Integer, default=3, server_default="3")
+
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
@@ -112,6 +122,9 @@ class Lesson(Base):
     module_title: Mapped[str | None] = mapped_column(String(255), nullable=True)
     # Expected study time (reading + video + activity), shown to students.
     duration_minutes: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    # Longer "full lecture" videos shown under the main video:
+    # [{"title": str, "url": str, "minutes": int | None}, ...]
+    extra_videos: Mapped[list | None] = mapped_column(JSON, nullable=True)
 
     display_order: Mapped[int] = mapped_column(Integer, default=0, index=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
@@ -212,6 +225,9 @@ class Enrollment(Base):
     completed_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
+    # Extra final-exam attempts granted by an instructor or admin on top of
+    # the course's exam_max_attempts.
+    exam_extra_attempts: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
 
     course = relationship("Course", back_populates="enrollments")
@@ -280,3 +296,137 @@ class LessonQuizAttempt(Base):
     total: Mapped[int] = mapped_column(Integer)
     passed: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class CourseInstructor(Base):
+    """An INSTRUCTOR assigned to a course by an admin. Unique per pair."""
+
+    __tablename__ = "course_instructors"
+    __table_args__ = (UniqueConstraint("course_id", "user_id", name="uq_course_instructor"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    course_id: Mapped[int] = mapped_column(ForeignKey("courses.id"), index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    user = relationship("User")
+    course = relationship("Course")
+
+
+class ExamQuestionKind(str, enum.Enum):
+    SINGLE = "SINGLE"            # one correct option
+    MULTIPLE = "MULTIPLE"        # two or more correct options, all must be chosen
+    TRUE_FALSE = "TRUE_FALSE"    # options are ["True", "False"]
+    FILL_BLANK = "FILL_BLANK"    # typed answer, matched against accepted answers
+
+
+class ExamQuestion(Base):
+    """
+    One question in a course's final-exam bank. Each attempt draws a random
+    selection (services/exam.py), so the bank should be larger than the exam.
+
+    `correct` holds option indexes for the choice kinds and the accepted
+    answers (strings) for FILL_BLANK. It never leaves the server for students.
+    """
+
+    __tablename__ = "exam_questions"
+
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    course_id: Mapped[int] = mapped_column(ForeignKey("courses.id"), index=True)
+    kind: Mapped[ExamQuestionKind] = mapped_column(Enum(ExamQuestionKind), index=True)
+    question: Mapped[str] = mapped_column(Text)
+    options: Mapped[list] = mapped_column(JSON, default=list)
+    correct: Mapped[list] = mapped_column(JSON, default=list)
+    explanation: Mapped[str] = mapped_column(Text, default="")
+    # Usually the week/module title, used for the per-topic score breakdown.
+    topic: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    display_order: Mapped[int] = mapped_column(Integer, default=0)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+
+class ExamAttemptStatus(str, enum.Enum):
+    IN_PROGRESS = "IN_PROGRESS"
+    SUBMITTED = "SUBMITTED"
+
+
+class ExamAttempt(Base):
+    """
+    One sitting of a course's final exam.
+
+    The question selection and option order are fixed when the attempt starts
+    and stored here, answers are saved as the student goes (so a refresh or a
+    dropped connection loses nothing), and `leave_count` counts the times the
+    student left the exam screen. Reaching the course's exam_max_leaves
+    submits the attempt automatically (submit_reason LEAVE_LIMIT); running out
+    of time does the same (TIME_UP).
+    """
+
+    __tablename__ = "exam_attempts"
+
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    course_id: Mapped[int] = mapped_column(ForeignKey("courses.id"), index=True)
+    enrollment_id: Mapped[int] = mapped_column(ForeignKey("enrollments.id"), index=True)
+    client_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    status: Mapped[ExamAttemptStatus] = mapped_column(
+        Enum(ExamAttemptStatus), default=ExamAttemptStatus.IN_PROGRESS, index=True
+    )
+    started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    deadline_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    submitted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    submit_reason: Mapped[str | None] = mapped_column(String(30), nullable=True)
+
+    question_ids: Mapped[list] = mapped_column(JSON, default=list)
+    option_orders: Mapped[dict] = mapped_column(JSON, default=dict)
+    answers: Mapped[dict] = mapped_column(JSON, default=dict)
+    leave_count: Mapped[int] = mapped_column(Integer, default=0)
+    events: Mapped[list] = mapped_column(JSON, default=list)
+
+    score: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    total: Mapped[int] = mapped_column(Integer, default=0)
+    percent: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    passed: Mapped[bool] = mapped_column(Boolean, default=False)
+    topic_scores: Mapped[list | None] = mapped_column(JSON, nullable=True)
+
+    client = relationship("User", foreign_keys=[client_id])
+
+
+class LessonQuestion(Base):
+    """A student's question under a lesson ("Q&A"), answered by the instructor."""
+
+    __tablename__ = "lesson_questions"
+
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    course_id: Mapped[int] = mapped_column(ForeignKey("courses.id"), index=True)
+    lesson_id: Mapped[int] = mapped_column(ForeignKey("lessons.id"), index=True)
+    author_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    body: Mapped[str] = mapped_column(Text)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    author = relationship("User")
+    lesson = relationship("Lesson")
+    answers = relationship(
+        "LessonAnswer",
+        back_populates="question",
+        order_by="LessonAnswer.id",
+        cascade="all, delete-orphan",
+    )
+
+
+class LessonAnswer(Base):
+    """A reply to a lesson question, by an instructor, admin/staff or student."""
+
+    __tablename__ = "lesson_answers"
+
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    question_id: Mapped[int] = mapped_column(ForeignKey("lesson_questions.id"), index=True)
+    author_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    body: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    author = relationship("User")
+    question = relationship("LessonQuestion", back_populates="answers")

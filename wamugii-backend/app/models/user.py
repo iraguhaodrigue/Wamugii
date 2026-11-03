@@ -16,6 +16,10 @@ class Role(str, enum.Enum):
     # client-identifying or billing field -- see api/v1/team.py and
     # schemas/team.py, which are the only read surface they are given.
     TEAM_MEMBER = "TEAM_MEMBER"
+    # A course instructor. Sees and edits only the courses an admin assigned
+    # to them (crud.course.is_course_instructor), answers their students'
+    # lesson questions and reviews their exam results.
+    INSTRUCTOR = "INSTRUCTOR"
 
 
 class ApprovalStatus(str, enum.Enum):

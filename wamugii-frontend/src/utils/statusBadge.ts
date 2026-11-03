@@ -98,6 +98,7 @@ export const roleVariant: Record<Role, BadgeVariant> = {
   // Green rather than another blue: STAFF already owns 'info', and the two
   // need to be told apart at a glance on the admin user list.
   TEAM_MEMBER: 'success',
+  INSTRUCTOR: 'warning',
 }
 
 export const approvalStatusVariant: Record<ApprovalStatus, BadgeVariant> = {

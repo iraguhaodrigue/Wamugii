@@ -14,6 +14,7 @@ import {
   FileText,
   Award,
   Lock,
+  ShieldCheck,
   SearchX,
 } from 'lucide-react'
 import {
@@ -43,6 +44,9 @@ import { VideoEmbed, VideoPlaceholder } from '@/components/courses/VideoEmbed'
 import { Certificate } from '@/components/courses/Certificate'
 import { LessonContent, sectionTitles } from '@/components/courses/LessonContent'
 import { QuizPanel } from '@/components/courses/QuizPanel'
+import { FullLectures } from '@/components/courses/FullLectures'
+import { LessonQnA } from '@/components/courses/LessonQnA'
+import { getExamOverview } from '@/api/exams'
 import { groupByModule } from '@/components/courses/courseShowcase'
 import { formatFileSize } from '@/utils/format'
 import { cn } from '@/utils/cn'
@@ -176,7 +180,13 @@ export function ClientCoursePlayer() {
 
   // Only fetched once the student asks for it: the endpoint 403s until every
   // lesson is complete, so there is nothing to prefetch.
-  const [showCertificate, setShowCertificate] = useState(false)
+  const [showCertificate, setShowCertificate] = useState(() => searchParams.get('certificate') === '1')
+  const examQuery = useQuery({
+    queryKey: ['client', 'exam', course?.id],
+    queryFn: () => getExamOverview(course!.id),
+    enabled: Boolean(course && canReadLessons),
+  })
+  const exam = examQuery.data
   const certificateQuery = useQuery<CertificateData, ApiError>({
     queryKey: ['client', 'certificate', course?.id],
     queryFn: () => getCertificate(course!.id),
@@ -410,17 +420,35 @@ export function ClientCoursePlayer() {
           </a>
         </div>
 
-        {enrollment.progress_percent === 100 && (
-          <div className="mt-2.5 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-brand-400/30 bg-brand-50 p-3">
-            <div className="flex items-center gap-2.5">
-              <Award className="size-5 shrink-0 text-brand-600" aria-hidden="true" />
-              <p className="text-sm font-semibold text-slate-900">Course complete — your certificate is ready.</p>
+        {enrollment.progress_percent === 100 &&
+          (exam?.available && !exam.passed ? (
+            <div className="mt-2.5 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-400/40 bg-amber-50 p-3">
+              <div className="flex items-center gap-2.5">
+                <ShieldCheck className="size-5 shrink-0 text-amber-600" aria-hidden="true" />
+                <p className="text-sm font-semibold text-slate-900">
+                  All lessons complete — pass the final exam to get your certificate.
+                </p>
+              </div>
+              <Link
+                to={paths.client.courseExam(course.slug)}
+                className="inline-flex h-8 items-center rounded-lg bg-gradient-to-r from-[var(--color-brand-solid)] to-[var(--color-accent-solid)] px-3 text-sm font-semibold text-white"
+              >
+                {exam.in_progress_attempt_id ? 'Continue the exam' : 'Go to the final exam'}
+              </Link>
             </div>
-            <Button size="sm" onClick={() => setShowCertificate(true)}>
-              Get your certificate
-            </Button>
-          </div>
-        )}
+          ) : (
+            <div className="mt-2.5 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-brand-400/30 bg-brand-50 p-3">
+              <div className="flex items-center gap-2.5">
+                <Award className="size-5 shrink-0 text-brand-600" aria-hidden="true" />
+                <p className="text-sm font-semibold text-slate-900">
+                  {exam?.passed ? `Final exam passed (${exam.best_percent}%) — your certificate is ready.` : 'Course complete — your certificate is ready.'}
+                </p>
+              </div>
+              <Button size="sm" onClick={() => setShowCertificate(true)}>
+                Get your certificate
+              </Button>
+            </div>
+          ))}
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
@@ -490,6 +518,40 @@ export function ClientCoursePlayer() {
                 })}
               </div>
             )}
+            {exam?.available && (
+              <Link
+                to={paths.client.courseExam(course.slug)}
+                className={cn(
+                  'mt-4 flex items-center gap-3 rounded-xl border p-3 text-sm transition-colors',
+                  exam.passed
+                    ? 'border-emerald-400/40 bg-emerald-500/10'
+                    : exam.lessons_complete
+                      ? 'border-amber-400/50 bg-amber-50 hover:border-amber-500'
+                      : 'border-slate-200 opacity-80 hover:opacity-100',
+                )}
+              >
+                <span
+                  className={cn(
+                    'flex size-9 shrink-0 items-center justify-center rounded-lg text-white',
+                    exam.passed ? 'bg-emerald-500' : 'bg-gradient-to-br from-[var(--color-brand-solid)] to-[var(--color-accent-solid)]',
+                  )}
+                >
+                  {exam.passed ? <Award className="size-4" aria-hidden="true" /> : exam.lessons_complete ? <ShieldCheck className="size-4" aria-hidden="true" /> : <Lock className="size-4" aria-hidden="true" />}
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                    Final exam · {exam.question_count} questions · {exam.minutes} min
+                  </span>
+                  <span className="font-medium text-slate-900">
+                    {exam.passed
+                      ? `Passed with ${exam.best_percent}%`
+                      : exam.lessons_complete
+                        ? 'Unlocked — take the exam'
+                        : 'Unlocks when every lesson is complete'}
+                  </span>
+                </span>
+              </Link>
+            )}
           </div>
         </aside>
 
@@ -551,6 +613,9 @@ export function ClientCoursePlayer() {
                   </div>
                 )}
               </div>
+              {activeLesson.extra_videos && activeLesson.extra_videos.length > 0 && (
+                <FullLectures key={`lectures-${activeLesson.id}`} videos={activeLesson.extra_videos} />
+              )}
               {activeLesson.content ? (
                 <LessonContent content={activeLesson.content} lessonKey={activeLesson.id} />
               ) : (
@@ -617,6 +682,8 @@ export function ClientCoursePlayer() {
               {activeLesson.quiz_question_count > 0 && (
                 <QuizPanel key={activeLesson.id} courseId={course.id} lessonId={activeLesson.id} />
               )}
+
+              <LessonQnA key={`qna-${activeLesson.id}`} courseId={course.id} lessonId={activeLesson.id} />
 
               {completeError && (
                 <p

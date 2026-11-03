@@ -102,12 +102,21 @@ class CoursePublicDetail(CourseRead):
     total_minutes: int = 0
 
 
+class ExtraVideo(BaseModel):
+    """A longer "full lecture" video shown under a lesson's main video."""
+
+    title: str = Field(min_length=1, max_length=255)
+    url: str = Field(min_length=1, max_length=500)
+    minutes: int | None = Field(default=None, ge=1, le=1000)
+
+
 class LessonCreate(BaseModel):
     title: str = Field(min_length=1, max_length=255)
     content: str = Field(default="")
     video_url: str | None = Field(default=None, max_length=500)
     module_title: str | None = Field(default=None, max_length=255)
     duration_minutes: int | None = Field(default=None, ge=1, le=1000)
+    extra_videos: list[ExtraVideo] | None = Field(default=None, max_length=10)
     display_order: int = 0
 
 
@@ -117,6 +126,7 @@ class LessonUpdate(BaseModel):
     video_url: str | None = Field(default=None, max_length=500)
     module_title: str | None = Field(default=None, max_length=255)
     duration_minutes: int | None = Field(default=None, ge=1, le=1000)
+    extra_videos: list[ExtraVideo] | None = Field(default=None, max_length=10)
     display_order: int | None = None
     is_active: bool | None = None
 
@@ -144,6 +154,7 @@ class LessonRead(BaseModel):
     video_url: str | None
     module_title: str | None = None
     duration_minutes: int | None = None
+    extra_videos: list[ExtraVideo] | None = None
     display_order: int
     is_active: bool
     created_at: datetime
@@ -173,6 +184,14 @@ class EnrollmentRead(BaseModel):
     completed_lessons: int = 0
     total_lessons: int = 0
     progress_percent: int = 0
+    # Management view extras (filled by the router; empty for clients).
+    student_name: str = ""
+    student_email: str = ""
+    quizzes_passed: int = 0
+    exam_attempts: int = 0
+    exam_best_percent: int | None = None
+    exam_passed: bool = False
+    exam_extra_attempts: int = 0
 
 
 class ClientEnrollmentRead(EnrollmentRead):
@@ -229,6 +248,8 @@ class CertificateRead(BaseModel):
     lesson_count: int
     certificate_id: str
     issued_on: date
+    # The final-exam score behind the certificate, when the course has an exam.
+    exam_percent: int | None = None
 
 
 # --- quizzes ----------------------------------------------------------------

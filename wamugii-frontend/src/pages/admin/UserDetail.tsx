@@ -11,7 +11,7 @@ import { Badge, Button, ConfirmDialog, EmptyState, ErrorState, Select, Skeleton 
 import { formatDate } from '@/utils/format'
 import { roleVariant } from '@/utils/statusBadge'
 
-const ROLES: Role[] = ['ADMIN', 'STAFF', 'CLIENT']
+const ROLES: Role[] = ['ADMIN', 'STAFF', 'INSTRUCTOR', 'CLIENT']
 const LAST_ADMIN_MESSAGE = 'Cannot remove, deactivate, or demote the last active admin'
 
 export function AdminUserDetail() {

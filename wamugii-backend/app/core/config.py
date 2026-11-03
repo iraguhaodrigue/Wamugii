@@ -48,6 +48,12 @@ class Settings(BaseSettings):
     # a localhost URL the recipient cannot open.
     FRONTEND_URL: str | None = None
 
+    # Optional: lets instructors ask AI to DRAFT final-exam questions from the
+    # lesson notes (they review and edit every draft before saving). Unset
+    # means the "Draft with AI" button explains that it is not set up.
+    ANTHROPIC_API_KEY: str | None = None
+    AI_DRAFT_MODEL: str = "claude-sonnet-5-5"
+
 
 settings = Settings()
 

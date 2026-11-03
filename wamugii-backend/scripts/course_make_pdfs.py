@@ -82,6 +82,8 @@ def build(lesson, number, module_title, total):
     week = module_title.split("·")[0].strip()
     video = lesson.get("video")
     video_html = (f'<div class="video">▶ <b>Watch:</b> <a href="{video}">{video}</a> — open the lesson online to watch inside the course.</div>' if video else "")
+    for (lt, lu, _lm) in lesson.get("lectures", []):
+        video_html += f'<div class="video">🎓 <b>Go deeper:</b> {html.escape(lt)} — <a href="{lu}">{lu}</a></div>'
     task_html = ""
     for i, t in enumerate(task_items(tasks), 1):
         lines = "".join('<div class="line"></div>' for _ in range(5))

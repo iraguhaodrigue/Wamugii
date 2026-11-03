@@ -884,3 +884,115 @@ def course_reminder_client(course, user, next_lesson_title: str | None, percent:
         "Continue Learning",
     )
     return subject, html, text
+
+
+# --- final exams, instructors and lesson Q&A ---------------------------------
+
+
+def course_lessons_done_exam_client(course, user, exam_minutes: int, question_count: int, pass_percent: int) -> tuple[str, str, str]:
+    """To the student: every lesson is done, the final exam is unlocked."""
+    first_name = user.full_name.split(" ")[0] if user.full_name else "there"
+    subject = f"Well done! Your {course.title} final exam is unlocked"
+    url = _cta_url(f"/client/learning/{course.slug}/exam")
+    pairs = [
+        ("Course", course.title),
+        ("Final exam", f"{question_count} questions, {exam_minutes} minutes"),
+        ("Pass mark", f"{pass_percent}%"),
+    ]
+    html = _shell(
+        heading="All lessons complete -- your final exam is ready",
+        intro=(
+            f"Hi {first_name}, great work finishing every lesson of {course.title}. "
+            "The last step to your certificate is the final exam. Find a quiet place, "
+            "a stable connection and enough time, then start when you are ready."
+        ),
+        detail_rows=_rows(pairs),
+        cta=_button(url, "Go to the Final Exam"),
+        footer_note=(
+            f'<p style="margin:18px 0 0 0;color:{MUTED};font-size:13px;line-height:1.6;">'
+            "The exam opens in full screen. Leaving the exam screen is counted, and the "
+            "exam is submitted automatically after the limit -- so close other apps first.</p>"
+        ),
+    )
+    text = _plain("Your final exam is unlocked", [f"{l}: {v}" for l, v in pairs], url, "Go to the Final Exam")
+    return subject, html, text
+
+
+def exam_passed_client(course, enrollment, user, percent: int) -> tuple[str, str, str]:
+    """To the student: final exam passed, certificate ready."""
+    first_name = user.full_name.split(" ")[0] if user.full_name else "there"
+    subject = f"You passed! Your {course.title} certificate is ready"
+    url = _cta_url(f"/client/learning/{course.slug}")
+    pairs = [
+        ("Course", course.title),
+        ("Final exam score", f"{percent}%"),
+        ("Certificate ID", f"WAMUGII-CERT-{enrollment.id:05d}"),
+    ]
+    html = _shell(
+        heading="Congratulations -- you passed the final exam",
+        intro=(
+            f"Hi {first_name}, you passed the {course.title} final exam. Your certificate "
+            "of completion is ready: download it, print it and add it to your CV and LinkedIn."
+        ),
+        detail_rows=_rows(pairs),
+        cta=_button(url, "Get My Certificate"),
+        footer_note=(
+            f'<p style="margin:18px 0 0 0;color:{MUTED};font-size:13px;line-height:1.6;">'
+            "Keep the momentum going: the next course in the WAMUGII AI Program is "
+            "waiting for you on the Courses page.</p>"
+        ),
+    )
+    text = _plain("You passed the final exam", [f"{l}: {v}" for l, v in pairs], url, "Get My Certificate")
+    return subject, html, text
+
+
+def lesson_question_instructor(course, lesson, question, student_name: str) -> tuple[str, str, str]:
+    """To the course's instructors: a student asked a question under a lesson."""
+    subject = f"New question in {course.title}: {lesson.title}"
+    url = _cta_url("/instructor/questions")
+    preview = question.body if len(question.body) <= 400 else question.body[:400] + "..."
+    pairs = [("Course", course.title), ("Lesson", lesson.title), ("Student", student_name), ("Question", preview)]
+    html = _shell(
+        heading="A student needs your help",
+        intro="A student asked a question under one of your lessons. A quick, clear answer keeps them learning.",
+        detail_rows=_rows(pairs),
+        cta=_button(url, "Answer the Question"),
+    )
+    text = _plain("New student question", [f"{l}: {v}" for l, v in pairs], url, "Answer the Question")
+    return subject, html, text
+
+
+def lesson_answer_client(course, lesson, user, answerer_name: str) -> tuple[str, str, str]:
+    """To the student who asked: their question has an answer."""
+    first_name = user.full_name.split(" ")[0] if user.full_name else "there"
+    subject = f"Your question on '{lesson.title}' has an answer"
+    url = _cta_url(f"/client/learning/{course.slug}?lesson={lesson.id}")
+    pairs = [("Course", course.title), ("Lesson", lesson.title), ("Answered by", answerer_name)]
+    html = _shell(
+        heading="Your question was answered",
+        intro=f"Hi {first_name}, {answerer_name} replied to your question. Open the lesson to read the answer.",
+        detail_rows=_rows(pairs),
+        cta=_button(url, "Read the Answer"),
+    )
+    text = _plain("Your question was answered", [f"{l}: {v}" for l, v in pairs], url, "Read the Answer")
+    return subject, html, text
+
+
+def course_assigned_instructor(course, user) -> tuple[str, str, str]:
+    """To an instructor: they now teach a course."""
+    first_name = user.full_name.split(" ")[0] if user.full_name else "there"
+    subject = f"You are now an instructor on {course.title}"
+    url = _cta_url("/instructor")
+    pairs = [("Course", course.title)]
+    html = _shell(
+        heading="Welcome to the teaching team",
+        intro=(
+            f"Hi {first_name}, you have been assigned as an instructor on {course.title}. "
+            "You can now update its lessons, videos and materials, answer your students' "
+            "questions, follow their progress and manage the final-exam questions."
+        ),
+        detail_rows=_rows(pairs),
+        cta=_button(url, "Open My Instructor Area"),
+    )
+    text = _plain("You are now an instructor", [f"{l}: {v}" for l, v in pairs], url, "Open My Instructor Area")
+    return subject, html, text

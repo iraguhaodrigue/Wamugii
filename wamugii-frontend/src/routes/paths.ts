@@ -32,6 +32,8 @@ export const paths = {
     /** My Learning list. */
     learning: '/client/learning',
     courseDetail: (slug: string) => `/client/learning/${slug}`,
+    /** The proctored final exam -- full screen, outside the dashboard layout. */
+    courseExam: (slug: string) => `/client/learning/${slug}/exam`,
     quoteDetail: (id: string | number) => `/client/quotes/${id}`,
     tickets: '/client/support',
     ticketDetail: (id: string | number) => `/client/support/${id}`,
@@ -80,6 +82,12 @@ export const paths = {
    * ever sees their assigned projects, so there is no quotes/invoices/clients
    * route here to guard.
    */
+  /** The INSTRUCTOR area: only the courses an admin assigned to them. */
+  instructor: {
+    dashboard: '/instructor',
+    courseDetail: (id: string | number) => `/instructor/courses/${id}`,
+    questions: '/instructor/questions',
+  },
   team: {
     dashboard: '/team/dashboard',
     projects: '/team/projects',
@@ -93,6 +101,7 @@ export const roleHomePath: Record<Role, string> = {
   STAFF: paths.staff.overview,
   CLIENT: paths.client.dashboard,
   TEAM_MEMBER: paths.team.dashboard,
+  INSTRUCTOR: paths.instructor.dashboard,
 }
 
 /**
@@ -112,6 +121,8 @@ export function isPathAllowedForRole(pathname: string, role: Role): boolean {
       return pathname.startsWith('/client')
     case 'TEAM_MEMBER':
       return pathname.startsWith('/team')
+    case 'INSTRUCTOR':
+      return pathname.startsWith('/instructor')
     default:
       return false
   }

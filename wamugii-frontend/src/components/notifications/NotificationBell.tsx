@@ -40,6 +40,7 @@ const UNREAD_POLL_MS = 45_000
  */
 const RESOURCE_ROUTES: Record<Role, Record<string, (id: number) => string>> = {
   ADMIN: {
+    lesson_question: () => paths.admin.courses,
     invoice: paths.admin.invoiceDetail,
     project: paths.admin.projectDetail,
     quote: paths.admin.quoteDetail,
@@ -71,6 +72,11 @@ const RESOURCE_ROUTES: Record<Role, Record<string, (id: number) => string>> = {
   // not navigate into client or billing data.
   TEAM_MEMBER: {
     project: paths.team.projectDetail,
+  },
+  // Instructors get lesson questions and course assignments.
+  INSTRUCTOR: {
+    lesson_question: () => paths.instructor.questions,
+    course: paths.instructor.courseDetail,
   },
 }
 

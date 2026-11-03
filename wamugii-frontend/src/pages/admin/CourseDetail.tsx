@@ -27,7 +27,6 @@ import {
   type LessonMaterial,
 } from '@/api/courses'
 import { useAuth } from '@/context/AuthContext'
-import { useUsersMap } from '@/hooks/useUsersMap'
 import { usePageTitle } from '@/context/PageTitleContext'
 import type { ApiError } from '@/lib/apiClient'
 import { paths } from '@/routes/paths'
@@ -55,8 +54,10 @@ import { courseStatusVariant, enrollmentStatusVariant } from '@/utils/statusBadg
 import { VideoEmbed } from '@/components/courses/VideoEmbed'
 import { isSupportedVideoUrl } from '@/utils/videoEmbed'
 import { cn } from '@/utils/cn'
+import { grantExtraAttempt } from '@/api/exams'
+import { ExamManager, ExamResults, InstructorsPanel, QuestionsInbox } from '@/components/courses/admin/CourseStaffPanels'
 
-type Tab = 'content' | 'lessons' | 'enrollments'
+type Tab = 'content' | 'lessons' | 'enrollments' | 'exam' | 'results' | 'questions' | 'instructors'
 
 export function AdminCourseDetail() {
   const { courseId } = useParams<{ courseId: string }>()
@@ -64,8 +65,12 @@ export function AdminCourseDetail() {
   const queryClient = useQueryClient()
   const { user } = useAuth()
   const isAdmin = user?.role === 'ADMIN'
+  // Instructors reuse this page for the courses assigned to them: everything
+  // except the course's price, publishing and deletion.
+  const isInstructor = user?.role === 'INSTRUCTOR'
+  const backTo = isInstructor ? paths.instructor.dashboard : paths.admin.courses
 
-  const [tab, setTab] = useState<Tab>('content')
+  const [tab, setTab] = useState<Tab>(isInstructor ? 'lessons' : 'content')
   const [draftCourse, setDraftCourse] = useState<Partial<Course> | null>(null)
   const [isDeleteOpen, setIsDeleteOpen] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
@@ -103,7 +108,7 @@ export function AdminCourseDetail() {
     mutationFn: () => deactivateCourse(courseId!),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['courses'] })
-      navigate(paths.admin.courses)
+      navigate(backTo)
     },
   })
 
@@ -149,20 +154,24 @@ export function AdminCourseDetail() {
   const isDirty = draftCourse !== null
 
   const tabs: { key: Tab; label: string }[] = [
-    { key: 'content', label: 'Course content' },
+    ...(isInstructor ? [] : [{ key: 'content' as Tab, label: 'Course details' }]),
     { key: 'lessons', label: 'Lessons' },
-    { key: 'enrollments', label: 'Enrollments' },
+    { key: 'enrollments', label: 'Students' },
+    { key: 'exam', label: 'Final exam' },
+    { key: 'results', label: 'Exam results' },
+    { key: 'questions', label: 'Questions' },
+    { key: 'instructors', label: 'Instructors' },
   ]
 
   return (
     <div className="space-y-6">
       <div>
         <Link
-          to={paths.admin.courses}
+          to={backTo}
           className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-brand-600"
         >
           <ArrowLeft className="size-4" aria-hidden="true" />
-          Back to Courses
+          {isInstructor ? 'Back to my courses' : 'Back to Courses'}
         </Link>
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-3">
@@ -206,7 +215,7 @@ export function AdminCourseDetail() {
       )}
 
       <div className="border-b border-slate-200">
-        <nav className="-mb-px flex gap-6" aria-label="Course tabs">
+        <nav className="-mb-px flex gap-6 overflow-x-auto whitespace-nowrap" aria-label="Course tabs">
           {tabs.map((t) => (
             <button
               key={t.key}
@@ -331,8 +340,12 @@ export function AdminCourseDetail() {
         </div>
       )}
 
-      {tab === 'lessons' && <LessonsPanel courseId={course.id} />}
+      {tab === 'lessons' && <LessonsPanel courseId={course.id} canRemove={isAdmin} />}
       {tab === 'enrollments' && <EnrollmentsPanel courseId={course.id} />}
+      {tab === 'exam' && <ExamTab courseId={course.id} />}
+      {tab === 'results' && <ExamResults courseId={course.id} />}
+      {tab === 'questions' && <QuestionsInbox courseId={course.id} />}
+      {tab === 'instructors' && <InstructorsPanel courseId={course.id} canManage={isAdmin} />}
 
       <ConfirmDialog
         isOpen={isDeleteOpen}
@@ -359,7 +372,31 @@ const EMPTY_LESSON: LessonCreate = {
   display_order: 0,
 }
 
-function LessonsPanel({ courseId }: { courseId: number }) {
+/** The exam tab needs the course's week names for the topic picker. */
+function ExamTab({ courseId }: { courseId: number }) {
+  const lessonsQuery = useQuery({
+    queryKey: ['courses', 'admin', courseId, 'lessons'],
+    queryFn: () => listCourseLessons(courseId),
+  })
+  const topics = [...new Set((lessonsQuery.data ?? []).map((l) => l.module_title).filter((t): t is string => Boolean(t)))]
+  return <ExamManager courseId={courseId} topics={topics} />
+}
+
+/** "Title | URL | minutes" lines <-> the lesson's full-lecture videos. */
+function lecturesToText(videos: Lesson['extra_videos']): string {
+  return (videos ?? []).map((v) => [v.title, v.url, v.minutes ?? ''].join(' | ')).join('\n')
+}
+function textToLectures(text: string): LessonCreate['extra_videos'] {
+  const out = text
+    .split('\n')
+    .map((line) => line.split('|').map((p) => p.trim()))
+    .filter((p) => p[0] && p[1])
+    .map(([title, url, minutes]) => ({ title: title!, url: url!, minutes: minutes ? Number(minutes) || null : null }))
+  return out.length ? out : null
+}
+
+function LessonsPanel({ courseId, canRemove }: { courseId: number; canRemove: boolean }) {
+  const [lecturesText, setLecturesText] = useState('')
   const queryClient = useQueryClient()
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [draft, setDraft] = useState<LessonCreate>(EMPTY_LESSON)
@@ -387,11 +424,13 @@ function LessonsPanel({ courseId }: { courseId: number }) {
           video_url: draft.video_url || null,
           module_title: draft.module_title || null,
           duration_minutes: draft.duration_minutes || null,
+          extra_videos: textToLectures(lecturesText),
           display_order: draft.display_order,
         })
       }
       return createLesson(courseId, {
         ...draft,
+        extra_videos: textToLectures(lecturesText),
         display_order:
           draft.display_order || (lessonsQuery.data?.length ?? 0) + 1,
       })
@@ -435,6 +474,7 @@ function LessonsPanel({ courseId }: { courseId: number }) {
           onClick={() => {
             setEditing(null)
             setDraft(EMPTY_LESSON)
+            setLecturesText('')
             setFormError(null)
             setIsCreateOpen(true)
           }}
@@ -495,20 +535,23 @@ function LessonsPanel({ courseId }: { courseId: number }) {
                         duration_minutes: lesson.duration_minutes,
                         display_order: lesson.display_order,
                       })
+                      setLecturesText(lecturesToText(lesson.extra_videos))
                       setFormError(null)
                       setIsCreateOpen(true)
                     }}
                   >
                     Edit
                   </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    leftIcon={<Trash2 className="size-4" />}
-                    onClick={() => setRemoving(lesson)}
-                  >
-                    Remove
-                  </Button>
+                  {canRemove && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      leftIcon={<Trash2 className="size-4" />}
+                      onClick={() => setRemoving(lesson)}
+                    >
+                      Remove
+                    </Button>
+                  )}
                 </div>
               </div>
               <LessonMaterialsRow courseId={courseId} lesson={lesson} onRefresh={refresh} />
@@ -574,6 +617,14 @@ function LessonsPanel({ courseId }: { courseId: number }) {
               }
             />
           </div>
+          <Textarea
+            label="Full lecture videos (optional)"
+            rows={3}
+            placeholder={'Neural networks full lecture | https://www.youtube.com/watch?v=… | 45'}
+            hint="Longer videos shown under the main video. One per line:  Title | YouTube link | minutes"
+            value={lecturesText}
+            onChange={(e) => setLecturesText(e.target.value)}
+          />
           <Input
             label="Display order"
             type="number"
@@ -722,10 +773,14 @@ function LessonMaterialsRow({
 // --- enrollments panel ---------------------------------------------------
 
 function EnrollmentsPanel({ courseId }: { courseId: number }) {
-  const { usersMap } = useUsersMap()
+  const queryClient = useQueryClient()
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['courses', 'admin', courseId, 'enrollments'],
     queryFn: () => listCourseEnrollments(courseId),
+  })
+  const extra = useMutation({
+    mutationFn: (enrollmentId: number) => grantExtraAttempt(courseId, enrollmentId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['courses', 'admin', courseId, 'enrollments'] }),
   })
 
   if (isLoading) {
@@ -740,7 +795,7 @@ function EnrollmentsPanel({ courseId }: { courseId: number }) {
   if (isError) {
     return (
       <ErrorState
-        title="Couldn't load enrollments"
+        title="Couldn't load students"
         message="We had trouble reaching the server. Please try again."
         onRetry={() => refetch()}
       />
@@ -751,7 +806,7 @@ function EnrollmentsPanel({ courseId }: { courseId: number }) {
       <EmptyState
         icon={Users}
         title="No one enrolled yet"
-        description="Students who enroll show up here with their progress."
+        description="Students who enroll show up here with their progress and exam results."
       />
     )
   }
@@ -761,18 +816,21 @@ function EnrollmentsPanel({ courseId }: { courseId: number }) {
         <TableHeaderCell>Student</TableHeaderCell>
         <TableHeaderCell>Status</TableHeaderCell>
         <TableHeaderCell>Progress</TableHeaderCell>
+        <TableHeaderCell>Quizzes</TableHeaderCell>
+        <TableHeaderCell>Final exam</TableHeaderCell>
         <TableHeaderCell>Enrolled</TableHeaderCell>
       </TableHead>
       <TableBody>
         {data.map((row) => (
           <TableRow key={row.id}>
-            <TableCell className="font-medium text-slate-900">
-              {usersMap.get(row.client_id)?.full_name ?? `#${row.client_id}`}
+            <TableCell>
+              <p className="font-medium text-slate-900">{row.student_name || `#${row.client_id}`}</p>
+              <p className="text-xs text-slate-400">{row.student_email}</p>
             </TableCell>
             <TableCell>
               <Badge variant={enrollmentStatusVariant[row.status]}>{row.status}</Badge>
             </TableCell>
-            <TableCell className="w-48">
+            <TableCell className="w-44">
               <div className="flex items-center gap-2 text-xs text-slate-500">
                 <ProgressBar value={row.progress_percent} />
                 <span className="shrink-0">{row.progress_percent}%</span>
@@ -781,6 +839,28 @@ function EnrollmentsPanel({ courseId }: { courseId: number }) {
                 {row.completed_lessons}/{row.total_lessons} lessons
               </p>
             </TableCell>
+            <TableCell className="text-sm text-slate-600">{row.quizzes_passed} passed</TableCell>
+            <TableCell>
+              {row.exam_passed ? (
+                <Badge variant="success">Passed {row.exam_best_percent}%</Badge>
+              ) : row.exam_attempts > 0 ? (
+                <div className="space-y-1">
+                  <Badge variant="danger">
+                    Best {row.exam_best_percent ?? 0}% · {row.exam_attempts} tr{row.exam_attempts === 1 ? 'y' : 'ies'}
+                  </Badge>
+                  <button
+                    type="button"
+                    className="block text-xs font-semibold text-brand-600 hover:text-brand-700"
+                    onClick={() => extra.mutate(row.id)}
+                    disabled={extra.isPending}
+                  >
+                    + Give 1 more attempt{row.exam_extra_attempts ? ` (${row.exam_extra_attempts} given)` : ''}
+                  </button>
+                </div>
+              ) : (
+                <span className="text-xs text-slate-400">Not taken</span>
+              )}
+            </TableCell>
             <TableCell>{formatDate(row.enrolled_at)}</TableCell>
           </TableRow>
         ))}
@@ -788,4 +868,3 @@ function EnrollmentsPanel({ courseId }: { courseId: number }) {
     </Table>
   )
 }
-

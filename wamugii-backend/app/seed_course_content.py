@@ -17,7 +17,11 @@ Safe to run again and again -- that is how you publish edits:
   hard-deleted;
 * each lesson's quiz is replaced with the pack's version;
 * a PDF is attached only if the lesson doesn't already have one with the same
-  file name.
+  file name (and refreshed when the pack's PDF changed);
+* a lesson's "lectures" become its full-lecture videos (extra_videos);
+* the final-exam bank is the pack's EXAM list plus every lesson quiz question
+  (as a single-answer question tagged with its week). Questions removed from
+  the pack are deactivated, never deleted, so past exam results stay readable.
 
 Add `--dry-run` to see what would change without writing anything.
 """
@@ -32,9 +36,11 @@ from sqlalchemy import select
 
 from app.core.database import SessionLocal
 from app.crud import course as course_crud
-from app.models.course import CourseStatus, Lesson
+from app.crud import exam as exam_crud
+from app.models.course import CourseStatus, ExamQuestionKind, Lesson
 from app.models.user import Role, User
 from app.schemas.course import CourseCreate, CourseUpdate, LessonCreate, LessonUpdate, QuizQuestionWrite
+from app.schemas.exam import ExamQuestionWrite
 from app.services import storage
 
 PDF_ROOT = Path(__file__).parent / "course_content" / "pdfs"
@@ -50,6 +56,37 @@ def _flatten(course: dict) -> list[dict]:
     for number, lesson in enumerate(out, start=1):
         lesson["number"] = number
     return out
+
+
+def exam_bank(course: dict, lessons: list[dict]) -> list[ExamQuestionWrite]:
+    """
+    The pack's EXAM questions plus every lesson quiz question as SINGLE.
+
+    EXAM items are dicts: {"kind", "q", "options", "correct", "why", "topic"}
+    where "correct" is option indexes (or accepted answers for FILL_BLANK).
+    """
+    bank: list[ExamQuestionWrite] = []
+    for item in course.get("exam", []):
+        bank.append(ExamQuestionWrite(
+            kind=ExamQuestionKind(item["kind"]),
+            question=item["q"],
+            options=item.get("options", []),
+            correct=item["correct"],
+            explanation=item.get("why", ""),
+            topic=item.get("topic"),
+        ))
+    if course.get("exam_include_quizzes", True):
+        for lesson in lessons:
+            for question, options, correct, explanation in lesson.get("quiz", []):
+                bank.append(ExamQuestionWrite(
+                    kind=ExamQuestionKind.SINGLE,
+                    question=question,
+                    options=options,
+                    correct=[correct],
+                    explanation=explanation,
+                    topic=lesson["module_title"],
+                ))
+    return bank
 
 
 def _shuffled(question: str, options: list[str], correct: int) -> tuple[list[str], int]:
@@ -148,9 +185,13 @@ def load(pack_name: str, dry_run: bool = False) -> None:
         pdf_dir = PDF_ROOT / slug
 
         for item in lessons:
+            lectures = [
+                {"title": t, "url": u, "minutes": m} for (t, u, m) in item.get("lectures", [])
+            ] or None
             fields = dict(
                 content=item["content"].strip() + "\n",
                 video_url=item.get("video"),
+                extra_videos=lectures,
                 module_title=item["module_title"],
                 duration_minutes=item.get("minutes"),
                 display_order=item["number"],
@@ -183,6 +224,14 @@ def load(pack_name: str, dry_run: bool = False) -> None:
                     print("    (no ADMIN user yet -- PDF not attached)")
                 elif _attach_pdf(db, lesson, pdf, uploader.id):
                     print(f"    + PDF {pdf.name}")
+
+        if not dry_run and data.get("exam") is not None:
+            bank = exam_bank(data, lessons)
+            n = exam_crud.replace_exam_bank(db, course.id, bank)
+            kinds = {}
+            for q in bank:
+                kinds[q.kind.value] = kinds.get(q.kind.value, 0) + 1
+            print(f"exam bank: {n} questions {kinds}")
 
         total = course_crud.count_active_lessons(db, course.id)
         minutes = course_crud.total_minutes(db, course.id)

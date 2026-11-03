@@ -41,7 +41,8 @@ def main() -> None:
     # Full course packs (weeks, quizzes, PDFs) replace the short versions above.
     from app.seed_course_content import load
 
-    for pack in ("ai_career_essentials", "ai_foundations", "math_python_for_ai"):
+    for pack in ("ai_career_essentials", "ai_foundations", "math_python_for_ai",
+                 "machine_learning_fundamentals"):
         print(f"\n--- full content pack: {pack} ---")
         load(pack)
     print("\n" + "=" * 60)

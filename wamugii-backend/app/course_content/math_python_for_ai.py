@@ -9,6 +9,8 @@ It replaces the short 9-lesson version created by seed_ai_c2_math_python.py:
 the old lessons are hidden, students keep their enrolment.
 """
 
+from app.course_content.lectures import attach
+from app.course_content.mp_exam import EXAM
 from app.course_content.mp_week1 import WEEK1
 from app.course_content.mp_week2 import WEEK2
 from app.course_content.mp_week3 import WEEK3
@@ -35,4 +37,29 @@ COURSE = {
         "and beyond."
     ),
     "modules": [WEEK1, WEEK2, WEEK3, WEEK4],
+    # Final exam: these questions plus every lesson-quiz question (as single answer).
+    "exam": EXAM,
 }
+
+# "Go deeper" full lectures under the short videos (see lectures.py).
+attach(COURSE, {
+    "Why Python for AI — and Your First Program": ["fcc_python"],
+    "Variables, Numbers and Text": ["fcc_python"],
+    "Lists, Dictionaries and Loops": ["fcc_python"],
+    "Making Decisions and Writing Functions": ["fcc_python"],
+    "NumPy: Fast Maths on Arrays": ["fcc_data"],
+    "Pandas: Tables of Data": ["fcc_data"],
+    "Cleaning Messy Data": ["fcc_data"],
+    "Grouping and Summarising Data": ["fcc_data"],
+    "Charts with Matplotlib": ["fcc_data"],
+    "Vectors: How AI Sees Data": ["fcc_linalg"],
+    "Matrices: Many Calculations at Once": ["fcc_linalg"],
+    "Describing Data: Averages and Spread": ["fcc_stats"],
+    "Probability: Measuring Uncertainty": ["cs50_uncertainty", "fcc_stats"],
+    "Distributions and the Normal Curve": ["fcc_stats"],
+    "Bayes' Theorem: Updating Beliefs with Evidence": ["cs50_uncertainty"],
+    "Correlation: Do Two Things Move Together?": ["fcc_stats"],
+    "Derivatives: The Maths of Change": ["3b1b_calculus"],
+    "Gradient Descent: How Models Learn": ["cs50_nn"],
+    "Linear Regression from Scratch": ["cs50_learning", "stanford_ml1"],
+})

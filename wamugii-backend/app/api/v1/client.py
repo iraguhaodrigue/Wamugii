@@ -862,11 +862,29 @@ def get_course_certificate(
             detail="Complete every lesson to unlock your certificate.",
         )
 
+    # A course with a final exam also needs a passed attempt.
+    from app.crud import exam as exam_crud
+    from app.services.exam import has_exam
+
+    exam_percent = None
+    issued_on = date.today()
+    if has_exam(db, course_id):
+        best = exam_crud.best_passed_attempt(db, enrollment.id)
+        if best is None:
+            raise HTTPException(
+                status_code=403,
+                detail="Pass the final exam to unlock your certificate.",
+            )
+        exam_percent = best.percent
+        if best.submitted_at is not None:
+            issued_on = best.submitted_at.date()
+
     return CertificateRead(
         student_name=current_user.full_name,
         course_title=course.title,
         course_slug=course.slug,
         lesson_count=total,
         certificate_id=f"WAMUGII-CERT-{enrollment.id:05d}",
-        issued_on=date.today(),
+        issued_on=issued_on,
+        exam_percent=exam_percent,
     )

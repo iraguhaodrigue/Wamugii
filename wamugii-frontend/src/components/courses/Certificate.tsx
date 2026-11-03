@@ -129,6 +129,7 @@ export function Certificate({ certificate, onClose }: CertificateProps) {
           >
             {certificate.lesson_count} {certificate.lesson_count === 1 ? 'lesson' : 'lessons'}{' '}
             completed
+            {certificate.exam_percent != null && <> · final exam passed with {certificate.exam_percent}%</>}
           </p>
 
           <div className="mt-auto flex w-full items-end justify-between gap-[4%] pt-[4%]">
