@@ -69,7 +69,11 @@ def _public_course_detail(db: Session, course: Course) -> CoursePublicDetail:
     lessons = course_crud.list_lessons(db, course.id)
     detail = CoursePublicDetail.model_validate(course)
     detail.lesson_count = len(lessons)
-    detail.lessons = [LessonBrief.model_validate(l) for l in lessons]
+    detail.lessons = []
+    for l in lessons:
+        brief = LessonBrief.model_validate(l)
+        brief.has_video = bool(l.video_url)
+        detail.lessons.append(brief)
     detail.student_count = course_crud.count_students(db, course.id)
     detail.total_minutes = sum(l.duration_minutes or 0 for l in lessons)
     return detail

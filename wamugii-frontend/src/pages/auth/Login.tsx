@@ -39,8 +39,11 @@ export function Login() {
     setFormError(null)
     try {
       const user = await login(values.email, values.password)
-      const from = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname
-      const destination = from && isPathAllowedForRole(from, user.role) ? from : roleHomePath[user.role]
+      const fromLoc = (location.state as { from?: { pathname?: string; search?: string } } | null)?.from
+      const from = fromLoc?.pathname
+      // Keep the query string too, so a lesson link (?lesson=…) opens that lesson after sign-in.
+      const destination =
+        from && isPathAllowedForRole(from, user.role) ? `${from}${fromLoc?.search ?? ''}` : roleHomePath[user.role]
       navigate(destination, { replace: true })
     } catch (err) {
       setFormError((err as ApiError).message ?? 'Unable to log in. Please try again.')

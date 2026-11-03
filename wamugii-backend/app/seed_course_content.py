@@ -65,8 +65,23 @@ def _shuffled(question: str, options: list[str], correct: int) -> tuple[list[str
 
 def _attach_pdf(db, lesson: Lesson, pdf: Path, uploader_id: int) -> bool:
     nice_name = f"{lesson.title}.pdf".replace("/", "-")
+    new_bytes = pdf.read_bytes()
     for existing in course_crud.list_materials(db, lesson.id):
         if existing.original_filename == nice_name:
+            # Same handout already attached: refresh the file in place when the
+            # pack's PDF changed (new video link, edited notes), else skip.
+            try:
+                target = storage.get_file(existing.storage_path)
+                current = target.read_bytes() if target.is_file() else b""
+            except (storage.StorageError, OSError):
+                return False
+            if current == new_bytes:
+                return False
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(new_bytes)
+            existing.file_size = len(new_bytes)
+            db.commit()
+            print(f"    ~ PDF refreshed {pdf.name}")
             return False
     with open(pdf, "rb") as fh:
         stored, path, size = storage.save_lesson_material(fh, lesson.id, ".pdf", MAX_PDF_BYTES)

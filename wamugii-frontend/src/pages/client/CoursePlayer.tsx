@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams, useSearchParams } from 'react-router-dom'
 import {
   ArrowLeft,
+  Link2,
+  PlayCircle,
   ArrowRight,
   CheckCircle2,
   Clock,
@@ -15,6 +17,7 @@ import {
 } from 'lucide-react'
 import {
   downloadLessonMaterial,
+  enrollInCourse,
   getCertificate,
   getCourseProgress,
   getPublicCourse,
@@ -60,6 +63,12 @@ export function ClientCoursePlayer() {
   const { slug } = useParams<{ slug: string }>()
   const queryClient = useQueryClient()
   const [activeLessonId, setActiveLessonId] = useState<number | null>(null)
+  // `?lesson=<id>` opens that lesson directly (shared links, the course page,
+  // emails). The URL is kept in step with the open lesson so every lesson has
+  // its own link.
+  const [searchParams, setSearchParams] = useSearchParams()
+  const requestedLessonId = Number(searchParams.get('lesson')) || null
+  const [copied, setCopied] = useState(false)
   const [completeError, setCompleteError] = useState<string | null>(null)
   const [downloadError, setDownloadError] = useState<string | null>(null)
   const [downloadingId, setDownloadingId] = useState<number | null>(null)
@@ -115,12 +124,35 @@ export function ClientCoursePlayer() {
       return
     }
     if (activeLessonId == null || !lessons.some((l) => l.id === activeLessonId)) {
-      // Resume where the student stopped: the first lesson not yet completed.
+      // A linked lesson wins; otherwise resume at the first lesson not yet completed.
+      const linked = requestedLessonId ? lessons.find((l) => l.id === requestedLessonId) : undefined
       const done = new Set(progressQuery.data?.completed_lesson_ids ?? [])
-      const resume = lessons.find((l) => !done.has(l.id)) ?? lessons[0]!
+      const resume = linked ?? lessons.find((l) => !done.has(l.id)) ?? lessons[0]!
       setActiveLessonId(resume.id)
+      if (linked) {
+        // Opened from a link: bring the video into view straight away.
+        window.setTimeout(() => document.getElementById('lesson-top')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150)
+      }
     }
-  }, [lessonsQuery.data, activeLessonId, progressQuery.data])
+  }, [lessonsQuery.data, activeLessonId, progressQuery.data, requestedLessonId])
+
+  // Keep `?lesson=` in step with the open lesson (replace, so Back still leaves the player).
+  useEffect(() => {
+    if (activeLessonId == null || requestedLessonId === activeLessonId) return
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev)
+        next.set('lesson', String(activeLessonId))
+        return next
+      },
+      { replace: true },
+    )
+  }, [activeLessonId, requestedLessonId, setSearchParams])
+
+  const enrollMutation = useMutation<unknown, ApiError, number>({
+    mutationFn: (courseId) => enrollInCourse(courseId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['client', 'learning'] }),
+  })
 
   const activeLesson: Lesson | undefined = useMemo(
     () => lessonsQuery.data?.find((l) => l.id === activeLessonId),
@@ -193,15 +225,36 @@ export function ClientCoursePlayer() {
     return (
       <EmptyState
         icon={Lock}
-        title="You're not enrolled in this course"
-        description="Enroll from the catalogue to unlock the lessons."
+        title={course.is_free ? `Start ${course.title} — it's free` : "You're not enrolled in this course"}
+        description={
+          course.is_free
+            ? 'Enroll in one click and this lesson opens straight away.'
+            : 'Enroll from the course page to unlock the lessons.'
+        }
         action={
-          <Link
-            to={paths.courseDetail(course.slug)}
-            className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-600 hover:text-brand-700"
-          >
-            Open the course page
-          </Link>
+          course.is_free ? (
+            <div className="flex flex-col items-center gap-2">
+              <Button
+                leftIcon={<PlayCircle className="size-4" />}
+                isLoading={enrollMutation.isPending}
+                onClick={() => enrollMutation.mutate(course.id)}
+              >
+                Enroll free & start learning
+              </Button>
+              {enrollMutation.isError && (
+                <p role="alert" className="text-sm text-red-600">
+                  {enrollMutation.error.message}
+                </p>
+              )}
+            </div>
+          ) : (
+            <Link
+              to={paths.courseDetail(course.slug)}
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-600 hover:text-brand-700"
+            >
+              Open the course page
+            </Link>
+          )
         }
       />
     )
@@ -254,7 +307,17 @@ export function ClientCoursePlayer() {
 
   function goTo(lessonId: number) {
     setActiveLessonId(lessonId)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    window.setTimeout(() => document.getElementById('lesson-top')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50)
+  }
+
+  async function copyLessonLink() {
+    try {
+      await navigator.clipboard.writeText(window.location.href)
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // Clipboard blocked (old browser / insecure context): nothing to do.
+    }
   }
 
   if (showCertificate) {
@@ -324,7 +387,7 @@ export function ClientCoursePlayer() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
-        <aside className="order-last lg:order-first lg:col-span-1">
+        <aside className="order-last min-w-0 lg:order-first lg:col-span-1">
           <div className="rounded-xl border border-slate-200 bg-panel p-4 shadow-[var(--shadow-card)] backdrop-blur-sm">
             <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
               Lessons
@@ -393,50 +456,55 @@ export function ClientCoursePlayer() {
           </div>
         </aside>
 
-        <section className="space-y-6 lg:col-span-2">
+        <section className="min-w-0 space-y-6 lg:col-span-2">
           {!activeLesson ? (
             <EmptyState title="Nothing to show yet" description="This course has no lessons." />
           ) : (
             <>
-              <div className="hero-in relative overflow-hidden rounded-2xl bg-[var(--color-brand-950)] p-6 text-white" key={activeLesson.id}>
-                <div
-                  className="pointer-events-none absolute inset-0 bg-cover bg-center opacity-60"
-                  style={{ backgroundImage: "url('/graphics/gradient-blobs.svg')" }}
-                  aria-hidden="true"
-                />
-                <div className="relative">
-                  <p className="text-xs font-bold uppercase tracking-wider text-cyan-300">
-                    Lesson {activeIndex + 1} of {lessons.length}
-                  </p>
-                  <h2 className="mt-1 text-2xl font-bold tracking-tight sm:text-3xl">{activeLesson.title}</h2>
-                  <p className="mt-2 inline-flex items-center gap-1.5 text-sm text-white/75">
-                    <Clock className="size-4" aria-hidden="true" />
-                    About {readingMinutes} min
-                  </p>
-                  {sections.length > 1 && (
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      {sections.map((title, i) => (
-                        <a
-                          key={i}
-                          href={`#lesson-step-${i}`}
-                          onClick={(e) => {
-                            e.preventDefault()
-                            document
-                              .getElementById(`lesson-step-${i}`)
-                              ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-                          }}
-                          className="rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-medium text-white/85 transition-colors hover:border-cyan-300 hover:text-white"
-                        >
-                          {title}
-                        </a>
-                      ))}
-                    </div>
-                  )}
+              <div id="lesson-top" className="scroll-mt-20 space-y-3" key={activeLesson.id}>
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold uppercase tracking-wider text-brand-600">
+                      {activeLesson.module_title ? `${activeLesson.module_title.split('·')[0]!.trim()} · ` : ''}
+                      Lesson {activeIndex + 1} of {lessons.length}
+                      <span className="ml-2 inline-flex items-center gap-1 font-medium normal-case tracking-normal text-slate-400">
+                        <Clock className="size-3.5" aria-hidden="true" />
+                        about {readingMinutes} min
+                      </span>
+                    </p>
+                    <h2 className="mt-1 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">{activeLesson.title}</h2>
+                  </div>
+                  <Button size="sm" variant="outline" onClick={copyLessonLink} leftIcon={<Link2 className="size-4" />}>
+                    {copied ? 'Link copied!' : 'Copy lesson link'}
+                  </Button>
                 </div>
+
+                {/* The video comes first: it is what a student opening a lesson link wants to see. */}
+                {activeLesson.video_url ? (
+                  <div className="hero-in overflow-hidden rounded-2xl shadow-[var(--shadow-glow-brand)]">
+                    <VideoEmbed url={activeLesson.video_url} title={activeLesson.title} />
+                  </div>
+                ) : null}
+
+                {sections.length > 1 && (
+                  <div className="flex flex-wrap gap-2">
+                    <span className="self-center text-xs font-semibold uppercase tracking-wide text-slate-400">In this lesson:</span>
+                    {sections.map((title, i) => (
+                      <a
+                        key={i}
+                        href={`#lesson-step-${i}`}
+                        onClick={(e) => {
+                          e.preventDefault()
+                          document.getElementById(`lesson-step-${i}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                        }}
+                        className="rounded-full border border-slate-200 bg-panel px-3 py-1 text-xs font-medium text-slate-600 transition-colors hover:border-brand-400 hover:text-brand-600"
+                      >
+                        {title}
+                      </a>
+                    ))}
+                  </div>
+                )}
               </div>
-              {activeLesson.video_url ? (
-                <VideoEmbed url={activeLesson.video_url} title={activeLesson.title} />
-              ) : null}
               {activeLesson.content ? (
                 <LessonContent content={activeLesson.content} lessonKey={activeLesson.id} />
               ) : (

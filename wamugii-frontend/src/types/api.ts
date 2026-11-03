@@ -3601,6 +3601,11 @@ export interface components {
             module_title?: string | null;
             /** Duration Minutes */
             duration_minutes?: number | null;
+            /**
+             * Has Video
+             * @default false
+             */
+            has_video: boolean;
         };
         /**
          * LessonCompleteResponse

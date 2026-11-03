@@ -88,6 +88,8 @@ class LessonBrief(BaseModel):
     display_order: int
     module_title: str | None = None
     duration_minutes: int | None = None
+    # Filled in by the router -- only whether a video exists, never the URL.
+    has_video: bool = False
 
 
 class CoursePublicDetail(CourseRead):

@@ -8,7 +8,6 @@ import {
   CheckCircle2,
   Clock,
   GraduationCap,
-  Lock,
   PlayCircle,
   SearchX,
   Signal,
@@ -296,15 +295,24 @@ export function CourseDetail() {
                               </summary>
                               <ul className="space-y-1 border-t border-slate-200 px-4 py-3">
                                 {module.lessons.map(({ lesson, index }) => (
-                                  <li key={lesson.id} className="flex items-center gap-3 rounded-lg px-2 py-2 text-sm hover:bg-slate-50">
-                                    <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-brand-50 text-[11px] font-bold text-brand-700">
-                                      {index + 1}
-                                    </span>
-                                    <span className="min-w-0 flex-1 text-slate-700">{lesson.title}</span>
-                                    {lesson.duration_minutes && (
-                                      <span className="shrink-0 text-xs text-slate-400">{lesson.duration_minutes} min</span>
-                                    )}
-                                    <Lock className="size-3.5 shrink-0 text-slate-300" aria-label="Enroll to unlock" />
+                                  <li key={lesson.id}>
+                                    <Link
+                                      to={`${paths.client.courseDetail(course.slug)}?lesson=${lesson.id}`}
+                                      className="group/lesson flex items-center gap-3 rounded-lg px-2 py-2 text-sm transition-colors hover:bg-brand-50"
+                                    >
+                                      <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-brand-50 text-[11px] font-bold text-brand-700">
+                                        {index + 1}
+                                      </span>
+                                      <span className="min-w-0 flex-1 text-slate-700 group-hover/lesson:text-brand-700">{lesson.title}</span>
+                                      {lesson.duration_minutes && (
+                                        <span className="shrink-0 text-xs text-slate-400">{lesson.duration_minutes} min</span>
+                                      )}
+                                      {lesson.has_video ? (
+                                        <PlayCircle className="size-4 shrink-0 text-brand-500 transition-transform group-hover/lesson:scale-125" aria-label="Has video" />
+                                      ) : (
+                                        <BookOpen className="size-3.5 shrink-0 text-slate-400" aria-label="Reading lesson" />
+                                      )}
+                                    </Link>
                                   </li>
                                 ))}
                               </ul>

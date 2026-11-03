@@ -94,6 +94,58 @@ const SHOWCASES: Record<string, CourseShowcase> = {
       { icon: Users, title: 'Professionals', text: 'Stay ahead in your role as AI changes work.' },
     ],
   },
+  'ai-foundations': {
+    tagline:
+      'A complete 4-week, university-level foundation in AI: how it works, how machines learn, how models are measured, and how to use AI responsibly. No coding needed.',
+    level: 'Beginner to intermediate',
+    lessonCount: 24,
+    hours: 20,
+    weeks: [
+      {
+        title: 'Week 1 · What AI Is',
+        summary: 'A precise definition, the history of AI, intelligent agents, problem types and search.',
+        icon: Brain,
+      },
+      {
+        title: 'Week 2 · How Machines Learn',
+        summary: 'Data, the machine-learning workflow, and supervised, unsupervised and reinforcement learning.',
+        icon: Lightbulb,
+      },
+      {
+        title: 'Week 3 · Measuring and Building Models',
+        summary: 'Overfitting, accuracy, precision and recall, neural networks and how LLMs work.',
+        icon: Wrench,
+      },
+      {
+        title: 'Week 4 · AI in Society',
+        summary: 'Bias, explainability, privacy, Rwanda’s AI policy, the EU AI Act — and careers in AI.',
+        icon: ShieldCheck,
+      },
+    ],
+    highlights: [
+      'Defining AI, ML and Deep Learning',
+      'Intelligent Agents',
+      'Supervised Learning',
+      'Reinforcement Learning',
+      'Precision and Recall',
+      'Neural Networks Explained',
+      'Transformers and LLMs',
+      'Bias and Fairness',
+      'AI Governance and Policy',
+      'Careers in AI',
+    ],
+    outcomes: [
+      { icon: Brain, title: 'Explain AI precisely', text: 'Describe any AI system as an agent and name its problem type.' },
+      { icon: Lightbulb, title: 'Understand how models learn', text: 'Data, training, testing, neural networks and LLMs — clearly.' },
+      { icon: Wrench, title: 'Judge results honestly', text: 'Read a confusion matrix and pick the right measure.' },
+      { icon: ShieldCheck, title: 'Use AI responsibly', text: 'Fairness, privacy, Rwanda’s data law and AI governance.' },
+    ],
+    audience: [
+      { icon: GraduationCap, title: 'Students', text: 'A strong base before machine learning and deep learning.' },
+      { icon: Briefcase, title: 'Professionals', text: 'Understand the AI your organisation buys and builds.' },
+      { icon: Users, title: 'Future AI builders', text: 'The first step of the WAMUGII AI Program.' },
+    ],
+  },
 }
 
 export function getShowcase(slug: string | undefined): CourseShowcase | undefined {

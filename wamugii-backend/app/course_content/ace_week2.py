@@ -7,7 +7,7 @@ WEEK2 = {
         {
             "title": "The AI-Ready Mindset",
             "minutes": 35,
-            "video": None,
+            "video": "https://www.youtube.com/watch?v=XLoMFXGTczU",
             "content": """
 **Learning objective:** Adopt a practical mindset for working with AI: use it to augment your work, stay in charge of judgement, and build safe daily habits.
 
@@ -88,7 +88,7 @@ Pick one task you do often (for example: writing reports, preparing lessons, ans
         {
             "title": "Core AI Tools for Everyday Work",
             "minutes": 45,
-            "video": None,
+            "video": "https://www.youtube.com/watch?v=htZRCE2GgIs",
             "content": """
 **Learning objective:** Recognise the main categories of AI tools, choose the right tool for a task, and set up a simple free toolkit.
 
@@ -341,7 +341,7 @@ When a prompt works well, save it with blanks you can fill in later:
         {
             "title": "Checking AI's Work",
             "minutes": 40,
-            "video": None,
+            "video": "https://www.youtube.com/watch?v=iOklnPvvDUo",
             "content": """
 **Learning objective:** Verify AI output using a simple checking routine, check facts, numbers and sources, and know when to stop trusting an answer.
 
@@ -423,7 +423,7 @@ Match the effort to the risk. A brainstorming list needs a quick read. A report 
         {
             "title": "Week 2 Project: Build Your Prompt Library",
             "minutes": 60,
-            "video": None,
+            "video": "https://www.youtube.com/watch?v=5i2Hn8OG94o",
             "content": """
 **Learning objective:** Create a personal, tested library of reusable prompts for your study or work, applying Role-Task-Context-Format, advanced techniques and verification.
 

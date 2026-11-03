@@ -333,7 +333,7 @@ Warning signs:
         {
             "title": "AI in Rwanda and Across Africa",
             "minutes": 40,
-            "video": None,
+            "video": "https://www.youtube.com/watch?v=3AZF1TTDdEM",
             "content": """
 **Learning objective:** Describe how AI is already being used in Rwanda and Africa, explain why local data and languages matter, and identify opportunities in your own field.
 
@@ -408,7 +408,7 @@ AI also brings real challenges for Africa: the cost of internet and devices, pro
         {
             "title": "Week 1 Project: Map the AI Around You",
             "minutes": 60,
-            "video": None,
+            "video": "https://www.youtube.com/watch?v=0yCJMt9Mx9c",
             "content": """
 **Learning objective:** Apply Week 1 ideas by identifying, explaining and evaluating real AI uses in your daily life and chosen field.
 

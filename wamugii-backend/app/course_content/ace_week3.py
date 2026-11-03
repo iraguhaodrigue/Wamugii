@@ -7,7 +7,7 @@ WEEK3 = {
         {
             "title": "AI for Writing and Communication",
             "minutes": 45,
-            "video": None,
+            "video": "https://www.youtube.com/watch?v=fezN-GtWobg",
             "content": """
 **Learning objective:** Use AI to draft, improve, shorten, translate and adapt professional writing — emails, letters, reports and CVs — while keeping your own voice.
 
@@ -235,7 +235,7 @@ Data only matters when it leads to a decision. Ask AI to help you write the stor
         {
             "title": "AI for Presentations, Design and Content",
             "minutes": 45,
-            "video": None,
+            "video": "https://www.youtube.com/watch?v=ZpXN9M0WLQ4",
             "content": """
 **Learning objective:** Use AI to plan presentations, create slides and visuals, and produce social-media content — with good design habits and honest use of images.
 
@@ -306,7 +306,7 @@ Keep it real: use your own photos where possible, reply to people yourself, and 
         {
             "title": "Using AI in Your Field",
             "minutes": 45,
-            "video": None,
+            "video": "https://www.youtube.com/watch?v=cCi_LoanwLk",
             "content": """
 **Learning objective:** Apply AI to real tasks in your own field — business, education, health, agriculture, public service, hospitality or technology — using a repeatable method.
 
@@ -389,7 +389,7 @@ Every field has tasks AI must **not** decide alone: medical diagnosis, legal jud
         {
             "title": "Week 3 Project: Automate a Real Task",
             "minutes": 75,
-            "video": None,
+            "video": "https://www.youtube.com/watch?v=OygSPm3wv3g",
             "content": """
 **Learning objective:** Choose a real, repetitive task, redesign it with AI, measure the before-and-after result, and present it clearly.
 

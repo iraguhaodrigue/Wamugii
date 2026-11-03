@@ -7,7 +7,7 @@ WEEK4 = {
         {
             "title": "Privacy and Data Protection",
             "minutes": 40,
-            "video": None,
+            "video": "https://www.youtube.com/watch?v=gEtTVlQsGcQ",
             "content": """
 **Learning objective:** Know what information must never go into AI tools, understand the basics of Rwanda's personal-data law, and use AI safely at work.
 
@@ -313,7 +313,7 @@ Never claim AI skills, certificates or results you do not have. A small, true ex
         {
             "title": "Your 90-Day AI Career Plan",
             "minutes": 40,
-            "video": None,
+            "video": "https://www.youtube.com/watch?v=MIbP9kgCc4w",
             "content": """
 **Learning objective:** Create a realistic 90-day plan to keep growing your AI skills, apply them, and move toward a specific career goal.
 
@@ -388,7 +388,7 @@ Check your plan every 30 days: What did I achieve? What blocked me? What will I 
         {
             "title": "Final Project and Certificate",
             "minutes": 90,
-            "video": None,
+            "video": "https://www.youtube.com/watch?v=fa8k8IQ1_X0",
             "content": """
 **Learning objective:** Bring together everything from the course into one professional portfolio project, reflect on your growth, and earn your WAMUGII certificate.
 
