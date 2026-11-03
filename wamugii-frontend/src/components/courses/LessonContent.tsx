@@ -201,8 +201,8 @@ function BlockView({ block }: { block: Block }) {
           <code>{block.text}</code>
         </pre>
       )
-    case 'table':
-      return (
+    case 'table': {
+      const table = (
         <div className="overflow-x-auto rounded-xl border border-slate-200">
           <table className="w-full text-left text-sm">
             <thead className="bg-slate-50 text-slate-900">
@@ -228,6 +228,37 @@ function BlockView({ block }: { block: Block }) {
           </table>
         </div>
       )
+      // Two columns fit a phone. Wider tables become one small card per row on
+      // phones, so no word is squeezed or cut off.
+      if (block.head.length < 3) return table
+      return (
+        <>
+          <div className="hidden sm:block">{table}</div>
+          <div className="space-y-2.5 sm:hidden">
+            {block.rows.map((r, ri) => (
+              <div key={ri} className="rounded-xl border border-slate-200 bg-panel p-3.5 text-sm">
+                <p className="font-semibold text-slate-900">
+                  {block.head[0]?.trim() ? (
+                    <span className="mr-1 text-xs font-medium text-slate-400">{inline(block.head[0])}:</span>
+                  ) : null}
+                  {inline(r[0] ?? '')}
+                </p>
+                <dl className="mt-2 space-y-1.5">
+                  {r.slice(1).map((c, ci) => (
+                    <div key={ci}>
+                      <dt className="text-[11px] font-semibold uppercase tracking-wide text-brand-600">
+                        {inline(block.head[ci + 1] ?? '')}
+                      </dt>
+                      <dd className="leading-relaxed text-slate-600">{inline(c)}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </div>
+            ))}
+          </div>
+        </>
+      )
+    }
     case 'ol':
       return (
         <ol className="space-y-2">
@@ -342,7 +373,7 @@ export function LessonContent({ content, lessonKey }: LessonContentProps) {
     <div className="space-y-6" key={lessonKey}>
       {objective && (
         <Reveal>
-          <div className="flex gap-4 rounded-2xl border border-brand-200 bg-brand-50/70 p-5">
+          <div className="flex gap-3 rounded-2xl border border-brand-200 bg-brand-50/70 p-4 sm:gap-4 sm:p-5">
             <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[var(--color-brand-solid)] text-white">
               <Target className="size-5" aria-hidden="true" />
             </span>
@@ -363,12 +394,12 @@ export function LessonContent({ content, lessonKey }: LessonContentProps) {
             const key = `${lessonKey}-${idx}`
             const ticked = Boolean(done[key])
             return (
-              <li key={idx} id={id} className="relative scroll-mt-24 pl-12">
-                <span className="absolute left-0 top-1 flex size-9 items-center justify-center rounded-full bg-gradient-to-br from-[var(--color-brand-solid)] to-[var(--color-accent-solid)] text-white shadow-[var(--shadow-glow-brand)]">
+              <li key={idx} id={id} className="relative scroll-mt-24 pl-10 sm:pl-12">
+                <span className="absolute left-0 top-1 flex size-7 sm:size-9 items-center justify-center rounded-full bg-gradient-to-br from-[var(--color-brand-solid)] to-[var(--color-accent-solid)] text-white shadow-[var(--shadow-glow-brand)]">
                   <PenLine className="size-4" aria-hidden="true" />
                 </span>
                 <Reveal>
-                  <div className="lesson-activity relative overflow-hidden rounded-2xl border border-accent-200 bg-panel p-6 shadow-[var(--shadow-card)]">
+                  <div className="lesson-activity relative overflow-hidden rounded-2xl border border-accent-200 bg-panel p-4 sm:p-6 shadow-[var(--shadow-card)]">
                     <p className="text-xs font-bold uppercase tracking-wider text-accent-600">Activity</p>
                     <h3 className="mt-1 text-lg font-semibold text-slate-900">{inline(s.title!)}</h3>
                     <div className="mt-3">
@@ -398,8 +429,8 @@ export function LessonContent({ content, lessonKey }: LessonContentProps) {
           }
           if (!s.title) {
             return (
-              <li key={idx} id={id} className="relative pl-12">
-                <span className="absolute left-0 top-1 flex size-9 items-center justify-center rounded-full bg-brand-50 text-brand-600 ring-4 ring-[var(--color-bg)]">
+              <li key={idx} id={id} className="relative pl-10 sm:pl-12">
+                <span className="absolute left-0 top-1 flex size-7 sm:size-9 items-center justify-center rounded-full bg-brand-50 text-brand-600 ring-4 ring-[var(--color-bg)]">
                   <Sparkles className="size-4" aria-hidden="true" />
                 </span>
                 <Reveal>
@@ -410,12 +441,12 @@ export function LessonContent({ content, lessonKey }: LessonContentProps) {
           }
           step++
           return (
-            <li key={idx} id={id} className="relative scroll-mt-24 pl-12">
-              <span className="absolute left-0 top-1 flex size-9 items-center justify-center rounded-full border-2 border-brand-400 bg-panel text-sm font-bold text-brand-700 ring-4 ring-[var(--color-bg)]">
+            <li key={idx} id={id} className="relative scroll-mt-24 pl-10 sm:pl-12">
+              <span className="absolute left-0 top-1 flex size-7 sm:size-9 items-center justify-center rounded-full border-2 border-brand-400 bg-panel text-sm font-bold text-brand-700 ring-4 ring-[var(--color-bg)]">
                 {step}
               </span>
               <Reveal>
-                <div className="rounded-2xl border border-slate-200 bg-panel p-6 shadow-[var(--shadow-card)] transition-shadow hover:shadow-[var(--shadow-glow-brand)]">
+                <div className="rounded-2xl border border-slate-200 bg-panel p-4 shadow-[var(--shadow-card)] transition-shadow sm:p-6 hover:shadow-[var(--shadow-glow-brand)]">
                   <h3 className="text-lg font-semibold text-slate-900">{inline(s.title)}</h3>
                   {s.blocks.length > 0 && (
                     <div className="mt-3">
@@ -431,7 +462,7 @@ export function LessonContent({ content, lessonKey }: LessonContentProps) {
 
       {takeaway && (
         <Reveal>
-          <div className="lesson-takeaway relative overflow-hidden rounded-2xl bg-gradient-to-br from-[var(--color-brand-solid)] to-[var(--color-accent-solid)] p-6 text-white">
+          <div className="lesson-takeaway relative overflow-hidden rounded-2xl bg-gradient-to-br from-[var(--color-brand-solid)] to-[var(--color-accent-solid)] p-5 sm:p-6 text-white">
             <div className="flex gap-4">
               <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-white/15">
                 <Lightbulb className="size-5" aria-hidden="true" />

@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import {
   ArrowLeft,
   Link2,
+  ListOrdered,
   PlayCircle,
   ArrowRight,
   CheckCircle2,
@@ -32,7 +33,6 @@ import {
 import type { ApiError } from '@/lib/apiClient'
 import { paths } from '@/routes/paths'
 import {
-  Badge,
   Button,
   EmptyState,
   ErrorState,
@@ -46,6 +46,15 @@ import { QuizPanel } from '@/components/courses/QuizPanel'
 import { groupByModule } from '@/components/courses/courseShowcase'
 import { formatFileSize } from '@/utils/format'
 import { cn } from '@/utils/cn'
+
+/** Jump, without animation, so the open lesson's title and video sit just under the sticky top bar. */
+function jumpToLesson() {
+  const el = document.getElementById('lesson-top')
+  if (!el) return
+  const stickyHeader = 72
+  const top = el.getBoundingClientRect().top + window.scrollY - stickyHeader
+  window.scrollTo({ top: Math.max(0, top), left: 0, behavior: 'instant' })
+}
 
 /**
  * The course player.
@@ -69,6 +78,16 @@ export function ClientCoursePlayer() {
   const [searchParams, setSearchParams] = useSearchParams()
   const requestedLessonId = Number(searchParams.get('lesson')) || null
   const [copied, setCopied] = useState(false)
+  // Set when the student picks a lesson; the layout effect below then jumps
+  // straight to that lesson's video before the browser paints, so the page
+  // never shows a smooth scroll through the top of the page first.
+  const pendingScroll = useRef(false)
+
+  // Coming from the course page (or any other page) the window may still be
+  // scrolled far down. Start at the top at once: the video sits near the top.
+  useLayoutEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+  }, [slug])
   const [completeError, setCompleteError] = useState<string | null>(null)
   const [downloadError, setDownloadError] = useState<string | null>(null)
   const [downloadingId, setDownloadingId] = useState<number | null>(null)
@@ -129,10 +148,6 @@ export function ClientCoursePlayer() {
       const done = new Set(progressQuery.data?.completed_lesson_ids ?? [])
       const resume = linked ?? lessons.find((l) => !done.has(l.id)) ?? lessons[0]!
       setActiveLessonId(resume.id)
-      if (linked) {
-        // Opened from a link: bring the video into view straight away.
-        window.setTimeout(() => document.getElementById('lesson-top')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150)
-      }
     }
   }, [lessonsQuery.data, activeLessonId, progressQuery.data, requestedLessonId])
 
@@ -178,16 +193,25 @@ export function ClientCoursePlayer() {
     onError: (err) => setCompleteError(err.message),
   })
 
+  // Jump (no animation) to the lesson that was just picked, so its title and
+  // video are on screen straight away -- on a phone too, where the lesson list
+  // sits below the lesson.
+  useLayoutEffect(() => {
+    if (!pendingScroll.current || activeLesson == null) return
+    pendingScroll.current = false
+    jumpToLesson()
+  }, [activeLesson])
+
   const progressText = enrollment
     ? `${enrollment.completed_lessons}/${enrollment.total_lessons} lessons complete`
     : ''
 
   if (courseQuery.isLoading || enrollmentsQuery.isLoading) {
     return (
-      <div className="space-y-6">
-        <Skeleton className="h-4 w-24" />
-        <Skeleton className="h-9 w-1/2" />
-        <Skeleton className="h-64 rounded-xl" />
+      <div className="space-y-4">
+        <Skeleton className="h-10 rounded-xl" />
+        <Skeleton className="h-8 w-2/3" />
+        <Skeleton className="aspect-video w-full rounded-2xl lg:w-2/3" />
       </div>
     )
   }
@@ -306,8 +330,13 @@ export function ClientCoursePlayer() {
   const readingMinutes = activeLesson?.duration_minutes ?? Math.max(3, Math.round(lessonText.split(/\s+/).length / 180))
 
   function goTo(lessonId: number) {
+    if (lessonId === activeLessonId) {
+      // Already open (e.g. tapped again in the list below on a phone): just jump back up to it.
+      jumpToLesson()
+      return
+    }
+    pendingScroll.current = true
     setActiveLessonId(lessonId)
-    window.setTimeout(() => document.getElementById('lesson-top')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50)
   }
 
   async function copyLessonLink() {
@@ -347,37 +376,45 @@ export function ClientCoursePlayer() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <Link
-          to={paths.client.learning}
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-brand-600"
-        >
-          <ArrowLeft className="size-4" aria-hidden="true" />
-          Back to My Learning
-        </Link>
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">{course.title}</h1>
-          <Badge variant="success">Active</Badge>
-        </div>
-        <div className="mt-3 space-y-1.5">
-          <div className="flex items-center justify-between text-xs text-slate-500">
-            <span>{progressText}</span>
-            <span className="font-medium text-slate-700">{enrollment.progress_percent}%</span>
+    <div className="space-y-5">
+      {/* A slim course bar, so the lesson video is the first big thing on screen. */}
+      <div className="rounded-xl border border-slate-200 bg-panel px-3 py-2.5 shadow-[var(--shadow-card)] backdrop-blur-sm sm:px-4">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <Link
+            to={paths.client.learning}
+            aria-label="Back to My Learning"
+            title="Back to My Learning"
+            className="flex size-8 shrink-0 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100 hover:text-brand-600"
+          >
+            <ArrowLeft className="size-4" aria-hidden="true" />
+          </Link>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-semibold text-slate-900 sm:text-base">{course.title}</p>
+            <div className="mt-1 flex items-center gap-2">
+              <ProgressBar value={enrollment.progress_percent} className="flex-1" />
+              <span className="shrink-0 text-[11px] font-medium text-slate-500" title={progressText}>
+                {enrollment.completed_lessons}/{enrollment.total_lessons} · {enrollment.progress_percent}%
+              </span>
+            </div>
           </div>
-          <ProgressBar value={enrollment.progress_percent} />
+          <a
+            href="#lesson-list"
+            onClick={(e) => {
+              e.preventDefault()
+              document.getElementById('lesson-list')?.scrollIntoView({ behavior: 'instant', block: 'start' })
+            }}
+            className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 text-xs font-semibold text-slate-600 transition-colors hover:border-brand-400 hover:text-brand-600 lg:hidden"
+          >
+            <ListOrdered className="size-4" aria-hidden="true" />
+            Lessons
+          </a>
         </div>
 
         {enrollment.progress_percent === 100 && (
-          <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-brand-400/30 bg-brand-50 p-4">
-            <div className="flex items-start gap-3">
-              <Award className="mt-0.5 size-5 shrink-0 text-brand-600" aria-hidden="true" />
-              <div>
-                <p className="text-sm font-semibold text-slate-900">Course complete</p>
-                <p className="mt-0.5 text-sm text-slate-500">
-                  You've finished every lesson — your certificate is ready.
-                </p>
-              </div>
+          <div className="mt-2.5 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-brand-400/30 bg-brand-50 p-3">
+            <div className="flex items-center gap-2.5">
+              <Award className="size-5 shrink-0 text-brand-600" aria-hidden="true" />
+              <p className="text-sm font-semibold text-slate-900">Course complete — your certificate is ready.</p>
             </div>
             <Button size="sm" onClick={() => setShowCertificate(true)}>
               Get your certificate
@@ -387,7 +424,7 @@ export function ClientCoursePlayer() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
-        <aside className="order-last min-w-0 lg:order-first lg:col-span-1">
+        <aside id="lesson-list" className="order-last min-w-0 scroll-mt-20 lg:order-first lg:col-span-1">
           <div className="rounded-xl border border-slate-200 bg-panel p-4 shadow-[var(--shadow-card)] backdrop-blur-sm">
             <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
               Lessons
@@ -461,27 +498,36 @@ export function ClientCoursePlayer() {
             <EmptyState title="Nothing to show yet" description="This course has no lessons." />
           ) : (
             <>
-              <div id="lesson-top" className="scroll-mt-20 space-y-3" key={activeLesson.id}>
-                <div className="flex flex-wrap items-start justify-between gap-3">
+              <div id="lesson-top" className="scroll-mt-20 space-y-3" key={`top-${activeLesson.id}`}>
+                <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="text-xs font-bold uppercase tracking-wider text-brand-600">
-                      {activeLesson.module_title ? `${activeLesson.module_title.split('·')[0]!.trim()} · ` : ''}
-                      Lesson {activeIndex + 1} of {lessons.length}
-                      <span className="ml-2 inline-flex items-center gap-1 font-medium normal-case tracking-normal text-slate-400">
+                    <p className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] font-bold uppercase tracking-wider text-brand-600 sm:text-xs">
+                      <span>
+                        {activeLesson.module_title ? `${activeLesson.module_title.split('·')[0]!.trim()} · ` : ''}
+                        Lesson {activeIndex + 1} of {lessons.length}
+                      </span>
+                      <span className="inline-flex items-center gap-1 font-medium normal-case tracking-normal text-slate-400">
                         <Clock className="size-3.5" aria-hidden="true" />
                         about {readingMinutes} min
                       </span>
                     </p>
-                    <h2 className="mt-1 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">{activeLesson.title}</h2>
+                    <h2 className="mt-1 text-xl font-bold leading-snug tracking-tight text-slate-900 sm:text-3xl">{activeLesson.title}</h2>
                   </div>
-                  <Button size="sm" variant="outline" onClick={copyLessonLink} leftIcon={<Link2 className="size-4" />}>
-                    {copied ? 'Link copied!' : 'Copy lesson link'}
-                  </Button>
+                  <button
+                    type="button"
+                    onClick={copyLessonLink}
+                    aria-label={copied ? 'Link copied' : 'Copy lesson link'}
+                    title="Copy lesson link"
+                    className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg border border-slate-200 bg-panel px-2.5 text-xs font-semibold text-slate-600 transition-colors hover:border-brand-400 hover:text-brand-600 sm:px-3 sm:text-sm"
+                  >
+                    {copied ? <CheckCircle2 className="size-4 text-emerald-500" aria-hidden="true" /> : <Link2 className="size-4" aria-hidden="true" />}
+                    <span className="hidden sm:inline">{copied ? 'Link copied!' : 'Copy lesson link'}</span>
+                  </button>
                 </div>
 
                 {/* The video comes first: it is what a student opening a lesson link wants to see. */}
                 {activeLesson.video_url ? (
-                  <div className="hero-in overflow-hidden rounded-2xl shadow-[var(--shadow-glow-brand)]">
+                  <div id="lesson-video" className="overflow-hidden rounded-2xl shadow-[var(--shadow-glow-brand)]">
                     <VideoEmbed url={activeLesson.video_url} title={activeLesson.title} />
                   </div>
                 ) : null}

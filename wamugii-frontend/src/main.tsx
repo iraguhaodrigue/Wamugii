@@ -6,6 +6,7 @@ import { AuthProvider } from '@/context/AuthContext'
 import { ThemeProvider } from '@/context/ThemeContext'
 import './index.css'
 import App from './App.tsx'
+import { ScrollToTop } from '@/components/common/ScrollToTop'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -20,6 +21,7 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
+        <ScrollToTop />
         <ThemeProvider>
           <AuthProvider>
             <App />

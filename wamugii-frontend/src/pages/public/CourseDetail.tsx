@@ -260,7 +260,7 @@ export function CourseDetail() {
               ) : (
                 <Reveal className="relative mt-8">
                   <span
-                    className="path-line absolute bottom-6 left-[23px] top-6 w-0.5 rounded bg-gradient-to-b from-brand-400 via-accent-400 to-brand-400"
+                    className="path-line absolute bottom-6 left-[23px] top-6 hidden w-0.5 sm:block rounded bg-gradient-to-b from-brand-400 via-accent-400 to-brand-400"
                     aria-hidden="true"
                   />
                   <ol className="space-y-4">
@@ -270,8 +270,8 @@ export function CourseDetail() {
                       const minutes = module.lessons.reduce((sum, { lesson }) => sum + (lesson.duration_minutes ?? 0), 0)
                       return (
                         <li key={module.title ?? mi}>
-                          <Reveal delay={Math.min(mi, 4) * 90} className="relative flex gap-4">
-                            <span className="relative z-10 flex size-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[var(--color-brand-solid)] to-[var(--color-accent-solid)] text-white shadow-[var(--shadow-glow-brand)] ring-4 ring-[var(--color-bg)]">
+                          <Reveal delay={Math.min(mi, 4) * 90} className="relative flex gap-3 sm:gap-4">
+                            <span className="relative z-10 hidden size-12 shrink-0 items-center justify-center rounded-2xl sm:flex bg-gradient-to-br from-[var(--color-brand-solid)] to-[var(--color-accent-solid)] text-white shadow-[var(--shadow-glow-brand)] ring-4 ring-[var(--color-bg)]">
                               <WeekIcon className="size-5" aria-hidden="true" />
                             </span>
                             <details
@@ -293,7 +293,7 @@ export function CourseDetail() {
                                 </div>
                                 <span className="mt-1 text-xs font-semibold text-brand-600 transition-transform duration-300 group-open:rotate-180">▼</span>
                               </summary>
-                              <ul className="space-y-1 border-t border-slate-200 px-4 py-3">
+                              <ul className="space-y-1 border-t border-slate-200 px-2 py-3 sm:px-4">
                                 {module.lessons.map(({ lesson, index }) => (
                                   <li key={lesson.id}>
                                     <Link
@@ -303,9 +303,16 @@ export function CourseDetail() {
                                       <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-brand-50 text-[11px] font-bold text-brand-700">
                                         {index + 1}
                                       </span>
-                                      <span className="min-w-0 flex-1 text-slate-700 group-hover/lesson:text-brand-700">{lesson.title}</span>
+                                      <span className="min-w-0 flex-1">
+                                        <span className="block text-slate-700 group-hover/lesson:text-brand-700">{lesson.title}</span>
+                                        {lesson.duration_minutes && (
+                                          <span className="mt-0.5 block text-[11px] text-slate-400 sm:hidden">
+                                            {lesson.duration_minutes} min{lesson.has_video ? ' · video' : ''}
+                                          </span>
+                                        )}
+                                      </span>
                                       {lesson.duration_minutes && (
-                                        <span className="shrink-0 text-xs text-slate-400">{lesson.duration_minutes} min</span>
+                                        <span className="hidden shrink-0 text-xs text-slate-400 sm:inline">{lesson.duration_minutes} min</span>
                                       )}
                                       {lesson.has_video ? (
                                         <PlayCircle className="size-4 shrink-0 text-brand-500 transition-transform group-hover/lesson:scale-125" aria-label="Has video" />
@@ -323,7 +330,7 @@ export function CourseDetail() {
                     })}
                     <li>
                       <Reveal delay={Math.min(modules.length, 5) * 90} className="relative flex gap-4">
-                        <span className="relative z-10 flex size-12 shrink-0 items-center justify-center rounded-2xl bg-amber-400 text-amber-950 shadow-[0_0_24px_-4px_rgb(251_191_36/0.6)] ring-4 ring-[var(--color-bg)]">
+                        <span className="relative z-10 hidden size-12 shrink-0 items-center justify-center rounded-2xl sm:flex bg-amber-400 text-amber-950 shadow-[0_0_24px_-4px_rgb(251_191_36/0.6)] ring-4 ring-[var(--color-bg)]">
                           <Award className="size-5" aria-hidden="true" />
                         </span>
                         <div className="shine relative flex-1 overflow-hidden rounded-2xl border border-amber-400/40 bg-amber-400/10 p-4">

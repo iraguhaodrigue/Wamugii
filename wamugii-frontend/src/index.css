@@ -590,13 +590,16 @@ body {
 .lesson-timeline::before {
   content: '';
   position: absolute;
-  left: 17px;
+  left: 13px;
   top: 12px;
   bottom: 12px;
   width: 2px;
   border-radius: 2px;
   background: linear-gradient(180deg, var(--color-brand-400), var(--color-accent-400));
   opacity: 0.35;
+}
+@media (min-width: 640px) {
+  .lesson-timeline::before { left: 17px; }
 }
 
 .course-marquee {
