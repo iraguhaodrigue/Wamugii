@@ -437,7 +437,7 @@ After AI Foundations, continue with **Math & Python for AI**, then **Machine Lea
             "content": """
 **Learning objective:** Produce a complete, professional AI problem analysis that brings together all four weeks — and earn your AI Foundations certificate.
 
-## About the final project
+## What you will do
 
 Choose one real problem in Rwanda or your community that AI could help with. Write an **AI Problem Analysis** of 4–6 pages (or 12–15 slides). Build on your Week 1, 2 and 3 projects — you have already done much of the thinking.
 

@@ -1,6 +1,10 @@
 import {
   Briefcase,
   Brain,
+  Code,
+  Sigma,
+  Table2,
+  TrendingDown,
   GraduationCap,
   Lightbulb,
   MessageSquareText,
@@ -144,6 +148,58 @@ const SHOWCASES: Record<string, CourseShowcase> = {
       { icon: GraduationCap, title: 'Students', text: 'A strong base before machine learning and deep learning.' },
       { icon: Briefcase, title: 'Professionals', text: 'Understand the AI your organisation buys and builds.' },
       { icon: Users, title: 'Future AI builders', text: 'The first step of the WAMUGII AI Program.' },
+    ],
+  },
+  'math-python-for-ai': {
+    tagline:
+      'A hands-on 4-week course in Python and the maths behind AI — from your first line of code to training a model from scratch. Runs free in your browser.',
+    level: 'Beginner to intermediate',
+    lessonCount: 24,
+    hours: 20,
+    weeks: [
+      {
+        title: 'Week 1 · Python Basics for AI',
+        summary: 'Variables, lists, loops, decisions, functions and files — in free Google Colab.',
+        icon: Code,
+      },
+      {
+        title: 'Week 2 · Working with Data',
+        summary: 'NumPy, Pandas, cleaning messy data, grouping and clear charts.',
+        icon: Table2,
+      },
+      {
+        title: 'Week 3 · Linear Algebra, Statistics and Probability',
+        summary: 'Vectors, matrices, averages and spread, probability and the normal curve.',
+        icon: Sigma,
+      },
+      {
+        title: 'Week 4 · Calculus and Your First Model',
+        summary: 'Bayes, correlation, derivatives and gradient descent — then linear regression from scratch.',
+        icon: TrendingDown,
+      },
+    ],
+    highlights: [
+      'Your First Python Program',
+      'Lists, Dictionaries and Loops',
+      'NumPy Arrays',
+      'Pandas DataFrames',
+      'Cleaning Messy Data',
+      'Vectors and Matrices',
+      'Probability and Bayes',
+      'Derivatives',
+      'Gradient Descent',
+      'Linear Regression from Scratch',
+    ],
+    outcomes: [
+      { icon: Code, title: 'Write real Python', text: 'Variables, loops, functions and files — the code behind AI.' },
+      { icon: Table2, title: 'Handle real data', text: 'Clean, summarise and chart data with NumPy, Pandas and Matplotlib.' },
+      { icon: Sigma, title: 'Understand the maths', text: 'Vectors, matrices, statistics and probability, explained simply.' },
+      { icon: TrendingDown, title: 'Train a model', text: 'Build linear regression with your own gradient descent.' },
+    ],
+    audience: [
+      { icon: GraduationCap, title: 'Students', text: 'The base for machine learning and data science.' },
+      { icon: Briefcase, title: 'Professionals', text: 'Automate reports and analyse data with Python.' },
+      { icon: Users, title: 'Future AI builders', text: 'Step 2 of the WAMUGII AI Program.' },
     ],
   },
 }

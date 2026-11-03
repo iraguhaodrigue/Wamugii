@@ -13,6 +13,9 @@ OUT = Path(sys.argv[2]); OUT.mkdir(parents=True, exist_ok=True)
 LOGO = base64.b64encode((Path(__file__).resolve().parents[2] / 'wamugii-frontend/public/logo-emblem-128.png').read_bytes()).decode()
 
 CSS = """
+pre { background:#f6f1f2; border:1px solid #ead9dc; border-radius:6px; padding:7px 9px; font-size:8.6pt; line-height:1.4; white-space:pre-wrap; word-break:break-word; page-break-inside:avoid; }
+code { font-family: "DejaVu Sans Mono", Menlo, Consolas, monospace; font-size:0.9em; background:#f6f1f2; padding:0 3px; border-radius:3px; }
+pre code { background:none; padding:0; font-size:1em; }
 @page { size: A4; margin: 15mm 15mm 14mm 15mm; }
 * { box-sizing: border-box; }
 body { font-family: Georgia, 'Times New Roman', serif; color: #23262b; font-size: 10.6pt; line-height: 1.5; margin: 0; }
@@ -66,7 +69,7 @@ def split_sections(md):
     return (objective.group(1).strip() if objective else ""), (takeaway.group(1).strip() if takeaway else ""), body.strip(), tasks
 
 def md(text):
-    return markdown.markdown(text, extensions=["tables", "sane_lists"])
+    return markdown.markdown(text, extensions=["tables", "sane_lists", "fenced_code"])
 
 def task_items(tasks):
     items = re.findall(r"^\s*\d+\.\s+(.+)$", tasks, re.M)

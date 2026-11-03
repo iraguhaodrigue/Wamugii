@@ -460,7 +460,7 @@ The same transformer ideas now power image generators, speech recognition, trans
             "content": """
 **Learning objective:** Evaluate a model's results like a professional: read the numbers, spot overfitting, pick the right measure for the decision, and write a clear recommendation.
 
-## About this project
+## What you will do
 
 You are a junior analyst at a health organisation in Rwanda. Two teams built models to predict which pregnant women are at **high risk** and should get extra clinic visits. Your manager asks: *"Which model should we use, and is it ready?"* Write a 1–2 page evaluation report.
 

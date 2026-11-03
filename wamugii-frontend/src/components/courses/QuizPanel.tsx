@@ -1,10 +1,23 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Award, CheckCircle2, ClipboardCheck, RotateCcw, XCircle } from 'lucide-react'
 import { getLessonQuiz, submitLessonQuiz, type Quiz, type QuizResult } from '@/api/courses'
 import type { ApiError } from '@/lib/apiClient'
 import { Button, Skeleton } from '@/components/ui'
 import { cn } from '@/utils/cn'
+
+/** Shows `code` in quiz text as code (the Python course asks about snippets). */
+function withCode(text: string): ReactNode[] {
+  return text.split(/(`[^`]+`)/g).map((part, i) =>
+    part.length > 2 && part.startsWith('`') && part.endsWith('`') ? (
+      <code key={i} className="rounded bg-slate-100 px-1 py-0.5 font-mono text-[0.9em] text-brand-700">
+        {part.slice(1, -1)}
+      </code>
+    ) : (
+      part
+    ),
+  )
+}
 
 /**
  * The quiz at the end of a lesson.
@@ -86,7 +99,7 @@ export function QuizPanel({
             <li key={q.id}>
               <p className="font-medium text-slate-900">
                 <span className="mr-2 text-brand-600">{qi + 1}.</span>
-                {q.question}
+                {withCode(q.question)}
               </p>
               <div className="mt-3 grid gap-2" role="radiogroup" aria-label={`Question ${qi + 1}`}>
                 {q.options.map((option, oi) => {
@@ -120,7 +133,7 @@ export function QuizPanel({
                       >
                         {String.fromCharCode(65 + oi)}
                       </span>
-                      <span className="flex-1">{option}</span>
+                      <span className="flex-1">{withCode(option)}</span>
                       {isCorrect && <CheckCircle2 className="chip-pop size-4 shrink-0 text-emerald-500" aria-label="Correct answer" />}
                       {isWrongPick && <XCircle className="chip-pop size-4 shrink-0 text-red-500" aria-label="Your answer" />}
                     </button>
@@ -130,7 +143,7 @@ export function QuizPanel({
               {marked && marked.explanation && (
                 <p className="price-swap mt-2 rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-600">
                   <span className="font-semibold text-slate-900">{marked.is_correct ? 'Correct. ' : 'Not quite. '}</span>
-                  {marked.explanation}
+                  {withCode(marked.explanation)}
                 </p>
               )}
             </li>

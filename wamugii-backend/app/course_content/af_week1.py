@@ -438,7 +438,7 @@ In two-player games (chess, draughts), the agent must expect the opponent to fig
             "content": """
 **Learning objective:** Bring together everything from Week 1 by analysing one real AI system: where it sits on the AI map, its PEAS description, its environment, its problem type and its history.
 
-## About this project
+## What you will do
 
 This video shows Zipline's drone deliveries in Rwanda — a real AI-powered system working in our hills and weather. Use it as a model, then analyse a system of your own choice. Your analysis should be about **two pages** (or 8–10 slides). It is the kind of short, clear report companies expect from a junior analyst.
 

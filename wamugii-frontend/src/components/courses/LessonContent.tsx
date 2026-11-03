@@ -1,5 +1,5 @@
 import { Fragment, useMemo, useState, type ReactNode } from 'react'
-import { CheckCircle2, Circle, Lightbulb, PenLine, Sparkles, Target } from 'lucide-react'
+import { Check, CheckCircle2, Circle, Copy, Lightbulb, PenLine, Sparkles, Target } from 'lucide-react'
 import { Reveal } from '@/components/common/Reveal'
 import { cn } from '@/utils/cn'
 
@@ -139,6 +139,47 @@ function parseSections(markdown: string): Section[] {
   return sections.filter((s) => s.title || s.blocks.length)
 }
 
+// --- code blocks -----------------------------------------------------------
+
+const LANG_LABEL: Record<string, string> = { python: 'Python', py: 'Python', text: 'Text', bash: 'Terminal', sh: 'Terminal' }
+
+/**
+ * A code example with a one-tap Copy button, so students can paste it straight
+ * into Google Colab. Long lines scroll sideways inside the box, never the page.
+ */
+function CodeBlock({ lang, text }: { lang: string; text: string }) {
+  const [copied, setCopied] = useState(false)
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(text)
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 1800)
+    } catch {
+      // Clipboard blocked: the student can still select the text by hand.
+    }
+  }
+  const label = LANG_LABEL[lang.toLowerCase()] ?? (lang || 'Code')
+  return (
+    <div className="overflow-hidden rounded-xl border border-[#1e293b] bg-[#0b1220]">
+      <div className="flex items-center justify-between gap-2 border-b border-[#1e293b] px-3 py-1.5">
+        <span className="text-[11px] font-semibold uppercase tracking-wider text-[#94a3b8]">{label}</span>
+        <button
+          type="button"
+          onClick={copy}
+          className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-[#cbd5e1] transition-colors hover:bg-[#1e293b] hover:text-[#ffffff]"
+          aria-label={copied ? 'Code copied' : 'Copy code'}
+        >
+          {copied ? <Check className="size-3.5 text-[#34d399]" aria-hidden="true" /> : <Copy className="size-3.5" aria-hidden="true" />}
+          {copied ? 'Copied' : 'Copy'}
+        </button>
+      </div>
+      <pre className="overflow-x-auto p-3 text-[12.5px] leading-relaxed text-[#cffafe] sm:p-4 sm:text-[13px]">
+        <code>{text}</code>
+      </pre>
+    </div>
+  )
+}
+
 // --- inline ---------------------------------------------------------------
 
 // Underscore italics only at word edges, so snake_case names in the Python
@@ -196,11 +237,7 @@ function BlockView({ block }: { block: Block }) {
         </blockquote>
       )
     case 'code':
-      return (
-        <pre className="overflow-x-auto rounded-xl bg-slate-950 p-4 text-[13px] leading-relaxed text-cyan-100">
-          <code>{block.text}</code>
-        </pre>
-      )
+      return <CodeBlock lang={block.lang} text={block.text} />
     case 'table': {
       const table = (
         <div className="overflow-x-auto rounded-xl border border-slate-200">

@@ -439,7 +439,7 @@ The agent will chase whatever is rewarded — even in ways nobody intended. If a
             "content": """
 **Learning objective:** Write a complete, realistic plan for a machine-learning project, using the workflow, data and learning-type ideas from Week 2.
 
-## About this project
+## What you will do
 
 Re-watch this short video on how machines learn, then write a **project plan** of 2–3 pages for one machine-learning idea that could help people in Rwanda or your own community. You will not write code. You will think like the person who leads the project — the most valuable skill in real AI teams.
 
