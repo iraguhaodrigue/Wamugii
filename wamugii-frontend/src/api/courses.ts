@@ -18,6 +18,11 @@ export type EnrollmentStatus = components['schemas']['EnrollmentStatus']
 export type EnrollResponse = components['schemas']['EnrollResponse']
 export type LessonCompleteResponse = components['schemas']['LessonCompleteResponse']
 export type Certificate = components['schemas']['CertificateRead']
+export type Quiz = components['schemas']['QuizRead']
+export type QuizResult = components['schemas']['QuizResult']
+export type CourseProgress = components['schemas']['CourseProgressRead']
+export type QuizQuestionAdmin = components['schemas']['QuizQuestionAdmin']
+export type QuizQuestionWrite = components['schemas']['QuizQuestionWrite']
 
 export const COURSE_STATUSES: CourseStatus[] = ['DRAFT', 'PUBLISHED']
 
@@ -212,4 +217,54 @@ export async function downloadLessonMaterial(
   link.click()
   link.remove()
   URL.revokeObjectURL(url)
+}
+
+
+// --- quizzes & progress ---------------------------------------------------
+
+/** Exactly which lessons the student has completed / passed the quiz on. */
+export async function getCourseProgress(courseId: number | string): Promise<CourseProgress> {
+  const { data } = await apiClient.get<CourseProgress>(`/client/courses/${courseId}/progress`)
+  return data
+}
+
+/** A lesson's quiz -- questions and options only; answers stay on the server. */
+export async function getLessonQuiz(courseId: number | string, lessonId: number | string): Promise<Quiz> {
+  const { data } = await apiClient.get<Quiz>(`/client/courses/${courseId}/lessons/${lessonId}/quiz`)
+  return data
+}
+
+/** Submit answers ({questionId: optionIndex}); marked server-side. A pass completes the lesson. */
+export async function submitLessonQuiz(
+  courseId: number | string,
+  lessonId: number | string,
+  answers: Record<number, number>,
+): Promise<QuizResult> {
+  const { data } = await apiClient.post<QuizResult>(
+    `/client/courses/${courseId}/lessons/${lessonId}/quiz`,
+    { answers },
+  )
+  return data
+}
+
+/** Admin: a lesson's quiz with the answers. */
+export async function getLessonQuizAdmin(
+  courseId: number | string,
+  lessonId: number | string,
+): Promise<QuizQuestionAdmin[]> {
+  const { data } = await apiClient.get<QuizQuestionAdmin[]>(`/courses/${courseId}/lessons/${lessonId}/quiz`)
+  return data
+}
+
+/** Admin: replace a lesson's whole quiz (empty list removes it). */
+export async function replaceLessonQuiz(
+  courseId: number | string,
+  lessonId: number | string,
+  questions: QuizQuestionWrite[],
+): Promise<QuizQuestionAdmin[]> {
+  const { data } = await apiClient.put<QuizQuestionAdmin[]>(
+    `/courses/${courseId}/lessons/${lessonId}/quiz`,
+    questions,
+  )
+  return data
 }

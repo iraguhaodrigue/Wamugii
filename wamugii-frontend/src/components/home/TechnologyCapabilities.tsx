@@ -76,7 +76,7 @@ function StackVisual() {
 
 export function TechnologyCapabilities() {
   return (
-    <section className="relative overflow-hidden border-y border-slate-200 bg-black/30 py-20 sm:py-24">
+    <section className="dark band-dark relative overflow-hidden border-y border-slate-200 bg-black/30 py-20 sm:py-24">
       <div className="glow-pool-purple pointer-events-none absolute inset-0" aria-hidden="true" />
       <Container className="relative">
         <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">

@@ -23,6 +23,8 @@ from app.models.course import (  # noqa: F401
     Lesson,
     LessonMaterial,
     LessonProgress,
+    LessonQuizAttempt,
+    LessonQuizQuestion,
 )
 from app.models.password_reset_token import PasswordResetToken  # noqa: F401
 from app.models.project import Project  # noqa: F401

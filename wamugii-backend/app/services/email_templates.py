@@ -823,3 +823,64 @@ def course_access_active_client(course, enrollment, user) -> tuple[str, str, str
         "Start Learning",
     )
     return subject, html, text
+
+
+def course_completed_client(course, enrollment, user) -> tuple[str, str, str]:
+    """To the student: course finished, certificate ready to download and share."""
+    first_name = user.full_name.split(" ")[0] if user.full_name else "there"
+    subject = f"Congratulations! Your {course.title} certificate is ready"
+    url = _cta_url(f"/client/learning/{course.slug}")
+    pairs = [
+        ("Course", course.title),
+        ("Certificate ID", f"WAMUGII-CERT-{enrollment.id:05d}"),
+    ]
+    html = _shell(
+        heading="You did it! Your certificate is ready",
+        intro=(
+            f"Hi {first_name}, congratulations on finishing {course.title}. "
+            "Your certificate of completion is ready -- download it, print it, "
+            "and add it to your CV and LinkedIn profile."
+        ),
+        detail_rows=_rows(pairs),
+        cta=_button(url, "Get My Certificate"),
+        footer_note=(
+            f'<p style="margin:18px 0 0 0;color:{MUTED};font-size:13px;line-height:1.6;">'
+            "Keep the momentum going: the next course in the WAMUGII AI Program is "
+            "waiting for you on the Courses page.</p>"
+        ),
+    )
+    text = _plain(
+        "Your certificate is ready",
+        [f"{label}: {value}" for label, value in pairs],
+        url,
+        "Get My Certificate",
+    )
+    return subject, html, text
+
+
+def course_reminder_client(course, user, next_lesson_title: str | None, percent: int) -> tuple[str, str, str]:
+    """To the student: a friendly nudge to continue a course they've paused."""
+    first_name = user.full_name.split(" ")[0] if user.full_name else "there"
+    subject = f"Continue {course.title} -- you're {percent}% there"
+    url = _cta_url(f"/client/learning/{course.slug}")
+    pairs = [("Course", course.title), ("Your progress", f"{percent}%")]
+    if next_lesson_title:
+        pairs.append(("Next lesson", next_lesson_title))
+    intro = (
+        f"Hi {first_name}, your progress in {course.title} is saved and waiting. "
+        "A short session today keeps your learning on track -- most lessons take "
+        "less than an hour."
+    )
+    html = _shell(
+        heading="Pick up where you left off",
+        intro=intro,
+        detail_rows=_rows(pairs),
+        cta=_button(url, "Continue Learning"),
+    )
+    text = _plain(
+        "Continue your course",
+        [f"{label}: {value}" for label, value in pairs],
+        url,
+        "Continue Learning",
+    )
+    return subject, html, text

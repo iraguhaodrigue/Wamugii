@@ -8,6 +8,7 @@ from sqlalchemy import (
     Enum,
     ForeignKey,
     Integer,
+    JSON,
     Numeric,
     String,
     Text,
@@ -105,6 +106,12 @@ class Lesson(Base):
     title: Mapped[str] = mapped_column(String(255))
     content: Mapped[str] = mapped_column(Text, default="")
     video_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    # Groups lessons into weeks/modules ("Week 1 · Understanding AI"). Lessons
+    # with the same value are shown together, in display_order; null means the
+    # course isn't organised into modules.
+    module_title: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    # Expected study time (reading + video + activity), shown to students.
+    duration_minutes: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
     display_order: Mapped[int] = mapped_column(Integer, default=0, index=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
@@ -119,6 +126,12 @@ class Lesson(Base):
         "LessonMaterial",
         back_populates="lesson",
         order_by="LessonMaterial.id",
+        cascade="all, delete-orphan",
+    )
+    quiz_questions = relationship(
+        "LessonQuizQuestion",
+        back_populates="lesson",
+        order_by="LessonQuizQuestion.display_order, LessonQuizQuestion.id",
         cascade="all, delete-orphan",
     )
 
@@ -189,6 +202,16 @@ class Enrollment(Base):
     enrolled_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
+    # Set by the daily reminder sweep (app.send_course_reminders) so a student
+    # gets at most one "continue your course" email a week.
+    last_reminder_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    # Set once, when progress first reaches 100% -- drives the one-time
+    # "your certificate is ready" email.
+    completed_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
 
     course = relationship("Course", back_populates="enrollments")
@@ -216,3 +239,44 @@ class LessonProgress(Base):
 
     enrollment = relationship("Enrollment", back_populates="progress")
     lesson = relationship("Lesson")
+
+
+class LessonQuizQuestion(Base):
+    """
+    One multiple-choice question in a lesson's quiz.
+
+    `options` is a JSON list of answer strings; `correct_index` points into it.
+    The correct answer and explanation never leave the server until the student
+    submits -- the client endpoint strips them from the question list.
+    """
+
+    __tablename__ = "lesson_quiz_questions"
+
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    lesson_id: Mapped[int] = mapped_column(ForeignKey("lessons.id"), index=True)
+    question: Mapped[str] = mapped_column(Text)
+    options: Mapped[list] = mapped_column(JSON)
+    correct_index: Mapped[int] = mapped_column(Integer)
+    explanation: Mapped[str] = mapped_column(Text, default="")
+    display_order: Mapped[int] = mapped_column(Integer, default=0)
+
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    lesson = relationship("Lesson", back_populates="quiz_questions")
+
+
+class LessonQuizAttempt(Base):
+    """
+    One submitted attempt at a lesson quiz. Every attempt is kept (retries are
+    allowed); the best score is what the player shows.
+    """
+
+    __tablename__ = "lesson_quiz_attempts"
+
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    enrollment_id: Mapped[int] = mapped_column(ForeignKey("enrollments.id"), index=True)
+    lesson_id: Mapped[int] = mapped_column(ForeignKey("lessons.id"), index=True)
+    score: Mapped[int] = mapped_column(Integer)
+    total: Mapped[int] = mapped_column(Integer)
+    passed: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

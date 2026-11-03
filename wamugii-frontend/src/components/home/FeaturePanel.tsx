@@ -14,7 +14,7 @@ export function FeaturePanel() {
     <section className="relative py-20 sm:py-24">
       <Container>
         <Reveal>
-          <div className="relative overflow-hidden rounded-3xl border border-brand-400/20 bg-[var(--color-brand-950)] p-8 shadow-[var(--shadow-glow-brand)] sm:p-12 lg:p-16">
+          <div className="dark relative overflow-hidden rounded-3xl border border-brand-400/20 bg-[var(--color-brand-950)] p-8 shadow-[var(--shadow-glow-brand)] sm:p-12 lg:p-16">
             <AnimatedTechBackground intensity="cta" />
             <div
               className="pointer-events-none absolute inset-0"

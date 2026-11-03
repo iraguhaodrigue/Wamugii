@@ -702,3 +702,45 @@ def notify_course_access_active(db: Session, enrollment: Enrollment, course: Cou
         student,
         email_templates.course_access_active_client(course, enrollment, student),
     )
+
+
+def notify_course_completed(db: Session, enrollment: Enrollment, course: Course) -> None:
+    """
+    To the student, once: every lesson is done and the certificate is ready.
+
+    Called from the client router the first time progress reaches 100% (it
+    stamps `enrollment.completed_at` first, so a repeat completion never sends
+    this twice).
+    """
+    student = _recipient(db, enrollment.client_id)
+    if student is None:
+        return
+    _emit(
+        db,
+        user_id=enrollment.client_id,
+        type=NotificationType.COURSE_COMPLETED,
+        title="Congratulations -- your certificate is ready",
+        message=f"You finished '{course.title}'. Download your certificate of completion.",
+        related_type="course",
+        related_id=course.id,
+    )
+    _send_email(
+        student,
+        email_templates.course_completed_client(course, enrollment, student),
+    )
+
+
+def send_course_reminder(db: Session, enrollment: Enrollment, course: Course, next_lesson_title: str | None, percent: int) -> bool:
+    """
+    Email only (no in-app notification): a gentle "continue your course" nudge
+    from the daily sweep in `app.send_course_reminders`. Returns True when the
+    email was built and handed to the mail service.
+    """
+    student = _recipient(db, enrollment.client_id)
+    if student is None:
+        return False
+    _send_email(
+        student,
+        email_templates.course_reminder_client(course, student, next_lesson_title, percent),
+    )
+    return True

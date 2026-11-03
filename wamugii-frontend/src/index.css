@@ -1196,6 +1196,10 @@ body {
 .mt-road {
   stroke-dasharray: 100;
 }
+/* Static frame for the sliders: knobs at their last setting, not stacked. */
+.mt-knob {
+  transform: translateX(var(--k3));
+}
 @media (prefers-reduced-motion: no-preference) {
   .anim-live .mt-tile { animation: mt-tile 4.5s ease infinite both; }
   .anim-live .mt-road { animation: mt-road 4s ease-in-out infinite both; }
@@ -1311,4 +1315,105 @@ body {
   2% { opacity: 1; }
   7% { transform: rotate(-24deg) translateX(-420px) scaleX(1); opacity: 0; }
   100% { transform: rotate(-24deg) translateX(-420px) scaleX(1); opacity: 0; }
+}
+
+/* Smooth colour cross-fade while the theme switches (ThemeContext adds the
+   class for ~450ms). Skipped entirely under reduced motion. */
+@media (prefers-reduced-motion: no-preference) {
+  .theme-switching,
+  .theme-switching *,
+  .theme-switching *::before,
+  .theme-switching *::after {
+    transition:
+      background-color 0.4s ease,
+      border-color 0.4s ease,
+      color 0.4s ease,
+      fill 0.4s ease,
+      box-shadow 0.4s ease !important;
+  }
+}
+
+/* Dark "bands" keep the dark look inside the light theme: solid night
+   background in light mode, transparent (atmosphere shows) in dark mode. */
+.band-dark {
+  background-color: #070b14;
+}
+.dark .band-dark {
+  background-color: rgb(0 0 0 / 30%);
+}
+
+/*
+ * Inner-page header art (PageArt.tsx) and page interactions.
+ */
+.pg-plane {
+  offset-distance: 100%;
+  offset-rotate: auto;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .anim-live .pg-ring-a.pg-ring { animation: ba-spin 30s linear infinite; }
+  .anim-live .pg-ring-a.pg-ring-counter { animation: ba-spin 30s linear infinite reverse; }
+  .anim-live .pg-ring-b.pg-ring { animation: ba-spin 46s linear infinite reverse; }
+  .anim-live .pg-ring-b.pg-ring-counter { animation: ba-spin 46s linear infinite; }
+  .anim-live .pg-core-ping { animation: pg-core-ping 2.6s ease-out infinite; }
+  .anim-live .pg-cycle3 { animation: pg-cycle3 9s steps(1, end) infinite both; }
+  .anim-live .pg-cycle3 text { animation: pg-type 3s steps(16, end) infinite both; animation-delay: inherit; }
+  .anim-live .pg-cycle3-late { animation: pg-late 3s ease infinite both; }
+  .anim-live .pg-plane { animation: pg-plane 5s cubic-bezier(0.45, 0, 0.3, 1) infinite both; }
+  .anim-live .pg-sent { animation: pg-sent 5s ease infinite both; }
+  .anim-live .pg-scan { animation: pg-scan 6s ease-in-out infinite both; }
+  .anim-live .pg-unlock { animation: pg-unlock 6s ease infinite both; transform-origin: 234px 52px; }
+  .anim-live .pg-feature { animation: pg-feature 6s ease infinite both; }
+  .price-swap { animation: price-swap 0.45s cubic-bezier(0.16, 1, 0.3, 1); }
+  .chip-pop { animation: lesson-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1); }
+}
+.pg-ring-counter {
+  transform-origin: 0 0;
+}
+@keyframes pg-core-ping {
+  0% { transform: scale(0.8); opacity: 0.9; }
+  80%, 100% { transform: scale(1.7); opacity: 0; }
+}
+@keyframes pg-cycle3 {
+  0% { opacity: 1; }
+  33.33%, 100% { opacity: 0; }
+}
+@keyframes pg-type {
+  0% { clip-path: inset(0 100% 0 0); }
+  45%, 100% { clip-path: inset(0 0 0 0); }
+}
+@keyframes pg-late {
+  0%, 45% { opacity: 0; transform: translateY(4px); }
+  55%, 90% { opacity: 1; transform: none; }
+  100% { opacity: 0; }
+}
+@keyframes pg-plane {
+  0% { offset-distance: 0%; opacity: 0; }
+  6% { opacity: 1; }
+  58% { offset-distance: 100%; opacity: 1; }
+  64%, 100% { offset-distance: 100%; opacity: 0; }
+}
+@keyframes pg-sent {
+  0%, 60% { opacity: 0; transform: translateY(6px); }
+  66%, 92% { opacity: 1; transform: none; }
+  100% { opacity: 0; }
+}
+@keyframes pg-scan {
+  0% { transform: translateY(0); opacity: 0; }
+  5% { opacity: 1; }
+  50% { transform: translateY(128px); opacity: 1; }
+  55%, 100% { transform: translateY(128px); opacity: 0; }
+}
+@keyframes pg-unlock {
+  0%, 52% { opacity: 0; transform: scale(0.4); }
+  58%, 92% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1); }
+}
+@keyframes pg-feature {
+  0%, 58% { opacity: 0; transform: translateX(-12px); }
+  66%, 92% { opacity: 1; transform: none; }
+  100% { opacity: 0; transform: none; }
+}
+@keyframes price-swap {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
 }

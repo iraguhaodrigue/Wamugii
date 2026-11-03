@@ -1,10 +1,14 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link, useParams } from 'react-router-dom'
-import { ArrowLeft, ArrowRight, Check, HelpCircle, Layers, SearchX } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Check, HelpCircle, SearchX } from 'lucide-react'
 import { getService, listServiceQuestions, type Service } from '@/api/services'
 import type { ApiError } from '@/lib/apiClient'
 import { paths } from '@/routes/paths'
-import { Badge, Container, EmptyState, ErrorState, Skeleton } from '@/components/ui'
+import { Container, EmptyState, ErrorState, Skeleton } from '@/components/ui'
+import { PageHeader } from '@/components/common/PageHeader'
+import { AnimInView } from '@/components/common/AnimInView'
+import { Reveal } from '@/components/common/Reveal'
+import { ServiceArt } from '@/components/home/BusinessArt'
 import { formatMoney } from '@/utils/format'
 
 export function ServiceDetail() {
@@ -75,29 +79,43 @@ export function ServiceDetail() {
   const price = formatMoney(service.price_from)
 
   return (
-    <Container className="py-16 sm:py-20">
-      <Link
-        to={paths.services}
-        className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-brand-600"
+    <>
+      <PageHeader
+        eyebrow={service.category ?? 'Service'}
+        title={service.name}
+        description={service.short_description ?? undefined}
+        top={
+          <Link
+            to={paths.services}
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-white/70 hover:text-cyan-300"
+          >
+            <ArrowLeft className="size-4" aria-hidden="true" />
+            Back to Services
+          </Link>
+        }
+        art={
+          <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#06131c] shadow-[0_30px_80px_-30px_rgb(34_211_238/0.5)]">
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(400px_circle_at_20%_0%,rgb(34_211_238/0.22),transparent_60%),radial-gradient(400px_circle_at_90%_100%,rgb(124_58_237/0.2),transparent_60%)]" />
+            <AnimInView className="relative h-56 p-4 sm:h-64">
+              <ServiceArt name={service.name} />
+            </AnimInView>
+          </div>
+        }
+        artOnMobile
       >
-        <ArrowLeft className="size-4" aria-hidden="true" />
-        Back to Services
-      </Link>
-
-      <div className="mt-6 grid gap-10 lg:grid-cols-3">
+        <Link
+          to={`${paths.requestQuote}?service=${service.id}`}
+          className="inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-[var(--color-brand-solid)] to-[var(--color-accent-solid)] px-6 text-sm font-semibold text-white shadow-[var(--shadow-glow-brand)] transition-[filter,transform] hover:-translate-y-0.5 hover:brightness-110"
+        >
+          Request a Quote
+          <ArrowRight className="size-4" aria-hidden="true" />
+        </Link>
+      </PageHeader>
+    <Container className="py-12 sm:py-16">
+      <div className="grid gap-10 lg:grid-cols-3">
         <div className="lg:col-span-2">
-          <div className="flex size-14 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
-            <Layers className="size-7" aria-hidden="true" />
-          </div>
-          <div className="mt-6 flex flex-wrap items-center gap-3">
-            <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">{service.name}</h1>
-            {service.category && <Badge variant="brand">{service.category}</Badge>}
-          </div>
-          {service.short_description && (
-            <p className="mt-4 text-lg text-slate-600">{service.short_description}</p>
-          )}
           {service.description && (
-            <div className="mt-8 whitespace-pre-line text-base leading-relaxed text-slate-600">
+            <div className="whitespace-pre-line text-base leading-relaxed text-slate-600">
               {service.description}
             </div>
           )}
@@ -116,13 +134,16 @@ export function ServiceDetail() {
                 What's included
               </h2>
               <ul className="mt-4 grid gap-3 sm:grid-cols-2">
-                {service.features.map((feature) => (
-                  <li
-                    key={feature}
-                    className="flex items-start gap-2.5 rounded-lg border border-slate-200 bg-panel p-3 text-sm text-slate-700"
-                  >
-                    <Check className="mt-0.5 size-4 shrink-0 text-brand-500" aria-hidden="true" />
-                    {feature}
+                {service.features.map((feature, index) => (
+                  <li key={feature}>
+                    <Reveal delay={index * 70} className="h-full">
+                      <div className="group flex h-full items-start gap-2.5 rounded-lg border border-slate-200 bg-panel p-3 text-sm text-slate-700 transition-all duration-300 hover:-translate-y-0.5 hover:border-brand-400/40 hover:shadow-[var(--shadow-glow-brand)]">
+                        <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-brand-50 transition-transform duration-300 group-hover:scale-110">
+                          <Check className="size-3.5 text-brand-500" aria-hidden="true" />
+                        </span>
+                        {feature}
+                      </div>
+                    </Reveal>
                   </li>
                 ))}
               </ul>
@@ -130,7 +151,8 @@ export function ServiceDetail() {
           )}
 
           {questions && questions.length > 0 && (
-            <div className="mt-10 rounded-xl border border-slate-200 bg-panel p-6">
+            <Reveal className="mt-10">
+            <div className="rounded-xl border border-slate-200 bg-panel p-6">
               <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-400">
                 <HelpCircle className="size-4" aria-hidden="true" />
                 What we'll ask you
@@ -153,11 +175,12 @@ export function ServiceDetail() {
                 ))}
               </ul>
             </div>
+            </Reveal>
           )}
         </div>
 
         <aside className="lg:col-span-1">
-          <div className="rounded-xl border border-slate-200 bg-panel p-6 shadow-[var(--shadow-card)] backdrop-blur-sm">
+          <div className="shine relative overflow-hidden rounded-xl border border-brand-400/30 bg-panel p-6 shadow-[var(--shadow-glow-brand)] backdrop-blur-sm lg:sticky lg:top-24">
             <p className="text-sm font-medium text-slate-500">Starting from</p>
             <p className="mt-1 text-2xl font-bold text-slate-900">{price ?? 'Contact for pricing'}</p>
             <Link
@@ -172,5 +195,6 @@ export function ServiceDetail() {
         </aside>
       </div>
     </Container>
+    </>
   )
 }

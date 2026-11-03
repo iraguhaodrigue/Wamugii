@@ -52,7 +52,7 @@ export function WhyWamugii() {
 
         <div className="mt-14 grid gap-5 lg:grid-cols-3">
           <Reveal className="lg:col-span-1">
-            <div className="relative flex h-full flex-col justify-between overflow-hidden rounded-2xl border border-brand-400/20 bg-[var(--color-brand-950)] p-7 shadow-[var(--shadow-glow-brand)] sm:p-8">
+            <div className="dark relative flex h-full flex-col justify-between overflow-hidden rounded-2xl border border-brand-400/20 bg-[var(--color-brand-950)] p-7 shadow-[var(--shadow-glow-brand)] sm:p-8">
               <div
                 className="pointer-events-none absolute inset-0"
                 style={{

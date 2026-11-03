@@ -11,12 +11,15 @@ from app.models.course import (
     Lesson,
     LessonMaterial,
     LessonProgress,
+    LessonQuizAttempt,
+    LessonQuizQuestion,
 )
 from app.schemas.course import (
     CourseCreate,
     CourseUpdate,
     LessonCreate,
     LessonUpdate,
+    QuizQuestionWrite,
 )
 
 _SLUG_RE = re.compile(r"[^a-z0-9]+")
@@ -412,3 +415,158 @@ def progress_percent(completed: int, total: int) -> int:
     if total <= 0:
         return 0
     return int(round(100 * completed / total))
+
+
+def completed_lesson_ids(db: Session, enrollment_id: int) -> list[int]:
+    """Ids of the still-active lessons this enrollment has completed."""
+    return list(
+        db.scalars(
+            select(LessonProgress.lesson_id)
+            .join(Lesson, Lesson.id == LessonProgress.lesson_id)
+            .where(
+                LessonProgress.enrollment_id == enrollment_id,
+                Lesson.is_active.is_(True),
+            )
+        )
+    )
+
+
+def last_activity_at(db: Session, enrollment: Enrollment):
+    """Latest lesson completion, or the enrollment date if nothing is done yet."""
+    latest = db.scalar(
+        select(func.max(LessonProgress.completed_at)).where(
+            LessonProgress.enrollment_id == enrollment.id
+        )
+    )
+    return latest or enrollment.enrolled_at
+
+
+def count_students(db: Session, course_id: int) -> int:
+    """Students with an ACTIVE enrollment -- the real number shown publicly."""
+    return (
+        db.scalar(
+            select(func.count())
+            .select_from(Enrollment)
+            .where(
+                Enrollment.course_id == course_id,
+                Enrollment.is_active.is_(True),
+                Enrollment.status == EnrollmentStatus.ACTIVE,
+            )
+        )
+        or 0
+    )
+
+
+def total_minutes(db: Session, course_id: int) -> int:
+    return (
+        db.scalar(
+            select(func.coalesce(func.sum(Lesson.duration_minutes), 0)).where(
+                Lesson.course_id == course_id, Lesson.is_active.is_(True)
+            )
+        )
+        or 0
+    )
+
+
+def next_lesson(db: Session, course_id: int, enrollment_id: int) -> Lesson | None:
+    """The first active lesson (in order) the student hasn't completed."""
+    done = set(completed_lesson_ids(db, enrollment_id))
+    for lesson in list_lessons(db, course_id):
+        if lesson.id not in done:
+            return lesson
+    return None
+
+
+# --- quizzes ----------------------------------------------------------------
+
+
+def list_quiz_questions(db: Session, lesson_id: int) -> list[LessonQuizQuestion]:
+    return list(
+        db.scalars(
+            select(LessonQuizQuestion)
+            .where(LessonQuizQuestion.lesson_id == lesson_id)
+            .order_by(LessonQuizQuestion.display_order, LessonQuizQuestion.id)
+        )
+    )
+
+
+def count_quiz_questions(db: Session, lesson_id: int) -> int:
+    return (
+        db.scalar(
+            select(func.count())
+            .select_from(LessonQuizQuestion)
+            .where(LessonQuizQuestion.lesson_id == lesson_id)
+        )
+        or 0
+    )
+
+
+def replace_quiz_questions(
+    db: Session, lesson_id: int, items: list[QuizQuestionWrite]
+) -> list[LessonQuizQuestion]:
+    """
+    Swap the lesson's whole quiz for `items` (in order). Past attempts keep
+    their recorded score; they are not re-marked against the new questions.
+    """
+    for old in list_quiz_questions(db, lesson_id):
+        db.delete(old)
+    for order, item in enumerate(items, start=1):
+        db.add(
+            LessonQuizQuestion(
+                lesson_id=lesson_id,
+                question=item.question,
+                options=list(item.options),
+                correct_index=item.correct_index,
+                explanation=item.explanation,
+                display_order=order,
+            )
+        )
+    db.commit()
+    return list_quiz_questions(db, lesson_id)
+
+
+def record_quiz_attempt(
+    db: Session, *, enrollment_id: int, lesson_id: int, score: int, total: int, passed: bool
+) -> LessonQuizAttempt:
+    attempt = LessonQuizAttempt(
+        enrollment_id=enrollment_id,
+        lesson_id=lesson_id,
+        score=score,
+        total=total,
+        passed=passed,
+    )
+    db.add(attempt)
+    db.commit()
+    db.refresh(attempt)
+    return attempt
+
+
+def quiz_attempt_summary(
+    db: Session, enrollment_id: int, lesson_id: int
+) -> tuple[int, LessonQuizAttempt | None]:
+    """(number of attempts, best attempt by score) for one lesson."""
+    attempts = list(
+        db.scalars(
+            select(LessonQuizAttempt).where(
+                LessonQuizAttempt.enrollment_id == enrollment_id,
+                LessonQuizAttempt.lesson_id == lesson_id,
+            )
+        )
+    )
+    if not attempts:
+        return 0, None
+    best = max(attempts, key=lambda a: (a.passed, a.score / a.total if a.total else 0))
+    return len(attempts), best
+
+
+def passed_quiz_lesson_ids(db: Session, enrollment_id: int) -> list[int]:
+    return list(
+        db.scalars(
+            select(LessonQuizAttempt.lesson_id)
+            .where(
+                LessonQuizAttempt.enrollment_id == enrollment_id,
+                LessonQuizAttempt.passed.is_(True),
+            )
+            .distinct()
+        )
+    )

@@ -86,18 +86,26 @@ class LessonBrief(BaseModel):
     id: int
     title: str
     display_order: int
+    module_title: str | None = None
+    duration_minutes: int | None = None
 
 
 class CoursePublicDetail(CourseRead):
     """What the public course detail page gets. Lesson titles, nothing more."""
 
     lessons: list[LessonBrief] = []
+    # Real numbers for the course page: how many students are enrolled and the
+    # total expected study time (sum of lesson durations, 0 when unset).
+    student_count: int = 0
+    total_minutes: int = 0
 
 
 class LessonCreate(BaseModel):
     title: str = Field(min_length=1, max_length=255)
     content: str = Field(default="")
     video_url: str | None = Field(default=None, max_length=500)
+    module_title: str | None = Field(default=None, max_length=255)
+    duration_minutes: int | None = Field(default=None, ge=1, le=1000)
     display_order: int = 0
 
 
@@ -105,6 +113,8 @@ class LessonUpdate(BaseModel):
     title: str | None = Field(default=None, min_length=1, max_length=255)
     content: str | None = None
     video_url: str | None = Field(default=None, max_length=500)
+    module_title: str | None = Field(default=None, max_length=255)
+    duration_minutes: int | None = Field(default=None, ge=1, le=1000)
     display_order: int | None = None
     is_active: bool | None = None
 
@@ -130,11 +140,15 @@ class LessonRead(BaseModel):
     title: str
     content: str
     video_url: str | None
+    module_title: str | None = None
+    duration_minutes: int | None = None
     display_order: int
     is_active: bool
     created_at: datetime
     updated_at: datetime
     materials: list[LessonMaterialRead] = []
+    # Filled in by the router: how many quiz questions this lesson has.
+    quiz_question_count: int = 0
 
 
 class EnrollmentRead(BaseModel):
@@ -213,3 +227,86 @@ class CertificateRead(BaseModel):
     lesson_count: int
     certificate_id: str
     issued_on: date
+
+
+# --- quizzes ----------------------------------------------------------------
+
+# A student passes a lesson quiz at this percentage or above; passing also
+# marks the lesson complete.
+QUIZ_PASS_PERCENT = 70
+
+
+class QuizQuestionPublic(BaseModel):
+    """A question as the student sees it -- no correct answer, no explanation."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    question: str
+    options: list[str]
+
+
+class QuizRead(BaseModel):
+    lesson_id: int
+    questions: list[QuizQuestionPublic]
+    pass_percent: int = QUIZ_PASS_PERCENT
+    best_score: int | None = None
+    best_total: int | None = None
+    passed: bool = False
+    attempts: int = 0
+
+
+class QuizSubmit(BaseModel):
+    """One chosen option index per question, keyed by question id."""
+
+    answers: dict[int, int]
+
+
+class QuizResultItem(BaseModel):
+    question_id: int
+    chosen: int | None
+    correct_index: int
+    is_correct: bool
+    explanation: str
+
+
+class QuizResult(BaseModel):
+    score: int
+    total: int
+    percent: int
+    passed: bool
+    results: list[QuizResultItem]
+    # Fresh course progress -- a pass also completes the lesson.
+    completed_lessons: int
+    total_lessons: int
+    progress_percent: int
+
+
+class QuizQuestionWrite(BaseModel):
+    """Admin: one question when replacing a lesson's quiz."""
+
+    question: str = Field(min_length=1)
+    options: list[str] = Field(min_length=2, max_length=8)
+    correct_index: int = Field(ge=0)
+    explanation: str = ""
+
+    @model_validator(mode="after")
+    def _index_in_range(self):
+        if self.correct_index >= len(self.options):
+            raise ValueError("correct_index must point at one of the options")
+        return self
+
+
+class QuizQuestionAdmin(QuizQuestionWrite):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    lesson_id: int
+    display_order: int
+
+
+class CourseProgressRead(BaseModel):
+    """Exactly which lessons are done, for the player's sidebar ticks."""
+
+    completed_lesson_ids: list[int]
+    passed_quiz_lesson_ids: list[int]

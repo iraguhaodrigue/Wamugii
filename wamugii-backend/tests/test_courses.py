@@ -604,3 +604,126 @@ def test_certificate_follows_the_same_gate_as_lesson_content(
         headers=_auth(outsider),
     )
     assert r.status_code == 404
+
+
+# --- modules, quizzes, progress, completion email --------------------------
+
+
+def _enrolled_student(client, admin_headers, email="quiz@example.com"):
+    course = _create_course(client, admin_headers, title="Quiz Course")
+    l1 = _add_lesson(client, admin_headers, course["id"], title="L1", module_title="Week 1", duration_minutes=30)
+    l2 = _add_lesson(client, admin_headers, course["id"], title="L2", module_title="Week 1", duration_minutes=45, display_order=2)
+    student = _make_client(email)
+    headers = _auth(student)
+    resp = client.post(f"/api/v1/client/courses/{course['id']}/enroll", headers=headers)
+    assert resp.status_code == 200, resp.text
+    return course, l1, l2, headers
+
+
+def _set_quiz(client, admin_headers, course_id, lesson_id):
+    resp = client.put(
+        f"/api/v1/courses/{course_id}/lessons/{lesson_id}/quiz",
+        json=[
+            {"question": "2+2?", "options": ["3", "4"], "correct_index": 1, "explanation": "Basic sum."},
+            {"question": "Sky?", "options": ["blue", "green", "red"], "correct_index": 0, "explanation": ""},
+        ],
+        headers=admin_headers,
+    )
+    assert resp.status_code == 200, resp.text
+    return resp.json()
+
+
+def test_public_detail_shows_modules_duration_and_students(client, admin_headers):
+    course, _, _, _ = _enrolled_student(client, admin_headers)
+    body = client.get(f"/api/v1/courses/{course['slug']}").json()
+    assert [l["module_title"] for l in body["lessons"]] == ["Week 1", "Week 1"]
+    assert body["total_minutes"] == 75
+    assert body["student_count"] == 1
+    # Content still never leaks publicly.
+    assert "content" not in body["lessons"][0]
+
+
+def test_quiz_hides_answers_and_marks_on_the_server(client, admin_headers):
+    course, l1, _, headers = _enrolled_student(client, admin_headers)
+    questions = _set_quiz(client, admin_headers, course["id"], l1["id"])
+
+    quiz = client.get(f"/api/v1/client/courses/{course['id']}/lessons/{l1['id']}/quiz", headers=headers).json()
+    assert len(quiz["questions"]) == 2
+    assert "correct_index" not in quiz["questions"][0]
+    assert quiz["passed"] is False
+
+    # One wrong of two -> 50%, not passed, lesson not completed.
+    wrong = {str(questions[0]["id"]): 0, str(questions[1]["id"]): 0}
+    res = client.post(f"/api/v1/client/courses/{course['id']}/lessons/{l1['id']}/quiz", json={"answers": wrong}, headers=headers).json()
+    assert res["score"] == 1 and res["passed"] is False
+    assert res["results"][0]["correct_index"] == 1
+    assert res["completed_lessons"] == 0
+
+    right = {str(questions[0]["id"]): 1, str(questions[1]["id"]): 0}
+    res = client.post(f"/api/v1/client/courses/{course['id']}/lessons/{l1['id']}/quiz", json={"answers": right}, headers=headers).json()
+    assert res["passed"] is True and res["percent"] == 100
+    assert res["completed_lessons"] == 1
+
+    progress = client.get(f"/api/v1/client/courses/{course['id']}/progress", headers=headers).json()
+    assert progress["completed_lesson_ids"] == [l1["id"]]
+    assert progress["passed_quiz_lesson_ids"] == [l1["id"]]
+
+    lessons = client.get(f"/api/v1/client/courses/{course['id']}/lessons", headers=headers).json()
+    assert lessons[0]["quiz_question_count"] == 2
+
+
+def test_quiz_needs_an_active_enrollment(client, admin_headers):
+    course = _create_course(client, admin_headers, title="Gate")
+    lesson = _add_lesson(client, admin_headers, course["id"])
+    _set_quiz(client, admin_headers, course["id"], lesson["id"])
+    outsider = _auth(_make_client("outsider@example.com"))
+    resp = client.get(f"/api/v1/client/courses/{course['id']}/lessons/{lesson['id']}/quiz", headers=outsider)
+    assert resp.status_code == 404
+
+
+def test_bad_quiz_question_is_rejected(client, admin_headers):
+    course = _create_course(client, admin_headers, title="Bad quiz")
+    lesson = _add_lesson(client, admin_headers, course["id"])
+    resp = client.put(
+        f"/api/v1/courses/{course['id']}/lessons/{lesson['id']}/quiz",
+        json=[{"question": "?", "options": ["a", "b"], "correct_index": 5}],
+        headers=admin_headers,
+    )
+    assert resp.status_code == 422
+
+
+def test_finishing_the_course_sends_the_certificate_email_once(client, admin_headers, sent_emails):
+    course, l1, l2, headers = _enrolled_student(client, admin_headers, email="grad@example.com")
+    sent_emails.clear()
+    for lesson in (l1, l2):
+        client.post(f"/api/v1/client/courses/{course['id']}/lessons/{lesson['id']}/complete", headers=headers)
+    # Completing again must not resend.
+    client.post(f"/api/v1/client/courses/{course['id']}/lessons/{l2['id']}/complete", headers=headers)
+    cert_mails = [m for m in sent_emails if "certificate is ready" in m["subject"]]
+    assert len(cert_mails) == 1
+    assert cert_mails[0]["to_email"] == "grad@example.com"
+
+
+def test_reminder_sweep_emails_inactive_students_once_a_week(client, admin_headers, sent_emails, monkeypatch):
+    from datetime import datetime, timedelta, timezone
+
+    from app import send_course_reminders
+    from app.models.course import Enrollment
+
+    monkeypatch.setattr(send_course_reminders, "SessionLocal", TestingSessionLocal)
+    course, l1, _, headers = _enrolled_student(client, admin_headers, email="sleepy@example.com")
+
+    # Fresh enrollment: no reminder yet.
+    sent_emails.clear()
+    assert send_course_reminders.main() == 0
+
+    db = TestingSessionLocal()
+    enrollment = db.query(Enrollment).first()
+    enrollment.enrolled_at = datetime.now(timezone.utc) - timedelta(days=5)
+    db.commit()
+    db.close()
+
+    assert send_course_reminders.main() == 1
+    assert any("Continue" in m["subject"] for m in sent_emails)
+    # Within the week: not again.
+    assert send_course_reminders.main() == 0

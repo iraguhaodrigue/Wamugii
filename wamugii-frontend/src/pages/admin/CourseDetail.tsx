@@ -354,6 +354,8 @@ const EMPTY_LESSON: LessonCreate = {
   title: '',
   content: '',
   video_url: null,
+  module_title: null,
+  duration_minutes: null,
   display_order: 0,
 }
 
@@ -383,6 +385,8 @@ function LessonsPanel({ courseId }: { courseId: number }) {
           title: draft.title,
           content: draft.content,
           video_url: draft.video_url || null,
+          module_title: draft.module_title || null,
+          duration_minutes: draft.duration_minutes || null,
           display_order: draft.display_order,
         })
       }
@@ -470,7 +474,10 @@ function LessonsPanel({ courseId }: { courseId: number }) {
                 <div className="min-w-0">
                   <p className="text-base font-semibold text-slate-900">{lesson.title}</p>
                   <p className="mt-1 text-xs text-slate-500">
+                    {lesson.module_title && `${lesson.module_title} · `}
                     Order: {lesson.display_order} · {lesson.materials.length} material(s)
+                    {lesson.duration_minutes && ` · ${lesson.duration_minutes} min`}
+                    {lesson.quiz_question_count > 0 && ` · quiz (${lesson.quiz_question_count} questions)`}
                     {lesson.video_url && isSupportedVideoUrl(lesson.video_url) && ' · video attached'}
                   </p>
                 </div>
@@ -484,6 +491,8 @@ function LessonsPanel({ courseId }: { courseId: number }) {
                         title: lesson.title,
                         content: lesson.content,
                         video_url: lesson.video_url,
+                        module_title: lesson.module_title,
+                        duration_minutes: lesson.duration_minutes,
                         display_order: lesson.display_order,
                       })
                       setFormError(null)
@@ -547,6 +556,24 @@ function LessonsPanel({ courseId }: { courseId: number }) {
               <VideoEmbed url={draft.video_url} title="Lesson preview" />
             </div>
           )}
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Input
+              label="Week / module"
+              placeholder="e.g. Week 1 · Understanding AI"
+              hint="Lessons with the same text are grouped together"
+              value={draft.module_title ?? ''}
+              onChange={(e) => setDraft((d) => ({ ...d, module_title: e.target.value || null }))}
+            />
+            <Input
+              label="Study time (minutes)"
+              type="number"
+              min="1"
+              value={draft.duration_minutes ? String(draft.duration_minutes) : ''}
+              onChange={(e) =>
+                setDraft((d) => ({ ...d, duration_minutes: e.target.value ? Number(e.target.value) : null }))
+              }
+            />
+          </div>
           <Input
             label="Display order"
             type="number"

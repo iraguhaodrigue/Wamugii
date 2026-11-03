@@ -4,6 +4,7 @@ import { LogOut, Menu, X } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { paths } from '@/routes/paths'
 import { cn } from '@/utils/cn'
+import { ThemeToggle } from '@/components/ui'
 
 const navLinks = [
   { label: 'Home', to: paths.home },
@@ -78,18 +79,19 @@ export function Header() {
         </nav>
 
         <div className="hidden items-center gap-3 md:flex">
+          <ThemeToggle />
           {isAuthenticated ? (
             <>
               <Link
                 to={(user && roleDashboardPath[user.role]) || paths.home}
-                className="inline-flex h-9 items-center rounded-lg px-3 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-100 hover:text-white"
+                className="inline-flex h-9 items-center rounded-lg px-3 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-900"
               >
                 Dashboard
               </Link>
               <button
                 type="button"
                 onClick={logout}
-                className="inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-100 hover:text-white"
+                className="inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-900"
               >
                 <LogOut className="size-4" aria-hidden="true" />
                 Logout
@@ -98,7 +100,7 @@ export function Header() {
           ) : (
             <Link
               to={paths.login}
-              className="inline-flex h-9 items-center rounded-lg px-3 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-100 hover:text-white"
+              className="inline-flex h-9 items-center rounded-lg px-3 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-900"
             >
               Login
             </Link>
@@ -111,6 +113,8 @@ export function Header() {
           </Link>
         </div>
 
+        <div className="flex items-center gap-1 md:hidden">
+          <ThemeToggle />
         <button
           type="button"
           className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 md:hidden"
@@ -120,6 +124,7 @@ export function Header() {
         >
           {isMenuOpen ? <X className="size-5" /> : <Menu className="size-5" />}
         </button>
+        </div>
       </div>
 
       {isMenuOpen && (

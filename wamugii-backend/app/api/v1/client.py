@@ -46,6 +46,13 @@ from app.schemas.course import (
     LessonCompleteResponse,
     LessonMaterialRead,
     LessonRead,
+    CourseProgressRead,
+    QuizRead,
+    QuizQuestionPublic,
+    QuizResult,
+    QuizResultItem,
+    QuizSubmit,
+    QUIZ_PASS_PERCENT,
 )
 from app.schemas.domain import ClientDomainDetail, ClientDomainListItem
 from app.schemas.invoice import InvoiceCreate, InvoiceItemCreate
@@ -605,8 +612,23 @@ def list_lessons_for_enrolled_client(
             LessonMaterialRead.model_validate(m)
             for m in course_crud.list_materials(db, lesson.id)
         ]
+        read.quiz_question_count = course_crud.count_quiz_questions(db, lesson.id)
         out.append(read)
     return out
+
+
+@router.get(
+    "/courses/{course_id}/progress",
+    response_model=CourseProgressRead,
+    summary="Which lessons this student has completed / passed the quiz on",
+)
+def get_course_progress(course_id: int, db: DbDep, current_user: ClientOnly):
+    _course_or_404(db, course_id)
+    enrollment = _active_enrollment_or_block(db, course_id, current_user.id)
+    return CourseProgressRead(
+        completed_lesson_ids=course_crud.completed_lesson_ids(db, enrollment.id),
+        passed_quiz_lesson_ids=course_crud.passed_quiz_lesson_ids(db, enrollment.id),
+    )
 
 
 @router.get(
@@ -629,6 +651,7 @@ def get_lesson_for_enrolled_client(
         LessonMaterialRead.model_validate(m)
         for m in course_crud.list_materials(db, lesson.id)
     ]
+    read.quiz_question_count = course_crud.count_quiz_questions(db, lesson.id)
     return read
 
 
@@ -691,13 +714,121 @@ def complete_lesson(
     if not lesson or not lesson.is_active:
         raise HTTPException(status_code=404, detail="Lesson not found")
 
-    course_crud.mark_lesson_complete(db, enrollment.id, lesson.id)
-    total = course_crud.count_active_lessons(db, course_id)
-    completed = course_crud.count_completed_lessons(db, enrollment.id)
+    completed, total = _complete_and_maybe_celebrate(db, enrollment, course_id, lesson.id)
     return LessonCompleteResponse(
         completed_lessons=completed,
         total_lessons=total,
         progress_percent=course_crud.progress_percent(completed, total),
+    )
+
+
+def _complete_and_maybe_celebrate(db, enrollment, course_id: int, lesson_id: int) -> tuple[int, int]:
+    """
+    Mark the lesson complete and, the first time the course reaches 100%,
+    stamp `completed_at` and send the "certificate ready" notification + email.
+    Returns (completed, total). The notification is best-effort like every emit.
+    """
+    course_crud.mark_lesson_complete(db, enrollment.id, lesson_id)
+    total = course_crud.count_active_lessons(db, course_id)
+    completed = course_crud.count_completed_lessons(db, enrollment.id)
+    if (
+        enrollment.completed_at is None
+        and course_crud.progress_percent(completed, total) >= 100
+    ):
+        from datetime import datetime, timezone
+
+        enrollment.completed_at = datetime.now(timezone.utc)
+        db.commit()
+        course = course_crud.get_course(db, course_id)
+        if course is not None:
+            notifications.notify_course_completed(db, enrollment, course)
+    return completed, total
+
+
+@router.get(
+    "/courses/{course_id}/lessons/{lesson_id}/quiz",
+    response_model=QuizRead,
+    summary="A lesson's quiz, without answers (CLIENT, active enrollment only)",
+)
+def get_lesson_quiz(course_id: int, lesson_id: int, db: DbDep, current_user: ClientOnly):
+    _course_or_404(db, course_id)
+    enrollment = _active_enrollment_or_block(db, course_id, current_user.id)
+    lesson = course_crud.get_lesson_for_course(db, course_id, lesson_id)
+    if not lesson or not lesson.is_active:
+        raise HTTPException(status_code=404, detail="Lesson not found")
+
+    questions = course_crud.list_quiz_questions(db, lesson.id)
+    attempts, best = course_crud.quiz_attempt_summary(db, enrollment.id, lesson.id)
+    return QuizRead(
+        lesson_id=lesson.id,
+        questions=[QuizQuestionPublic.model_validate(q) for q in questions],
+        best_score=best.score if best else None,
+        best_total=best.total if best else None,
+        passed=bool(best and best.passed),
+        attempts=attempts,
+    )
+
+
+@router.post(
+    "/courses/{course_id}/lessons/{lesson_id}/quiz",
+    response_model=QuizResult,
+    summary="Submit quiz answers; marked on the server, a pass completes the lesson",
+)
+def submit_lesson_quiz(
+    course_id: int, lesson_id: int, data: QuizSubmit, db: DbDep, current_user: ClientOnly
+):
+    """
+    Marked here, never in the browser: the correct answers only leave the server
+    in this response, after the attempt is recorded. Unanswered questions count
+    as wrong. Passing (>= QUIZ_PASS_PERCENT) also marks the lesson complete.
+    """
+    _course_or_404(db, course_id)
+    enrollment = _active_enrollment_or_block(db, course_id, current_user.id)
+    lesson = course_crud.get_lesson_for_course(db, course_id, lesson_id)
+    if not lesson or not lesson.is_active:
+        raise HTTPException(status_code=404, detail="Lesson not found")
+
+    questions = course_crud.list_quiz_questions(db, lesson.id)
+    if not questions:
+        raise HTTPException(status_code=404, detail="This lesson has no quiz")
+
+    results: list[QuizResultItem] = []
+    score = 0
+    for q in questions:
+        chosen = data.answers.get(q.id)
+        ok = chosen is not None and chosen == q.correct_index
+        score += int(ok)
+        results.append(
+            QuizResultItem(
+                question_id=q.id,
+                chosen=chosen,
+                correct_index=q.correct_index,
+                is_correct=ok,
+                explanation=q.explanation or "",
+            )
+        )
+    total = len(questions)
+    percent = int(round(100 * score / total))
+    passed = percent >= QUIZ_PASS_PERCENT
+    course_crud.record_quiz_attempt(
+        db, enrollment_id=enrollment.id, lesson_id=lesson.id, score=score, total=total, passed=passed
+    )
+
+    if passed:
+        completed, total_lessons = _complete_and_maybe_celebrate(db, enrollment, course_id, lesson.id)
+    else:
+        total_lessons = course_crud.count_active_lessons(db, course_id)
+        completed = course_crud.count_completed_lessons(db, enrollment.id)
+
+    return QuizResult(
+        score=score,
+        total=total,
+        percent=percent,
+        passed=passed,
+        results=results,
+        completed_lessons=completed,
+        total_lessons=total_lessons,
+        progress_percent=course_crud.progress_percent(completed, total_lessons),
     )
 
 

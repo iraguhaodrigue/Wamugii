@@ -16,6 +16,7 @@ import {
 import {
   downloadLessonMaterial,
   getCertificate,
+  getCourseProgress,
   getPublicCourse,
   type CoursePublicDetail,
   listMyEnrollments,
@@ -38,6 +39,8 @@ import {
 import { VideoEmbed, VideoPlaceholder } from '@/components/courses/VideoEmbed'
 import { Certificate } from '@/components/courses/Certificate'
 import { LessonContent, sectionTitles } from '@/components/courses/LessonContent'
+import { QuizPanel } from '@/components/courses/QuizPanel'
+import { groupByModule } from '@/components/courses/courseShowcase'
 import { formatFileSize } from '@/utils/format'
 import { cn } from '@/utils/cn'
 
@@ -88,6 +91,21 @@ export function ClientCoursePlayer() {
     enabled: Boolean(course && canReadLessons),
   })
 
+  // Exactly which lessons are done -- drives the sidebar ticks.
+  const progressQuery = useQuery({
+    queryKey: ['client', 'progress', course?.id],
+    queryFn: () => getCourseProgress(course!.id),
+    enabled: Boolean(course && canReadLessons),
+  })
+  const completedIds = useMemo(
+    () => new Set(progressQuery.data?.completed_lesson_ids ?? []),
+    [progressQuery.data],
+  )
+  const passedQuizIds = useMemo(
+    () => new Set(progressQuery.data?.passed_quiz_lesson_ids ?? []),
+    [progressQuery.data],
+  )
+
   // Pick the first lesson by default, and keep the choice valid when the list
   // changes under us (soft delete, reorder).
   useEffect(() => {
@@ -97,9 +115,12 @@ export function ClientCoursePlayer() {
       return
     }
     if (activeLessonId == null || !lessons.some((l) => l.id === activeLessonId)) {
-      setActiveLessonId(lessons[0]!.id)
+      // Resume where the student stopped: the first lesson not yet completed.
+      const done = new Set(progressQuery.data?.completed_lesson_ids ?? [])
+      const resume = lessons.find((l) => !done.has(l.id)) ?? lessons[0]!
+      setActiveLessonId(resume.id)
     }
-  }, [lessonsQuery.data, activeLessonId])
+  }, [lessonsQuery.data, activeLessonId, progressQuery.data])
 
   const activeLesson: Lesson | undefined = useMemo(
     () => lessonsQuery.data?.find((l) => l.id === activeLessonId),
@@ -119,15 +140,12 @@ export function ClientCoursePlayer() {
     mutationFn: (lessonId) => markLessonComplete(course!.id, lessonId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['client', 'learning'] })
+      queryClient.invalidateQueries({ queryKey: ['client', 'progress', course?.id] })
       setCompleteError(null)
     },
     onError: (err) => setCompleteError(err.message),
   })
 
-  // We don't have per-lesson completion detail on the client. Derive which
-  // lessons are completed from the enrollment counts across sequential marks
-  // -- "complete" buttons stay enabled; the progress bar is the source of
-  // truth for the overall picture.
   const progressText = enrollment
     ? `${enrollment.completed_lessons}/${enrollment.total_lessons} lessons complete`
     : ''
@@ -232,7 +250,7 @@ export function ClientCoursePlayer() {
   const nextLesson = activeIndex < lessons.length - 1 ? lessons[activeIndex + 1] : undefined
   const lessonText = activeLesson?.content ?? ''
   const sections = sectionTitles(lessonText)
-  const readingMinutes = Math.max(3, Math.round(lessonText.split(/\s+/).length / 180))
+  const readingMinutes = activeLesson?.duration_minutes ?? Math.max(3, Math.round(lessonText.split(/\s+/).length / 180))
 
   function goTo(lessonId: number) {
     setActiveLessonId(lessonId)
@@ -320,47 +338,57 @@ export function ClientCoursePlayer() {
             ) : lessons.length === 0 ? (
               <p className="mt-3 text-sm text-slate-500">No lessons yet.</p>
             ) : (
-              <ol className="mt-3 space-y-1">
-                {lessons.map((lesson, index) => {
-                  const isActive = lesson.id === activeLessonId
-                  // Simple heuristic: the first N by order are "done" when N
-                  // matches completed_lessons. Not authoritative, but close
-                  // enough to tick off a sidebar; the server has the truth.
-                  const isLikelyComplete = index < enrollment.completed_lessons
+              <div className="mt-3 space-y-4">
+                {groupByModule(lessons).map((module, mi) => {
+                  const doneInModule = module.lessons.filter(({ lesson }) => completedIds.has(lesson.id)).length
                   return (
-                    <li key={lesson.id}>
-                      <button
-                        type="button"
-                        onClick={() => goTo(lesson.id)}
-                        className={cn(
-                          'flex w-full items-start gap-2.5 rounded-lg p-2.5 text-left text-sm transition-colors',
-                          isActive
-                            ? 'bg-brand-50 text-slate-900 ring-1 ring-brand-400/40'
-                            : 'text-slate-700 hover:bg-slate-50',
-                        )}
-                      >
-                        {isLikelyComplete ? (
-                          <CheckCircle2
-                            className="mt-0.5 size-4 shrink-0 text-brand-500"
-                            aria-hidden="true"
-                          />
-                        ) : (
-                          <Circle
-                            className="mt-0.5 size-4 shrink-0 text-white/75"
-                            aria-hidden="true"
-                          />
-                        )}
-                        <span className="min-w-0 flex-1">
-                          <span className="block text-[11px] font-semibold uppercase tracking-wide text-slate-400">
-                            Lesson {index + 1}
+                    <div key={module.title ?? mi}>
+                      {module.title && (
+                        <div className="mb-1.5 flex items-center justify-between gap-2 px-1">
+                          <p className="text-xs font-bold uppercase tracking-wide text-brand-600">{module.title}</p>
+                          <span className="text-[11px] font-medium text-slate-400">
+                            {doneInModule}/{module.lessons.length}
                           </span>
-                          <span className="font-medium">{lesson.title}</span>
-                        </span>
-                      </button>
-                    </li>
+                        </div>
+                      )}
+                      <ol className="space-y-1">
+                        {module.lessons.map(({ lesson, index }) => {
+                          const isActive = lesson.id === activeLessonId
+                          const isDone = completedIds.has(lesson.id)
+                          return (
+                            <li key={lesson.id}>
+                              <button
+                                type="button"
+                                onClick={() => goTo(lesson.id)}
+                                className={cn(
+                                  'flex w-full items-start gap-2.5 rounded-lg p-2.5 text-left text-sm transition-colors',
+                                  isActive
+                                    ? 'bg-brand-50 text-slate-900 ring-1 ring-brand-400/40'
+                                    : 'text-slate-700 hover:bg-slate-50',
+                                )}
+                              >
+                                {isDone ? (
+                                  <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-emerald-500" aria-label="Completed" />
+                                ) : (
+                                  <Circle className="mt-0.5 size-4 shrink-0 text-slate-300" aria-hidden="true" />
+                                )}
+                                <span className="min-w-0 flex-1">
+                                  <span className="block text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                                    Lesson {index + 1}
+                                    {lesson.duration_minutes && ` · ${lesson.duration_minutes} min`}
+                                    {passedQuizIds.has(lesson.id) && ' · quiz ✓'}
+                                  </span>
+                                  <span className="font-medium">{lesson.title}</span>
+                                </span>
+                              </button>
+                            </li>
+                          )
+                        })}
+                      </ol>
+                    </div>
                   )
                 })}
-              </ol>
+              </div>
             )}
           </div>
         </aside>
@@ -472,6 +500,10 @@ export function ClientCoursePlayer() {
                 </div>
               )}
 
+              {activeLesson.quiz_question_count > 0 && (
+                <QuizPanel key={activeLesson.id} courseId={course.id} lessonId={activeLesson.id} />
+              )}
+
               {completeError && (
                 <p
                   role="alert"
@@ -501,7 +533,7 @@ export function ClientCoursePlayer() {
                     })
                   }
                 >
-                  {nextLesson ? 'Complete & next lesson' : 'Complete course'}
+                  {completedIds.has(activeLesson.id) ? (nextLesson ? 'Next lesson' : 'Completed ✓') : nextLesson ? 'Complete & next lesson' : 'Complete course'}
                   {nextLesson && <ArrowRight className="size-4" aria-hidden="true" />}
                 </Button>
               </div>

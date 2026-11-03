@@ -1054,6 +1054,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/client/courses/{course_id}/progress": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Which lessons this student has completed / passed the quiz on */
+        get: operations["get_course_progress_api_v1_client_courses__course_id__progress_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/client/courses/{course_id}/lessons/{lesson_id}": {
         parameters: {
             query?: never;
@@ -1107,6 +1124,29 @@ export interface paths {
          *     progress so a UI can update without a follow-up list call.
          */
         post: operations["complete_lesson_api_v1_client_courses__course_id__lessons__lesson_id__complete_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/client/courses/{course_id}/lessons/{lesson_id}/quiz": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A lesson's quiz, without answers (CLIENT, active enrollment only) */
+        get: operations["get_lesson_quiz_api_v1_client_courses__course_id__lessons__lesson_id__quiz_get"];
+        put?: never;
+        /**
+         * Submit quiz answers; marked on the server, a pass completes the lesson
+         * @description Marked here, never in the browser: the correct answers only leave the server
+         *     in this response, after the attempt is recorded. Unanswered questions count
+         *     as wrong. Passing (>= QUIZ_PASS_PERCENT) also marks the lesson complete.
+         */
+        post: operations["submit_lesson_quiz_api_v1_client_courses__course_id__lessons__lesson_id__quiz_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1242,6 +1282,24 @@ export interface paths {
         put?: never;
         /** Add a lesson to a course (ADMIN or STAFF) */
         post: operations["create_lesson_api_v1_courses__course_id__lessons_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/courses/{course_id}/lessons/{lesson_id}/quiz": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A lesson's quiz with answers (ADMIN or STAFF) */
+        get: operations["get_lesson_quiz_admin_api_v1_courses__course_id__lessons__lesson_id__quiz_get"];
+        /** Replace a lesson's quiz (ADMIN or STAFF); an empty list removes it */
+        put: operations["replace_lesson_quiz_api_v1_courses__course_id__lessons__lesson_id__quiz_put"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -2634,6 +2692,16 @@ export interface components {
             display_order: number;
         };
         /**
+         * CourseProgressRead
+         * @description Exactly which lessons are done, for the player's sidebar ticks.
+         */
+        CourseProgressRead: {
+            /** Completed Lesson Ids */
+            completed_lesson_ids: number[];
+            /** Passed Quiz Lesson Ids */
+            passed_quiz_lesson_ids: number[];
+        };
+        /**
          * CoursePublicDetail
          * @description What the public course detail page gets. Lesson titles, nothing more.
          */
@@ -2679,6 +2747,16 @@ export interface components {
              * @default []
              */
             lessons: components["schemas"]["LessonBrief"][];
+            /**
+             * Student Count
+             * @default 0
+             */
+            student_count: number;
+            /**
+             * Total Minutes
+             * @default 0
+             */
+            total_minutes: number;
         };
         /** CourseRead */
         CourseRead: {
@@ -3519,6 +3597,10 @@ export interface components {
             title: string;
             /** Display Order */
             display_order: number;
+            /** Module Title */
+            module_title?: string | null;
+            /** Duration Minutes */
+            duration_minutes?: number | null;
         };
         /**
          * LessonCompleteResponse
@@ -3543,6 +3625,10 @@ export interface components {
             content: string;
             /** Video Url */
             video_url?: string | null;
+            /** Module Title */
+            module_title?: string | null;
+            /** Duration Minutes */
+            duration_minutes?: number | null;
             /**
              * Display Order
              * @default 0
@@ -3582,6 +3668,10 @@ export interface components {
             content: string;
             /** Video Url */
             video_url: string | null;
+            /** Module Title */
+            module_title?: string | null;
+            /** Duration Minutes */
+            duration_minutes?: number | null;
             /** Display Order */
             display_order: number;
             /** Is Active */
@@ -3601,6 +3691,11 @@ export interface components {
              * @default []
              */
             materials: components["schemas"]["LessonMaterialRead"][];
+            /**
+             * Quiz Question Count
+             * @default 0
+             */
+            quiz_question_count: number;
         };
         /** LessonUpdate */
         LessonUpdate: {
@@ -3610,6 +3705,10 @@ export interface components {
             content?: string | null;
             /** Video Url */
             video_url?: string | null;
+            /** Module Title */
+            module_title?: string | null;
+            /** Duration Minutes */
+            duration_minutes?: number | null;
             /** Display Order */
             display_order?: number | null;
             /** Is Active */
@@ -3682,7 +3781,7 @@ export interface components {
          * NotificationType
          * @enum {string}
          */
-        NotificationType: "QUOTE_SUBMITTED" | "QUOTE_STATUS_CHANGED" | "PROJECT_CREATED" | "PROJECT_STATUS_CHANGED" | "MILESTONE_COMPLETED" | "FILE_UPLOADED" | "INVOICE_CREATED" | "INVOICE_DUE" | "PAYMENT_RECORDED" | "HOSTING_ACCOUNT_CREATED" | "HOSTING_STATUS_CHANGED" | "TICKET_CREATED" | "TICKET_REPLY" | "TICKET_STATUS_CHANGED" | "DOMAIN_REGISTERED" | "DOMAIN_STATUS_CHANGED" | "TEAM_MEMBER_REGISTERED" | "TEAM_MEMBER_APPROVED" | "PROJECT_ASSIGNMENT" | "COURSE_ENROLLED" | "COURSE_ACCESS_ACTIVE";
+        NotificationType: "QUOTE_SUBMITTED" | "QUOTE_STATUS_CHANGED" | "PROJECT_CREATED" | "PROJECT_STATUS_CHANGED" | "MILESTONE_COMPLETED" | "FILE_UPLOADED" | "INVOICE_CREATED" | "INVOICE_DUE" | "PAYMENT_RECORDED" | "HOSTING_ACCOUNT_CREATED" | "HOSTING_STATUS_CHANGED" | "TICKET_CREATED" | "TICKET_REPLY" | "TICKET_STATUS_CHANGED" | "DOMAIN_REGISTERED" | "DOMAIN_STATUS_CHANGED" | "TEAM_MEMBER_REGISTERED" | "TEAM_MEMBER_APPROVED" | "PROJECT_ASSIGNMENT" | "COURSE_ENROLLED" | "COURSE_ACCESS_ACTIVE" | "COURSE_COMPLETED";
         /** PaymentCreate */
         PaymentCreate: {
             /** Amount */
@@ -4071,6 +4170,123 @@ export interface components {
          * @enum {string}
          */
         QuestionType: "TEXT" | "TEXTAREA" | "NUMBER" | "SELECT" | "MULTISELECT" | "YES_NO";
+        /** QuizQuestionAdmin */
+        QuizQuestionAdmin: {
+            /** Question */
+            question: string;
+            /** Options */
+            options: string[];
+            /** Correct Index */
+            correct_index: number;
+            /**
+             * Explanation
+             * @default
+             */
+            explanation: string;
+            /** Id */
+            id: number;
+            /** Lesson Id */
+            lesson_id: number;
+            /** Display Order */
+            display_order: number;
+        };
+        /**
+         * QuizQuestionPublic
+         * @description A question as the student sees it -- no correct answer, no explanation.
+         */
+        QuizQuestionPublic: {
+            /** Id */
+            id: number;
+            /** Question */
+            question: string;
+            /** Options */
+            options: string[];
+        };
+        /**
+         * QuizQuestionWrite
+         * @description Admin: one question when replacing a lesson's quiz.
+         */
+        QuizQuestionWrite: {
+            /** Question */
+            question: string;
+            /** Options */
+            options: string[];
+            /** Correct Index */
+            correct_index: number;
+            /**
+             * Explanation
+             * @default
+             */
+            explanation: string;
+        };
+        /** QuizRead */
+        QuizRead: {
+            /** Lesson Id */
+            lesson_id: number;
+            /** Questions */
+            questions: components["schemas"]["QuizQuestionPublic"][];
+            /**
+             * Pass Percent
+             * @default 70
+             */
+            pass_percent: number;
+            /** Best Score */
+            best_score?: number | null;
+            /** Best Total */
+            best_total?: number | null;
+            /**
+             * Passed
+             * @default false
+             */
+            passed: boolean;
+            /**
+             * Attempts
+             * @default 0
+             */
+            attempts: number;
+        };
+        /** QuizResult */
+        QuizResult: {
+            /** Score */
+            score: number;
+            /** Total */
+            total: number;
+            /** Percent */
+            percent: number;
+            /** Passed */
+            passed: boolean;
+            /** Results */
+            results: components["schemas"]["QuizResultItem"][];
+            /** Completed Lessons */
+            completed_lessons: number;
+            /** Total Lessons */
+            total_lessons: number;
+            /** Progress Percent */
+            progress_percent: number;
+        };
+        /** QuizResultItem */
+        QuizResultItem: {
+            /** Question Id */
+            question_id: number;
+            /** Chosen */
+            chosen: number | null;
+            /** Correct Index */
+            correct_index: number;
+            /** Is Correct */
+            is_correct: boolean;
+            /** Explanation */
+            explanation: string;
+        };
+        /**
+         * QuizSubmit
+         * @description One chosen option index per question, keyed by question id.
+         */
+        QuizSubmit: {
+            /** Answers */
+            answers: {
+                [key: string]: number;
+            };
+        };
         /** QuoteAnswerRead */
         QuoteAnswerRead: {
             /** Id */
@@ -7092,6 +7308,37 @@ export interface operations {
             };
         };
     };
+    get_course_progress_api_v1_client_courses__course_id__progress_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CourseProgressRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_lesson_for_enrolled_client_api_v1_client_courses__course_id__lessons__lesson_id__get: {
         parameters: {
             query?: never;
@@ -7176,6 +7423,74 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LessonCompleteResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_lesson_quiz_api_v1_client_courses__course_id__lessons__lesson_id__quiz_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+                lesson_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuizRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    submit_lesson_quiz_api_v1_client_courses__course_id__lessons__lesson_id__quiz_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+                lesson_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QuizSubmit"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuizResult"];
                 };
             };
             /** @description Validation Error */
@@ -7471,6 +7786,74 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LessonRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_lesson_quiz_admin_api_v1_courses__course_id__lessons__lesson_id__quiz_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+                lesson_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuizQuestionAdmin"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    replace_lesson_quiz_api_v1_courses__course_id__lessons__lesson_id__quiz_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+                lesson_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QuizQuestionWrite"][];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuizQuestionAdmin"][];
                 };
             };
             /** @description Validation Error */

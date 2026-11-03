@@ -12,6 +12,7 @@ import {
   PlayCircle,
   SearchX,
   Signal,
+  Users,
 } from 'lucide-react'
 import {
   enrollInCourse,
@@ -27,7 +28,7 @@ import { formatMoney } from '@/utils/format'
 import { AnimatedTechBackground } from '@/components/common/AnimatedTechBackground'
 import { Reveal } from '@/components/common/Reveal'
 import { NeuralArt } from '@/components/courses/NeuralArt'
-import { getShowcase } from '@/components/courses/courseShowcase'
+import { formatMinutes, getShowcase, groupByModule } from '@/components/courses/courseShowcase'
 
 function formatDuration(minutes: number): string {
   if (minutes < 75) return minutes < 50 ? `${minutes} minutes` : 'About 1 hour'
@@ -135,9 +136,9 @@ export function CourseDetail() {
   const price = course.is_free ? null : formatMoney(course.price)
   const showcase = getShowcase(course.slug)
   const lessonCount = course.lessons.length || course.lesson_count
-  const totalMinutes = showcase
-    ? showcase.lessons.reduce((sum, l) => sum + l.minutes, 0)
-    : lessonCount * 10
+  const totalMinutes = course.total_minutes || (showcase ? showcase.hours * 60 : lessonCount * 10)
+  const modules = groupByModule(course.lessons)
+  const hasWeeks = modules.length > 1 && modules.every((m) => m.title)
   const words = course.title.trim().split(/\s+/)
   const lastWord = words.pop()
   const [firstParagraph, ...moreParagraphs] = course.description.split(/\n\s*\n/)
@@ -147,6 +148,9 @@ export function CourseDetail() {
     { icon: Clock, label: formatDuration(totalMinutes) },
     { icon: Signal, label: showcase?.level ?? 'Self-paced' },
     { icon: Award, label: 'Certificate' },
+    ...(course.student_count > 0
+      ? [{ icon: Users, label: `${course.student_count} student${course.student_count === 1 ? '' : 's'} enrolled` }]
+      : []),
   ]
 
   const enrollButton = (dark: boolean) => (
@@ -164,7 +168,7 @@ export function CourseDetail() {
   return (
     <>
       {/* Animated hero */}
-      <section className="relative overflow-hidden bg-[var(--color-brand-950)]">
+      <section className="dark relative overflow-hidden bg-[var(--color-brand-950)]">
         <div
           className="pointer-events-none absolute inset-0 bg-cover bg-top bg-no-repeat opacity-50"
           style={{ backgroundImage: "url('/graphics/gradient-blobs.svg')" }}
@@ -249,7 +253,7 @@ export function CourseDetail() {
               <Reveal>
                 <h2 className="text-sm font-semibold uppercase tracking-wide text-brand-500">Your learning path</h2>
                 <p className="mt-2 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
-                  {lessonCount} steps, one clear journey
+                  {hasWeeks ? `${modules.length} weeks · ${lessonCount} lessons` : `${lessonCount} steps, one clear journey`}
                 </p>
               </Reveal>
               {course.lessons.length === 0 ? (
@@ -261,34 +265,56 @@ export function CourseDetail() {
                     aria-hidden="true"
                   />
                   <ol className="space-y-4">
-                    {course.lessons.map((lesson, index) => {
-                      const extra = showcase?.lessons[index]
-                      const Icon = extra?.icon ?? GraduationCap
+                    {modules.map((module, mi) => {
+                      const week = showcase?.weeks.find((w) => w.title === module.title)
+                      const WeekIcon = week?.icon ?? GraduationCap
+                      const minutes = module.lessons.reduce((sum, { lesson }) => sum + (lesson.duration_minutes ?? 0), 0)
                       return (
-                        <li key={lesson.id}>
-                          <Reveal delay={index * 90} className="relative flex gap-4">
+                        <li key={module.title ?? mi}>
+                          <Reveal delay={Math.min(mi, 4) * 90} className="relative flex gap-4">
                             <span className="relative z-10 flex size-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[var(--color-brand-solid)] to-[var(--color-accent-solid)] text-white shadow-[var(--shadow-glow-brand)] ring-4 ring-[var(--color-bg)]">
-                              <Icon className="size-5" aria-hidden="true" />
+                              <WeekIcon className="size-5" aria-hidden="true" />
                             </span>
-                            <div className="group min-w-0 flex-1 rounded-2xl border border-slate-200 bg-panel p-4 shadow-[var(--shadow-card)] transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-[var(--shadow-glow-brand)]">
-                              <div className="flex items-start justify-between gap-3">
+                            <details
+                              className="group min-w-0 flex-1 rounded-2xl border border-slate-200 bg-panel shadow-[var(--shadow-card)] transition-shadow duration-300 open:shadow-[var(--shadow-glow-brand)]"
+                              open={mi === 0}
+                            >
+                              <summary className="flex cursor-pointer list-none items-start justify-between gap-3 p-4">
                                 <div className="min-w-0">
                                   <p className="text-xs font-semibold uppercase tracking-wide text-brand-500">
-                                    Lesson {index + 1}
-                                    {extra && <span className="ml-2 font-medium normal-case text-slate-400">· {extra.minutes} min</span>}
+                                    {module.title ? module.title.split('·')[0]!.trim() : `Part ${mi + 1}`}
+                                    <span className="ml-2 font-medium normal-case text-slate-400">
+                                      · {module.lessons.length} lessons{minutes > 0 && ` · ${formatMinutes(minutes)}`}
+                                    </span>
                                   </p>
-                                  <p className="mt-1 font-semibold text-slate-900">{lesson.title}</p>
-                                  {extra && <p className="mt-1 text-sm text-slate-500">{extra.summary}</p>}
+                                  <p className="mt-1 font-semibold text-slate-900">
+                                    {module.title?.split('·')[1]?.trim() ?? module.title ?? 'Lessons'}
+                                  </p>
+                                  {week && <p className="mt-1 text-sm text-slate-500">{week.summary}</p>}
                                 </div>
-                                <Lock className="mt-1 size-4 shrink-0 text-white/75" aria-label="Enroll to unlock" />
-                              </div>
-                            </div>
+                                <span className="mt-1 text-xs font-semibold text-brand-600 transition-transform duration-300 group-open:rotate-180">▼</span>
+                              </summary>
+                              <ul className="space-y-1 border-t border-slate-200 px-4 py-3">
+                                {module.lessons.map(({ lesson, index }) => (
+                                  <li key={lesson.id} className="flex items-center gap-3 rounded-lg px-2 py-2 text-sm hover:bg-slate-50">
+                                    <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-brand-50 text-[11px] font-bold text-brand-700">
+                                      {index + 1}
+                                    </span>
+                                    <span className="min-w-0 flex-1 text-slate-700">{lesson.title}</span>
+                                    {lesson.duration_minutes && (
+                                      <span className="shrink-0 text-xs text-slate-400">{lesson.duration_minutes} min</span>
+                                    )}
+                                    <Lock className="size-3.5 shrink-0 text-slate-300" aria-label="Enroll to unlock" />
+                                  </li>
+                                ))}
+                              </ul>
+                            </details>
                           </Reveal>
                         </li>
                       )
                     })}
                     <li>
-                      <Reveal delay={course.lessons.length * 90} className="relative flex gap-4">
+                      <Reveal delay={Math.min(modules.length, 5) * 90} className="relative flex gap-4">
                         <span className="relative z-10 flex size-12 shrink-0 items-center justify-center rounded-2xl bg-amber-400 text-amber-950 shadow-[0_0_24px_-4px_rgb(251_191_36/0.6)] ring-4 ring-[var(--color-bg)]">
                           <Award className="size-5" aria-hidden="true" />
                         </span>
@@ -356,7 +382,7 @@ export function CourseDetail() {
               )}
               <ul className="mt-5 space-y-2.5 text-sm text-slate-600">
                 {[
-                  `${lessonCount} short lessons with activities`,
+                  `${lessonCount} lessons with quizzes & activities`,
                   'Learn at your own pace',
                   showcase ? 'Simple English, no coding needed' : 'Practice in every lesson',
                   'Certificate when you finish',

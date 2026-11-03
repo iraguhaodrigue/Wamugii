@@ -22,11 +22,6 @@ function writeStoredTheme(theme: Theme): void {
   }
 }
 
-function getSystemPreference(): Theme {
-  if (typeof window === 'undefined' || !window.matchMedia) return 'light'
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-}
-
 interface ThemeContextValue {
   theme: Theme
   toggleTheme: () => void
@@ -35,12 +30,18 @@ interface ThemeContextValue {
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined)
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setTheme] = useState<Theme>(() => readStoredTheme() ?? getSystemPreference())
+  // Dark is the brand default; a visitor's own choice (stored) always wins.
+  const [theme, setTheme] = useState<Theme>(() => readStoredTheme() ?? 'dark')
 
   const toggleTheme = useCallback(() => {
     setTheme((prev) => {
       const next: Theme = prev === 'dark' ? 'light' : 'dark'
       writeStoredTheme(next)
+      // Cross-fade colours for a moment so the switch feels smooth rather
+      // than a hard flash. Removed again so normal hovers stay snappy.
+      const root = document.documentElement
+      root.classList.add('theme-switching')
+      window.setTimeout(() => root.classList.remove('theme-switching'), 450)
       return next
     })
   }, [])

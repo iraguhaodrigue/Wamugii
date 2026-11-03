@@ -7,6 +7,20 @@ import { paths } from '@/routes/paths'
 import { Badge, Container, EmptyState, ErrorState, Input, Skeleton } from '@/components/ui'
 import { formatMoney } from '@/utils/format'
 import { LottieOnView } from '@/components/common/LottieOnView'
+import { PageHeader } from '@/components/common/PageHeader'
+import { Reveal } from '@/components/common/Reveal'
+import { ProgramArt, type ProgramArtKind } from '@/components/home/ProgramArt'
+
+/** Each AI Program course gets its own animated cover (the same art as on the homepage). */
+const COURSE_ART: Record<string, { kind: ProgramArtKind; glow: string }> = {
+  'ai-career-essentials': { kind: 'career', glow: 'from-cyan-500/30' },
+  'ai-foundations': { kind: 'foundations', glow: 'from-violet-500/30' },
+  'math-python-for-ai': { kind: 'mathpython', glow: 'from-emerald-500/30' },
+  'machine-learning-fundamentals': { kind: 'ml', glow: 'from-fuchsia-500/30' },
+  'deep-learning-neural-networks': { kind: 'deep', glow: 'from-pink-500/30' },
+  'modern-ai-llms-generative': { kind: 'llm', glow: 'from-amber-500/30' },
+  'responsible-ai-deployment': { kind: 'deploy', glow: 'from-green-500/30' },
+}
 
 /** Public catalogue: every PUBLISHED, active course. */
 export function Courses() {
@@ -32,27 +46,24 @@ export function Courses() {
   }, [courses, search])
 
   return (
-    <Container className="py-16 sm:py-20">
-      <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
-        <div className="text-center lg:text-left">
-          <h1 className="text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">Courses</h1>
-          <p className="mt-4 text-base text-slate-500">
-            Learn with us. Free courses give instant access; paid courses unlock once we've recorded
-            the payment.
-          </p>
-        </div>
-
+    <>
+    <PageHeader
+      eyebrow="WAMUGII Academy"
+      title="Learn with"
+      highlight="WAMUGII"
+      description="Practical courses in simple English, from your first AI prompt to deploying real AI. Free courses give instant access; paid courses unlock once we've recorded the payment."
+      art={
         <LottieOnView
           src="/graphics/lottie/man-robot.json"
           ariaLabel="A person and a robot working side by side at their computers"
           className="mx-auto w-full max-w-[480px]"
           style={{ aspectRatio: '1072 / 574' }}
         />
-      </div>
-
-      <div className="relative mx-auto mt-10 max-w-md">
+      }
+    >
+      <div className="relative max-w-md">
         <Search
-          className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400"
+          className="pointer-events-none absolute left-3 top-1/2 z-10 size-4 -translate-y-1/2 text-slate-400"
           aria-hidden="true"
         />
         <Input
@@ -64,8 +75,9 @@ export function Courses() {
           className="pl-10"
         />
       </div>
-
-      <div className="mt-10">
+    </PageHeader>
+    <Container className="py-12 sm:py-16">
+      <div>
         {isLoading && (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: 6 }).map((_, i) => (
@@ -96,13 +108,16 @@ export function Courses() {
 
         {!isLoading && !isError && filtered.length > 0 && (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {filtered.map((course) => (
-              <CourseCard key={course.id} course={course} />
+            {filtered.map((course, index) => (
+              <Reveal key={course.id} delay={(index % 3) * 80} className="h-full">
+                <CourseCard course={course} />
+              </Reveal>
             ))}
           </div>
         )}
       </div>
     </Container>
+    </>
   )
 }
 
@@ -114,8 +129,15 @@ function CourseCard({ course }: { course: Course }) {
       to={paths.courseDetail(course.slug)}
       className="group relative flex h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-panel shadow-[var(--shadow-card)] backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:border-brand-400/40 hover:shadow-[var(--shadow-glow-brand)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
     >
-      <div className="aspect-video w-full overflow-hidden bg-brand-50">
-        {course.cover_image_url ? (
+      <div className="relative aspect-video w-full overflow-hidden bg-brand-50">
+        {COURSE_ART[course.slug] && !course.cover_image_url ? (
+          <div className="relative size-full bg-[#06131c]">
+            <div className={`pointer-events-none absolute inset-0 bg-gradient-to-b to-transparent ${COURSE_ART[course.slug]!.glow}`} aria-hidden="true" />
+            <div className="relative size-full p-3 transition-transform duration-500 group-hover:scale-[1.05]">
+              <ProgramArt kind={COURSE_ART[course.slug]!.kind} />
+            </div>
+          </div>
+        ) : course.cover_image_url ? (
           <img
             src={course.cover_image_url}
             alt=""

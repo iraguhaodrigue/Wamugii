@@ -1,10 +1,16 @@
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { ArrowRight, Check, Server } from 'lucide-react'
 import { listHostingPlans, type HostingPlan } from '@/api/hosting'
 import { paths } from '@/routes/paths'
 import { Container, EmptyState, ErrorState, Skeleton } from '@/components/ui'
-import { AnimatedTechBackground } from '@/components/common/AnimatedTechBackground'
+import { PageHeader } from '@/components/common/PageHeader'
+import { HostingArt } from '@/components/common/PageArt'
+import { Reveal } from '@/components/common/Reveal'
+import { cn } from '@/utils/cn'
+
+type Billing = 'monthly' | 'yearly'
 import { formatMoney } from '@/utils/format'
 
 /** "3 websites, SSL, 50GB SSD" -> one bullet per item. */
@@ -15,7 +21,7 @@ function featureList(features: string): string[] {
     .filter(Boolean)
 }
 
-function PlanCard({ plan }: { plan: HostingPlan }) {
+function PlanCard({ plan, billing }: { plan: HostingPlan; billing: Billing }) {
   const monthly = Number(plan.monthly_price)
   const yearly = Number(plan.yearly_price)
   // 12 monthly payments vs the yearly price — only shown when there really is
@@ -23,8 +29,12 @@ function PlanCard({ plan }: { plan: HostingPlan }) {
   const monthsSaved = monthly > 0 ? Math.round((monthly * 12 - yearly) / monthly) : 0
 
   return (
-    <div className="flex h-full flex-col rounded-xl border border-slate-200 bg-panel p-6 shadow-[var(--shadow-card)] backdrop-blur-sm transition-colors hover:border-brand-400/30">
-      <div className="flex size-11 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
+    <div className="group relative flex h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-panel p-6 shadow-[var(--shadow-card)] backdrop-blur-sm transition-all duration-300 hover:-translate-y-1.5 hover:border-brand-400/40 hover:shadow-[var(--shadow-glow-brand)]">
+      <span
+        className="absolute inset-x-0 top-0 h-1 origin-left scale-x-0 bg-gradient-to-r from-[var(--color-brand-solid)] to-[var(--color-accent-solid)] transition-transform duration-500 group-hover:scale-x-100"
+        aria-hidden="true"
+      />
+      <div className="icon-live flex size-11 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
         <Server className="size-5" aria-hidden="true" />
       </div>
 
@@ -32,12 +42,15 @@ function PlanCard({ plan }: { plan: HostingPlan }) {
       {plan.description && <p className="mt-1 text-sm text-slate-500">{plan.description}</p>}
 
       <div className="mt-4">
-        <p className="text-2xl font-bold tracking-tight text-slate-900">
-          {formatMoney(plan.monthly_price)}
-          <span className="text-sm font-normal text-slate-500"> /month</span>
+        <p key={billing} className="price-swap text-2xl font-bold tracking-tight text-slate-900">
+          {formatMoney(billing === 'monthly' ? plan.monthly_price : plan.yearly_price)}
+          <span className="text-sm font-normal text-slate-500"> /{billing === 'monthly' ? 'month' : 'year'}</span>
         </p>
         <p className="mt-1 flex flex-wrap items-center gap-2 text-sm text-slate-500">
-          <span>or {formatMoney(plan.yearly_price)} /year</span>
+          <span>
+            or {formatMoney(billing === 'monthly' ? plan.yearly_price : plan.monthly_price)} /
+            {billing === 'monthly' ? 'year' : 'month'}
+          </span>
           {monthsSaved > 0 && (
             <span className="inline-flex items-center rounded-full bg-brand-500/15 px-2 py-0.5 text-xs font-medium text-brand-600 ring-1 ring-inset ring-brand-400/20">
               {monthsSaved} {monthsSaved === 1 ? 'month' : 'months'} free
@@ -48,7 +61,7 @@ function PlanCard({ plan }: { plan: HostingPlan }) {
 
       <ul className="mt-5 flex-1 space-y-2">
         {featureList(plan.features).map((feature) => (
-          <li key={feature} className="flex items-start gap-2 text-sm text-slate-600">
+          <li key={feature} className="flex items-start gap-2 text-sm text-slate-600 transition-transform duration-300 group-hover:translate-x-0.5">
             <Check className="mt-0.5 size-4 shrink-0 text-brand-400" aria-hidden="true" />
             {feature}
           </li>
@@ -73,24 +86,46 @@ export function Hosting() {
     isError,
     refetch,
   } = useQuery({ queryKey: ['hosting', 'plans', 'public'], queryFn: () => listHostingPlans() })
+  const [billing, setBilling] = useState<Billing>('monthly')
 
   return (
-    <section className="relative overflow-hidden py-16 sm:py-20">
-      <AnimatedTechBackground intensity="medium" />
+    <>
+    <PageHeader
+      eyebrow="Hosting & domains"
+      title="Reliable hosting for"
+      highlight="your business"
+      description="Fast, secure hosting we set up and look after for you — so your site stays online without you having to think about servers."
+      art={<HostingArt />}
+    />
+    <section className="relative overflow-hidden py-12 sm:py-16">
       <Container className="relative">
-        <div className="mx-auto max-w-2xl text-center">
-          <span className="text-sm font-semibold uppercase tracking-wide text-brand-400">
-            Hosting
-          </span>
-          <h1 className="mt-3 text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">
-            Reliable hosting for your business
-          </h1>
-          <p className="mt-4 text-base text-slate-500">
-            Fast, secure hosting we set up and look after for you — so your site stays online
-            without you having to think about servers.
-          </p>
-        </div>
-
+        {plans && plans.length > 0 && (
+          <div className="flex justify-center">
+            <div className="relative inline-flex rounded-full border border-slate-200 bg-panel p-1 shadow-[var(--shadow-card)]" role="group" aria-label="Billing period">
+              <span
+                className={cn(
+                  'absolute inset-y-1 w-[calc(50%-4px)] rounded-full bg-gradient-to-r from-[var(--color-brand-solid)] to-[var(--color-accent-solid)] shadow-[var(--shadow-glow-brand)] transition-transform duration-300',
+                  billing === 'yearly' ? 'translate-x-full' : 'translate-x-0',
+                )}
+                aria-hidden="true"
+              />
+              {(['monthly', 'yearly'] as const).map((b) => (
+                <button
+                  key={b}
+                  type="button"
+                  aria-pressed={billing === b}
+                  onClick={() => setBilling(b)}
+                  className={cn(
+                    'relative z-10 w-28 rounded-full px-4 py-2 text-sm font-semibold capitalize transition-colors duration-300',
+                    billing === b ? 'text-white' : 'text-slate-600 hover:text-slate-900',
+                  )}
+                >
+                  {b}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
         <div className="mt-12">
           {isLoading && (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -118,8 +153,10 @@ export function Hosting() {
 
           {!isLoading && !isError && plans && plans.length > 0 && (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-              {plans.map((plan) => (
-                <PlanCard key={plan.id} plan={plan} />
+              {plans.map((plan, index) => (
+                <Reveal key={plan.id} delay={index * 80} className="h-full">
+                  <PlanCard plan={plan} billing={billing} />
+                </Reveal>
               ))}
             </div>
           )}
@@ -134,5 +171,6 @@ export function Hosting() {
         </p>
       </Container>
     </section>
+    </>
   )
 }

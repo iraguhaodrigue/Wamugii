@@ -23,7 +23,7 @@ export interface HeroProps {
  */
 export function Hero({ services, isLoading }: HeroProps) {
   return (
-    <section className="relative overflow-hidden bg-[var(--color-brand-950)]">
+    <section className="dark relative overflow-hidden bg-[var(--color-brand-950)]">
       {/* Ambient teal/purple glow. Decorative only, so it is a background
           layer rather than an <img> — nothing to describe and no layout cost. */}
       <div

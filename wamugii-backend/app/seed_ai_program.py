@@ -38,6 +38,12 @@ def main() -> None:
     for module in COURSES:
         print(f"\n--- {module.__name__} ---")
         module.main()
+    # Full course packs (weeks, quizzes, PDFs) replace the short versions above.
+    from app.seed_course_content import load
+
+    for pack in ("ai_career_essentials",):
+        print(f"\n--- full content pack: {pack} ---")
+        load(pack)
     print("\n" + "=" * 60)
     print("  AI Program load complete. All courses are in the catalog.")
     print("=" * 60)

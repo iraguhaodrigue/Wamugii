@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { Link, useSearchParams } from 'react-router-dom'
-import { Send, Server } from 'lucide-react'
+import { CheckCircle2, Circle, Send, Server } from 'lucide-react'
 import {
   createQuoteRequest,
   type QuoteAnswerSubmit,
@@ -14,6 +14,9 @@ import {
 import { listServiceQuestions, listServices } from '@/api/services'
 import { paths } from '@/routes/paths'
 import { LottieOnView } from '@/components/common/LottieOnView'
+import { PageHeader } from '@/components/common/PageHeader'
+import { QuoteArt } from '@/components/common/PageArt'
+import { cn } from '@/utils/cn'
 import { Button, Container, Input, Select, Skeleton, Textarea } from '@/components/ui'
 import { QuestionField, type AnswerMap } from '@/components/services/QuestionField'
 import type { ApiError } from '@/lib/apiClient'
@@ -75,6 +78,24 @@ export function RequestQuote() {
   })
 
   const selectedServiceId = watch('service_id')
+
+  // Live checklist for the side panel: the required fields, ticked as they're filled.
+  const [fullName, email, phone, projectTitle, projectDescription] = watch([
+    'full_name',
+    'email',
+    'phone',
+    'project_title',
+    'project_description',
+  ])
+  const checklist = [
+    { label: 'Your name', done: Boolean(fullName?.trim()) },
+    { label: 'Email address', done: /.+@.+\..+/.test(email ?? '') },
+    { label: 'Phone number', done: Boolean(phone?.trim()) },
+    { label: 'Project title', done: Boolean(projectTitle?.trim()) },
+    { label: 'Project description', done: (projectDescription?.trim().length ?? 0) >= 10 },
+  ]
+  const doneCount = checklist.filter((c) => c.done).length
+  const percent = Math.round((doneCount / checklist.length) * 100)
 
   /** The id behind `?service=`, whether it arrived as an id or a slug. */
   const resolvedParamServiceId = useMemo(() => {
@@ -195,15 +216,17 @@ export function RequestQuote() {
   const hasQuestions = (questions?.length ?? 0) > 0
 
   return (
-    <Container className="py-16 sm:py-20">
-      <div className="mx-auto max-w-2xl">
-        <div className="text-center">
-          <h1 className="text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">Request a Quote</h1>
-          <p className="mt-4 text-base text-slate-500">
-            Tell us about your project. No account needed — we'll follow up by email or phone with next steps.
-          </p>
-        </div>
-
+    <>
+    <PageHeader
+      eyebrow="Start a project"
+      title="Request a"
+      highlight="Quote"
+      description="Tell us about your project. No account needed — we'll follow up by email or phone with next steps."
+      art={<QuoteArt />}
+    />
+    <Container className="py-12 sm:py-16">
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
+      <div className="min-w-0">
         {planParam && (
           <div className="mt-8 flex items-start gap-3 rounded-xl border border-brand-200 bg-brand-50 p-4">
             <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-brand-100 text-brand-700">
@@ -228,7 +251,7 @@ export function RequestQuote() {
             if (!validateAnswers()) return
             mutation.mutate(values)
           })}
-          className="mt-12 space-y-8 rounded-xl border border-slate-200 bg-panel p-6 shadow-[var(--shadow-card)] backdrop-blur-sm sm:p-8"
+          className={cn('space-y-8 rounded-xl border border-slate-200 bg-panel p-6 shadow-[var(--shadow-card)] backdrop-blur-sm sm:p-8', planParam && 'mt-8')}
           noValidate
         >
           <div className="space-y-5">
@@ -360,6 +383,69 @@ export function RequestQuote() {
           </Button>
         </form>
       </div>
+
+      <aside className="lg:sticky lg:top-24">
+        <div className="rounded-xl border border-slate-200 bg-panel p-6 shadow-[var(--shadow-card)] backdrop-blur-sm">
+          <div className="flex items-center gap-4">
+            <div className="relative size-16 shrink-0">
+              <svg viewBox="0 0 36 36" className="size-16 -rotate-90">
+                <circle cx="18" cy="18" r="15.5" fill="none" stroke="currentColor" strokeWidth="3.5" className="text-slate-200" />
+                <circle
+                  cx="18"
+                  cy="18"
+                  r="15.5"
+                  fill="none"
+                  stroke="url(#quote-progress)"
+                  strokeWidth="3.5"
+                  strokeLinecap="round"
+                  pathLength={100}
+                  strokeDasharray={`${percent} 100`}
+                  className="transition-[stroke-dasharray] duration-500 ease-out"
+                />
+                <defs>
+                  <linearGradient id="quote-progress" x1="0" x2="1">
+                    <stop offset="0" stopColor="#22d3ee" />
+                    <stop offset="1" stopColor="#a78bfa" />
+                  </linearGradient>
+                </defs>
+              </svg>
+              <span className="absolute inset-0 flex items-center justify-center text-sm font-bold text-slate-900">
+                {percent}%
+              </span>
+            </div>
+            <div>
+              <p className="font-semibold text-slate-900">
+                {percent === 100 ? 'Ready to send!' : 'Your request'}
+              </p>
+              <p className="text-sm text-slate-500">
+                {doneCount} of {checklist.length} required details
+              </p>
+            </div>
+          </div>
+          <ul className="mt-5 space-y-2.5">
+            {checklist.map((item) => (
+              <li key={item.label} className="flex items-center gap-2.5 text-sm">
+                {item.done ? (
+                  <CheckCircle2 className="chip-pop size-4 shrink-0 text-emerald-500" aria-hidden="true" />
+                ) : (
+                  <Circle className="size-4 shrink-0 text-slate-300" aria-hidden="true" />
+                )}
+                <span className={cn('transition-colors', item.done ? 'text-slate-900' : 'text-slate-500')}>{item.label}</span>
+              </li>
+            ))}
+          </ul>
+          <div className="mt-6 border-t border-slate-200 pt-5">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">What happens next</p>
+            <ol className="mt-3 space-y-2 text-sm text-slate-600">
+              <li><span className="font-semibold text-brand-600">1.</span> We read your request</li>
+              <li><span className="font-semibold text-brand-600">2.</span> We contact you to talk it through</li>
+              <li><span className="font-semibold text-brand-600">3.</span> You get a clear proposal to approve</li>
+            </ol>
+          </div>
+        </div>
+      </aside>
+      </div>
     </Container>
+    </>
   )
 }

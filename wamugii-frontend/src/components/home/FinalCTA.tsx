@@ -7,7 +7,7 @@ import { Reveal } from '@/components/common/Reveal'
 
 export function FinalCTA() {
   return (
-    <section className="relative overflow-hidden bg-[var(--color-brand-950)] py-24 sm:py-32">
+    <section className="dark relative overflow-hidden bg-[var(--color-brand-950)] py-24 sm:py-32">
       <div
         className="pointer-events-none absolute inset-0"
         style={{

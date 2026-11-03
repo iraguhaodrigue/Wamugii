@@ -37,6 +37,8 @@ from app.schemas.course import (
     LessonMaterialRead,
     LessonRead,
     LessonUpdate,
+    QuizQuestionAdmin,
+    QuizQuestionWrite,
 )
 from app.services import storage
 
@@ -68,6 +70,8 @@ def _public_course_detail(db: Session, course: Course) -> CoursePublicDetail:
     detail = CoursePublicDetail.model_validate(course)
     detail.lesson_count = len(lessons)
     detail.lessons = [LessonBrief.model_validate(l) for l in lessons]
+    detail.student_count = course_crud.count_students(db, course.id)
+    detail.total_minutes = sum(l.duration_minutes or 0 for l in lessons)
     return detail
 
 
@@ -235,8 +239,37 @@ def list_course_lessons(course_id: int, db: DbDep, include_inactive: bool = True
         materials = course_crud.list_materials(db, lesson.id)
         read = LessonRead.model_validate(lesson)
         read.materials = [LessonMaterialRead.model_validate(m) for m in materials]
+        read.quiz_question_count = course_crud.count_quiz_questions(db, lesson.id)
         out.append(read)
     return out
+
+
+@router.get(
+    "/{course_id}/lessons/{lesson_id}/quiz",
+    response_model=list[QuizQuestionAdmin],
+    dependencies=[Depends(require_roles(Role.ADMIN, Role.STAFF))],
+    summary="A lesson's quiz with answers (ADMIN or STAFF)",
+)
+def get_lesson_quiz_admin(course_id: int, lesson_id: int, db: DbDep):
+    _get_course_or_404(db, course_id)
+    _get_lesson_or_404(db, course_id, lesson_id)
+    return [QuizQuestionAdmin.model_validate(q) for q in course_crud.list_quiz_questions(db, lesson_id)]
+
+
+@router.put(
+    "/{course_id}/lessons/{lesson_id}/quiz",
+    response_model=list[QuizQuestionAdmin],
+    dependencies=[Depends(require_roles(Role.ADMIN, Role.STAFF))],
+    summary="Replace a lesson's quiz (ADMIN or STAFF); an empty list removes it",
+)
+def replace_lesson_quiz(
+    course_id: int, lesson_id: int, items: list[QuizQuestionWrite], db: DbDep
+):
+    _get_course_or_404(db, course_id)
+    _get_lesson_or_404(db, course_id, lesson_id)
+    questions = course_crud.replace_quiz_questions(db, lesson_id, items)
+    logger.info("quiz on lesson %s replaced (%s questions)", lesson_id, len(questions))
+    return [QuizQuestionAdmin.model_validate(q) for q in questions]
 
 
 @router.post(
