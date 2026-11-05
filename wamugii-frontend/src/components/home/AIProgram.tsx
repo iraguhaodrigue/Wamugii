@@ -79,9 +79,9 @@ const PROGRAM: ProgramCourse[] = [
   {
     slug: 'deep-learning-neural-networks',
     title: 'Deep Learning & Neural Networks',
-    summary: 'How neural networks learn, plus CNNs for images and sequence models.',
+    summary: 'Neural networks from scratch and in PyTorch: CNNs, transfer learning, LSTMs, attention and deployment.',
     level: 'Intermediate',
-    lessons: 9,
+    lessons: 24,
     art: 'deep',
     accent: ACCENTS.pink,
   },

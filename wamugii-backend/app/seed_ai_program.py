@@ -42,7 +42,7 @@ def main() -> None:
     from app.seed_course_content import load
 
     for pack in ("ai_career_essentials", "ai_foundations", "math_python_for_ai",
-                 "machine_learning_fundamentals"):
+                 "machine_learning_fundamentals", "deep_learning_neural_networks"):
         print(f"\n--- full content pack: {pack} ---")
         load(pack)
     print("\n" + "=" * 60)
