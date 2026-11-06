@@ -128,7 +128,8 @@ def list_public_courses(
         courses = course_crud.list_published_courses(
             db, limit=limit, offset=offset, category=category, search=search,
         )
-    return [_course_read(c) for c in courses]
+    counts = course_crud.active_lesson_counts(db, [c.id for c in courses])
+    return [_course_read(c, counts.get(c.id, 0)) for c in courses]
 
 
 @router.get(

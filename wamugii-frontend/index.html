@@ -22,14 +22,43 @@
     />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- The font loads without blocking the first paint; the system font shows until it arrives. -->
     <link
+      rel="preload"
+      as="style"
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
-      rel="stylesheet"
+      onload="this.onload=null;this.rel='stylesheet'"
     />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      />
+    </noscript>
+    <link rel="preload" as="image" href="/logo-emblem-128.png" />
+    <style>
+      /* Shown instantly while the app's code downloads; React replaces it. */
+      #boot { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center;
+        justify-content: center; gap: 18px; background: #05070d; color: #94a3b8;
+        font: 500 14px system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; letter-spacing: .08em; }
+      #boot img { width: 64px; height: 64px; border-radius: 16px; animation: boot-pulse 1.4s ease-in-out infinite; }
+      #boot i { width: 120px; height: 3px; border-radius: 3px; overflow: hidden; background: rgba(34,211,238,.15); position: relative; }
+      #boot i::after { content: ''; position: absolute; inset: 0; width: 40%; border-radius: 3px;
+        background: #22d3ee; animation: boot-bar 1.1s ease-in-out infinite; }
+      @keyframes boot-pulse { 50% { opacity: .6; transform: scale(.96); } }
+      @keyframes boot-bar { from { transform: translateX(-100%); } to { transform: translateX(250%); } }
+      @media (prefers-reduced-motion: reduce) { #boot img, #boot i::after { animation: none; } }
+    </style>
     <title>WAMUGII TECH SOLUTIONS</title>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div id="boot" role="status" aria-label="Loading WAMUGII TECH SOLUTIONS">
+        <img src="/logo-emblem-128.png" alt="" />
+        <span>WAMUGII TECH SOLUTIONS</span>
+        <i></i>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

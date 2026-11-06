@@ -1,3 +1,5 @@
+import { Suspense } from 'react'
+import { PageLoader } from '@/components/common/PageLoader'
 import { Link, Outlet } from 'react-router-dom'
 import { paths } from '@/routes/paths'
 import { ThemeToggle } from '@/components/ui'
@@ -45,7 +47,9 @@ export function AuthLayout() {
             WAMUGII <span className="text-brand-600">TECH</span>
           </Link>
           <div className="rounded-xl border border-slate-200 bg-panel p-6 shadow-[var(--shadow-card)] backdrop-blur-sm sm:p-8">
+            <Suspense fallback={<PageLoader />}>
             <Outlet />
+          </Suspense>
           </div>
         </div>
       </div>

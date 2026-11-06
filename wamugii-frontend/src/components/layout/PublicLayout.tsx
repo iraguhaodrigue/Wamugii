@@ -1,3 +1,5 @@
+import { Suspense } from 'react'
+import { PageLoader } from '@/components/common/PageLoader'
 import { Outlet } from 'react-router-dom'
 import { AnnouncementBar } from './AnnouncementBar'
 import { Header } from './Header'
@@ -22,7 +24,9 @@ export function PublicLayout() {
       <AnnouncementBar />
       <Header />
       <main className="flex-1">
-        <Outlet />
+        <Suspense fallback={<PageLoader />}>
+            <Outlet />
+          </Suspense>
       </main>
       <Footer />
       {/* Public pages only — the authenticated shells (AdminLayout,

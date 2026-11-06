@@ -3,7 +3,10 @@ import type { components } from '@/types/api'
 
 type Token = components['schemas']['Token']
 
-const API_BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/api/v1`
+// VITE_API_BASE_URL comes from wamugii-frontend/.env.production at build time.
+// If it is missing, call the API on the same website ("/api/v1") instead of
+// building a broken address like "/undefined/api/v1" (which blanks the site).
+const API_BASE_URL = `${(import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/+$/, '')}/api/v1`
 const REFRESH_TOKEN_KEY = 'wamugii_refresh_token'
 
 // Access token lives in memory only — never persisted to localStorage.

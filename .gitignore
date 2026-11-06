@@ -7,6 +7,9 @@ __pycache__/
 # secrets
 .env
 *.env
+# Settings files such as wamugii-frontend/.env.production hold server-only
+# values; never commit them (a `git add -A` on the server once did).
+.env.*
 !.env.example
 
 # database & uploads

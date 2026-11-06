@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { Route, Routes } from 'react-router-dom'
 import {
   FolderKanban,
@@ -14,82 +15,87 @@ import {
   Users,
 } from 'lucide-react'
 import { PublicLayout } from '@/components/layout/PublicLayout'
-import { AuthLayout } from '@/components/layout/AuthLayout'
-import { DashboardLayout } from '@/components/layout/DashboardLayout'
-import { AdminLayout } from '@/components/layout/AdminLayout'
 import { ProtectedRoute } from '@/routes/ProtectedRoute'
 import { RoleProtectedRoute } from '@/routes/RoleProtectedRoute'
 import { paths } from '@/routes/paths'
+import { PageLoader } from '@/components/common/PageLoader'
+import { lazyNamed } from '@/lib/lazyPage'
+
+// Every page except the home page is loaded only when someone opens it, so a
+// visitor's first download is small and the home page appears much sooner.
+const AuthLayout = lazyNamed(() => import('@/components/layout/AuthLayout'), 'AuthLayout')
+const DashboardLayout = lazyNamed(() => import('@/components/layout/DashboardLayout'), 'DashboardLayout')
+const AdminLayout = lazyNamed(() => import('@/components/layout/AdminLayout'), 'AdminLayout')
+const Services = lazyNamed(() => import('@/pages/public/Services'), 'Services')
+const ServiceDetail = lazyNamed(() => import('@/pages/public/ServiceDetail'), 'ServiceDetail')
+const RequestQuote = lazyNamed(() => import('@/pages/public/RequestQuote'), 'RequestQuote')
+const Hosting = lazyNamed(() => import('@/pages/public/Hosting'), 'Hosting')
+const Courses = lazyNamed(() => import('@/pages/public/Courses'), 'Courses')
+const CourseDetail = lazyNamed(() => import('@/pages/public/CourseDetail'), 'CourseDetail')
+const Login = lazyNamed(() => import('@/pages/auth/Login'), 'Login')
+const Register = lazyNamed(() => import('@/pages/auth/Register'), 'Register')
+const ForgotPassword = lazyNamed(() => import('@/pages/auth/ForgotPassword'), 'ForgotPassword')
+const ResetPassword = lazyNamed(() => import('@/pages/auth/ResetPassword'), 'ResetPassword')
+const JoinTeam = lazyNamed(() => import('@/pages/auth/JoinTeam'), 'JoinTeam')
+const PendingApproval = lazyNamed(() => import('@/pages/auth/PendingApproval'), 'PendingApproval')
+const ClientDashboard = lazyNamed(() => import('@/pages/client/Dashboard'), 'ClientDashboard')
+const ClientProjects = lazyNamed(() => import('@/pages/client/Projects'), 'ClientProjects')
+const ClientProjectDetail = lazyNamed(() => import('@/pages/client/ProjectDetail'), 'ClientProjectDetail')
+const ClientInvoices = lazyNamed(() => import('@/pages/client/Invoices'), 'ClientInvoices')
+const ClientInvoiceDetail = lazyNamed(() => import('@/pages/client/InvoiceDetail'), 'ClientInvoiceDetail')
+const ClientHosting = lazyNamed(() => import('@/pages/client/Hosting'), 'ClientHosting')
+const ClientHostingDetail = lazyNamed(() => import('@/pages/client/HostingDetail'), 'ClientHostingDetail')
+const ClientDomains = lazyNamed(() => import('@/pages/client/Domains'), 'ClientDomains')
+const ClientLearning = lazyNamed(() => import('@/pages/client/Learning'), 'ClientLearning')
+const ClientCoursePlayer = lazyNamed(() => import('@/pages/client/CoursePlayer'), 'ClientCoursePlayer')
+const ClientCourseExam = lazyNamed(() => import('@/pages/client/CourseExam'), 'ClientCourseExam')
+const InstructorDashboard = lazyNamed(() => import('@/pages/instructor/InstructorDashboard'), 'InstructorDashboard')
+const InstructorQuestions = lazyNamed(() => import('@/pages/instructor/InstructorQuestions'), 'InstructorQuestions')
+const ClientDomainDetail = lazyNamed(() => import('@/pages/client/DomainDetail'), 'ClientDomainDetail')
+const ClientQuoteDetail = lazyNamed(() => import('@/pages/client/QuoteDetail'), 'ClientQuoteDetail')
+const ClientTickets = lazyNamed(() => import('@/pages/client/Tickets'), 'ClientTickets')
+const ClientTicketDetail = lazyNamed(() => import('@/pages/client/TicketDetail'), 'ClientTicketDetail')
+const StaffOverview = lazyNamed(() => import('@/pages/staff/Overview'), 'StaffOverview')
+const StaffProjects = lazyNamed(() => import('@/pages/staff/Projects'), 'StaffProjects')
+const StaffProjectDetail = lazyNamed(() => import('@/pages/staff/ProjectDetail'), 'StaffProjectDetail')
+const StaffQuotes = lazyNamed(() => import('@/pages/staff/Quotes'), 'StaffQuotes')
+const StaffQuoteDetail = lazyNamed(() => import('@/pages/staff/QuoteDetail'), 'StaffQuoteDetail')
+const StaffInvoices = lazyNamed(() => import('@/pages/staff/Invoices'), 'StaffInvoices')
+const StaffInvoiceDetail = lazyNamed(() => import('@/pages/staff/InvoiceDetail'), 'StaffInvoiceDetail')
+const StaffHostingAccounts = lazyNamed(() => import('@/pages/staff/HostingAccounts'), 'StaffHostingAccounts')
+const StaffHostingAccountDetail = lazyNamed(() => import('@/pages/staff/HostingAccountDetail'), 'StaffHostingAccountDetail')
+const StaffDomains = lazyNamed(() => import('@/pages/staff/Domains'), 'StaffDomains')
+const StaffDomainDetail = lazyNamed(() => import('@/pages/staff/DomainDetail'), 'StaffDomainDetail')
+const StaffTickets = lazyNamed(() => import('@/pages/staff/Tickets'), 'StaffTickets')
+const StaffTicketDetail = lazyNamed(() => import('@/pages/staff/TicketDetail'), 'StaffTicketDetail')
+const AdminDashboard = lazyNamed(() => import('@/pages/admin/Dashboard'), 'AdminDashboard')
+const AdminUsers = lazyNamed(() => import('@/pages/admin/Users'), 'AdminUsers')
+const AdminUserDetail = lazyNamed(() => import('@/pages/admin/UserDetail'), 'AdminUserDetail')
+const AdminProjects = lazyNamed(() => import('@/pages/admin/Projects'), 'AdminProjects')
+const AdminProjectDetail = lazyNamed(() => import('@/pages/admin/ProjectDetail'), 'AdminProjectDetail')
+const AdminQuotes = lazyNamed(() => import('@/pages/admin/Quotes'), 'AdminQuotes')
+const AdminQuoteDetail = lazyNamed(() => import('@/pages/admin/QuoteDetail'), 'AdminQuoteDetail')
+const AdminInvoices = lazyNamed(() => import('@/pages/admin/Invoices'), 'AdminInvoices')
+const AdminSettings = lazyNamed(() => import('@/pages/admin/Settings'), 'AdminSettings')
+const AdminHostingPlans = lazyNamed(() => import('@/pages/admin/HostingPlans'), 'AdminHostingPlans')
+const AdminHostingAccounts = lazyNamed(() => import('@/pages/admin/HostingAccounts'), 'AdminHostingAccounts')
+const AdminHostingAccountDetail = lazyNamed(() => import('@/pages/admin/HostingAccountDetail'), 'AdminHostingAccountDetail')
+const AdminDomains = lazyNamed(() => import('@/pages/admin/Domains'), 'AdminDomains')
+const AdminDomainDetail = lazyNamed(() => import('@/pages/admin/DomainDetail'), 'AdminDomainDetail')
+const AdminTickets = lazyNamed(() => import('@/pages/admin/Tickets'), 'AdminTickets')
+const AdminTicketDetail = lazyNamed(() => import('@/pages/admin/TicketDetail'), 'AdminTicketDetail')
+const AdminTeamMembers = lazyNamed(() => import('@/pages/admin/TeamMembers'), 'AdminTeamMembers')
+const AdminCourses = lazyNamed(() => import('@/pages/admin/Courses'), 'AdminCourses')
+const AdminCourseDetail = lazyNamed(() => import('@/pages/admin/CourseDetail'), 'AdminCourseDetail')
+const AdminServices = lazyNamed(() => import('@/pages/admin/Services'), 'AdminServices')
+const AdminServiceDetail = lazyNamed(() => import('@/pages/admin/ServiceDetail'), 'AdminServiceDetail')
+const TeamDashboard = lazyNamed(() => import('@/pages/team/Dashboard'), 'TeamDashboard')
+const TeamProjects = lazyNamed(() => import('@/pages/team/Projects'), 'TeamProjects')
+const TeamProjectDetail = lazyNamed(() => import('@/pages/team/ProjectDetail'), 'TeamProjectDetail')
+const AdminInvoiceDetail = lazyNamed(() => import('@/pages/admin/InvoiceDetail'), 'AdminInvoiceDetail')
+const NotFound = lazyNamed(() => import('@/pages/NotFound'), 'NotFound')
 
 import { Home } from '@/pages/public/Home'
-import { Services } from '@/pages/public/Services'
-import { ServiceDetail } from '@/pages/public/ServiceDetail'
-import { RequestQuote } from '@/pages/public/RequestQuote'
-import { Hosting } from '@/pages/public/Hosting'
-import { Courses } from '@/pages/public/Courses'
-import { CourseDetail } from '@/pages/public/CourseDetail'
-import { Login } from '@/pages/auth/Login'
-import { Register } from '@/pages/auth/Register'
-import { ForgotPassword } from '@/pages/auth/ForgotPassword'
-import { ResetPassword } from '@/pages/auth/ResetPassword'
-import { JoinTeam } from '@/pages/auth/JoinTeam'
-import { PendingApproval } from '@/pages/auth/PendingApproval'
-import { ClientDashboard } from '@/pages/client/Dashboard'
-import { ClientProjects } from '@/pages/client/Projects'
-import { ClientProjectDetail } from '@/pages/client/ProjectDetail'
-import { ClientInvoices } from '@/pages/client/Invoices'
-import { ClientInvoiceDetail } from '@/pages/client/InvoiceDetail'
-import { ClientHosting } from '@/pages/client/Hosting'
-import { ClientHostingDetail } from '@/pages/client/HostingDetail'
-import { ClientDomains } from '@/pages/client/Domains'
-import { ClientLearning } from '@/pages/client/Learning'
-import { ClientCoursePlayer } from '@/pages/client/CoursePlayer'
-import { ClientCourseExam } from '@/pages/client/CourseExam'
-import { InstructorDashboard } from '@/pages/instructor/InstructorDashboard'
-import { InstructorQuestions } from '@/pages/instructor/InstructorQuestions'
-import { ClientDomainDetail } from '@/pages/client/DomainDetail'
-import { ClientQuoteDetail } from '@/pages/client/QuoteDetail'
-import { ClientTickets } from '@/pages/client/Tickets'
-import { ClientTicketDetail } from '@/pages/client/TicketDetail'
-import { StaffOverview } from '@/pages/staff/Overview'
-import { StaffProjects } from '@/pages/staff/Projects'
-import { StaffProjectDetail } from '@/pages/staff/ProjectDetail'
-import { StaffQuotes } from '@/pages/staff/Quotes'
-import { StaffQuoteDetail } from '@/pages/staff/QuoteDetail'
-import { StaffInvoices } from '@/pages/staff/Invoices'
-import { StaffInvoiceDetail } from '@/pages/staff/InvoiceDetail'
-import { StaffHostingAccounts } from '@/pages/staff/HostingAccounts'
-import { StaffHostingAccountDetail } from '@/pages/staff/HostingAccountDetail'
-import { StaffDomains } from '@/pages/staff/Domains'
-import { StaffDomainDetail } from '@/pages/staff/DomainDetail'
-import { StaffTickets } from '@/pages/staff/Tickets'
-import { StaffTicketDetail } from '@/pages/staff/TicketDetail'
-import { AdminDashboard } from '@/pages/admin/Dashboard'
-import { AdminUsers } from '@/pages/admin/Users'
-import { AdminUserDetail } from '@/pages/admin/UserDetail'
-import { AdminProjects } from '@/pages/admin/Projects'
-import { AdminProjectDetail } from '@/pages/admin/ProjectDetail'
-import { AdminQuotes } from '@/pages/admin/Quotes'
-import { AdminQuoteDetail } from '@/pages/admin/QuoteDetail'
-import { AdminInvoices } from '@/pages/admin/Invoices'
-import { AdminSettings } from '@/pages/admin/Settings'
-import { AdminHostingPlans } from '@/pages/admin/HostingPlans'
-import { AdminHostingAccounts } from '@/pages/admin/HostingAccounts'
-import { AdminHostingAccountDetail } from '@/pages/admin/HostingAccountDetail'
-import { AdminDomains } from '@/pages/admin/Domains'
-import { AdminDomainDetail } from '@/pages/admin/DomainDetail'
-import { AdminTickets } from '@/pages/admin/Tickets'
-import { AdminTicketDetail } from '@/pages/admin/TicketDetail'
-import { AdminTeamMembers } from '@/pages/admin/TeamMembers'
-import { AdminCourses } from '@/pages/admin/Courses'
-import { AdminCourseDetail } from '@/pages/admin/CourseDetail'
-import { AdminServices } from '@/pages/admin/Services'
-import { AdminServiceDetail } from '@/pages/admin/ServiceDetail'
-import { TeamDashboard } from '@/pages/team/Dashboard'
-import { TeamProjects } from '@/pages/team/Projects'
-import { TeamProjectDetail } from '@/pages/team/ProjectDetail'
-import { AdminInvoiceDetail } from '@/pages/admin/InvoiceDetail'
-import { NotFound } from '@/pages/NotFound'
 
 const clientNavItems = [
   { label: 'Dashboard', to: paths.client.dashboard, icon: LayoutDashboard },
@@ -139,6 +145,7 @@ const adminNavItems = [
 
 function App() {
   return (
+    <Suspense fallback={<PageLoader fullScreen />}>
     <Routes>
       {/* Public marketing site */}
       <Route element={<PublicLayout />}>
@@ -262,6 +269,7 @@ function App() {
 
       <Route path="*" element={<NotFound />} />
     </Routes>
+    </Suspense>
   )
 }
 

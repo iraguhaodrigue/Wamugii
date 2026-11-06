@@ -441,6 +441,22 @@ def last_activity_at(db: Session, enrollment: Enrollment):
     return latest or enrollment.enrolled_at
 
 
+def active_lesson_counts(db: Session, course_ids: list[int]) -> dict[int, int]:
+    """Active lesson count per course in ONE query, without loading lesson text.
+
+    The public catalogue used to load every lesson (with its full notes) just to
+    count them, which made /courses slow once the courses grew to 24 lessons.
+    """
+    if not course_ids:
+        return {}
+    rows = db.execute(
+        select(Lesson.course_id, func.count())
+        .where(Lesson.course_id.in_(course_ids), Lesson.is_active.is_(True))
+        .group_by(Lesson.course_id)
+    ).all()
+    return {course_id: count for course_id, count in rows}
+
+
 def count_students(db: Session, course_id: int) -> int:
     """Students with an ACTIVE enrollment -- the real number shown publicly."""
     return (

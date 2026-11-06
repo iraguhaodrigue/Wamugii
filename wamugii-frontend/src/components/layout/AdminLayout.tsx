@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { PageLoader } from '@/components/common/PageLoader'
+import { Suspense, useEffect, useState } from 'react'
 import { Link, NavLink, Outlet } from 'react-router-dom'
 import { LogOut, Menu, PanelLeftClose, PanelLeftOpen, X, type LucideIcon } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
@@ -164,7 +165,9 @@ function AdminLayoutChrome({ navItems }: AdminLayoutProps) {
         </header>
 
         <main className="flex-1 p-4 sm:p-6 lg:p-8">
-          <Outlet />
+          <Suspense fallback={<PageLoader />}>
+            <Outlet />
+          </Suspense>
         </main>
       </div>
     </div>
