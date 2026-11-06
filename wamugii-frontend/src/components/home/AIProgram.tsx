@@ -88,9 +88,9 @@ const PROGRAM: ProgramCourse[] = [
   {
     slug: 'modern-ai-llms-generative',
     title: 'Modern AI: LLMs & Generative AI',
-    summary: 'Transformers, large language models, prompting, RAG and AI agents.',
+    summary: 'Build a tiny GPT, then LLM APIs, RAG with citations, agents, LoRA, diffusion and safe deployment.',
     level: 'Advanced',
-    lessons: 9,
+    lessons: 24,
     art: 'llm',
     accent: ACCENTS.amber,
   },

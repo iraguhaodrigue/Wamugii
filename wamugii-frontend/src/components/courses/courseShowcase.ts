@@ -312,6 +312,58 @@ const SHOWCASES: Record<string, CourseShowcase> = {
       { icon: Users, title: 'Future AI builders', text: 'Step 4 of the WAMUGII AI Program, before LLMs.' },
     ],
   },
+  'modern-ai-llms-generative': {
+    tagline:
+      'A hands-on 4-week course in large language models and generative AI — build a tiny GPT, use LLM APIs, build RAG with citations, agents and safe AI apps. Every line of code tested.',
+    level: 'Advanced',
+    lessonCount: 24,
+    hours: 26,
+    weeks: [
+      {
+        title: 'Week 1 · How Large Language Models Work',
+        summary: 'Tokens and BPE, next-token prediction and sampling, your own tiny GPT, and how assistants are trained.',
+        icon: Brain,
+      },
+      {
+        title: 'Week 2 · Building with LLM APIs',
+        summary: 'API calls, prompt engineering, structured output, tool use, streaming, cost and reliability.',
+        icon: Code,
+      },
+      {
+        title: 'Week 3 · Embeddings, Search and RAG',
+        summary: 'Embeddings, vector search, retrieval-augmented generation with citations, and honest evaluation.',
+        icon: Layers,
+      },
+      {
+        title: 'Week 4 · Agents, Generative AI and Responsible Deployment',
+        summary: 'Agents, LoRA fine-tuning, diffusion, open models, prompt-injection defence and a deployed AI API.',
+        icon: ShieldCheck,
+      },
+    ],
+    highlights: [
+      'Tokenizers & BPE',
+      'A Tiny GPT from Scratch',
+      'LLM APIs & Prompting',
+      'Tool Use & JSON',
+      'Embeddings & Vector Search',
+      'RAG with Citations',
+      'Evaluating LLM Apps',
+      'AI Agents',
+      'LoRA & Diffusion',
+      'Prompt-Injection Defence',
+    ],
+    outcomes: [
+      { icon: Brain, title: 'Understand LLMs', text: 'Tokens, attention, sampling and training — you build a GPT yourself.' },
+      { icon: Code, title: 'Build with APIs', text: 'Prompts, structured output, tools, streaming and cost control.' },
+      { icon: Layers, title: 'Answer from documents', text: 'Embeddings, hybrid search and RAG with citations, measured properly.' },
+      { icon: ShieldCheck, title: 'Ship it safely', text: 'Agents, guardrails, privacy and a tested, deployable AI web API.' },
+    ],
+    audience: [
+      { icon: GraduationCap, title: 'Students', text: 'The modern-AI part of computer-science and data-science degrees.' },
+      { icon: Briefcase, title: 'Developers', text: 'Add assistants, document search and automation to your products.' },
+      { icon: Users, title: 'Future AI builders', text: 'Step 5 of the WAMUGII AI Program, after deep learning.' },
+    ],
+  },
 }
 
 export function getShowcase(slug: string | undefined): CourseShowcase | undefined {
