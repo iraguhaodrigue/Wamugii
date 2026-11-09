@@ -136,7 +136,7 @@ export function JoinTeam() {
         Looking for a quote instead?{' '}
         <Link
           to={paths.register}
-          className="font-medium text-brand-400 hover:text-brand-300 hover:underline"
+          className="font-medium text-brand-600 hover:text-brand-700 hover:underline"
         >
           Create a client account
         </Link>

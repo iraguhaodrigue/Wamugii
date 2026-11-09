@@ -64,7 +64,7 @@ export function MetricCards({ serviceCount }: MetricCardsProps) {
                   </AnimInView>
                 </div>
                 <p className="mt-4 text-2xl font-bold tracking-tight text-slate-900">{value}</p>
-                <p className="mt-0.5 text-sm font-semibold text-brand-400">{label}</p>
+                <p className="mt-0.5 text-sm font-semibold text-brand-600">{label}</p>
                 <p className="mt-2 text-sm text-slate-500">{description}</p>
               </div>
             </Reveal>

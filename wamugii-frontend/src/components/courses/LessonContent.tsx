@@ -505,7 +505,7 @@ export function LessonContent({ content, lessonKey }: LessonContentProps) {
                 <Lightbulb className="size-5" aria-hidden="true" />
               </span>
               <div>
-                <p className="text-xs font-bold uppercase tracking-wider text-white/75">Remember this</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-white/90">Remember this</p>
                 <p className="mt-1 text-base font-medium leading-relaxed [&_strong]:text-white">{inline(takeaway)}</p>
               </div>
             </div>

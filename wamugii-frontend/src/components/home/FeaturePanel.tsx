@@ -39,7 +39,7 @@ export function FeaturePanel() {
                   {stages.map((stage, index) => (
                     <span
                       key={stage}
-                      className="stage-chip inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3.5 py-1.5 text-xs font-medium text-slate-400 backdrop-blur-sm"
+                      className="stage-chip inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3.5 py-1.5 text-xs font-medium text-slate-600 backdrop-blur-sm"
                       style={{ animationDelay: `${index * 2}s` }}
                     >
                       <span className="stage-dot size-1.5 rounded-full bg-brand-400" aria-hidden="true" />

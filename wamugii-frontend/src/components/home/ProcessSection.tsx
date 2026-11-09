@@ -64,10 +64,10 @@ export function ProcessSection() {
                 >
                   {number}
                 </span>
-                <div className="icon-live relative flex size-12 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500/15 to-accent-500/15 text-brand-400 ring-1 ring-inset ring-brand-400/20">
+                <div className="icon-live relative flex size-12 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500/15 to-accent-500/15 text-brand-600 ring-1 ring-inset ring-brand-400/20">
                   <Icon className="size-6" aria-hidden="true" />
                 </div>
-                <p className="relative mt-5 text-xs font-semibold uppercase tracking-wider text-brand-400">
+                <p className="relative mt-5 text-xs font-semibold uppercase tracking-wider text-brand-600">
                   Step {number}
                 </p>
                 <h3 className="relative mt-1.5 text-xl font-semibold text-slate-900">{title}</h3>

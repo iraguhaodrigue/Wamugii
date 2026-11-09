@@ -93,7 +93,7 @@ export function TechnologyCapabilities() {
                 <li key={capability}>
                   <Reveal delay={index * 60}>
                     <div className="flex items-start gap-3">
-                      <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-brand-400" aria-hidden="true" />
+                      <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-brand-600" aria-hidden="true" />
                       <span className="text-sm text-slate-500">{capability}</span>
                     </div>
                   </Reveal>
@@ -104,7 +104,7 @@ export function TechnologyCapabilities() {
             <Reveal delay={120}>
               <Link
                 to={paths.requestQuote}
-                className="mt-8 inline-flex items-center gap-1.5 text-sm font-semibold text-brand-400 hover:text-brand-300"
+                className="mt-8 inline-flex items-center gap-1.5 text-sm font-semibold text-brand-600 hover:text-brand-700"
               >
                 Start a conversation
                 <ArrowRight className="size-4" aria-hidden="true" />

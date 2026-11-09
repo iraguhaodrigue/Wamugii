@@ -65,7 +65,7 @@ export function SolutionArchitecture() {
                   <Reveal delay={index * 80}>
                     <div className="flex gap-4">
                       <div
-                        className="arch-node icon-live relative z-10 flex size-11 shrink-0 items-center justify-center rounded-xl border border-brand-400/20 bg-panel text-brand-400 backdrop-blur-sm"
+                        className="arch-node icon-live relative z-10 flex size-11 shrink-0 items-center justify-center rounded-xl border border-brand-400/20 bg-panel text-brand-600 backdrop-blur-sm"
                         style={{ animationDelay: `${index}s` }}
                       >
                         <Icon className="size-5" aria-hidden="true" />

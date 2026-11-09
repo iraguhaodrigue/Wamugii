@@ -40,7 +40,7 @@ export function Hero({ services, isLoading }: HeroProps) {
         <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
           <div className="text-center lg:text-left">
             <span
-              className="hero-in inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-brand-300 backdrop-blur-sm"
+              className="hero-in inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-cyan-200 backdrop-blur-sm"
               style={{ animationDelay: '0ms' }}
             >
               <Sparkles className="size-3.5" aria-hidden="true" />
@@ -57,7 +57,7 @@ export function Hero({ services, isLoading }: HeroProps) {
             </h1>
 
             <p
-              className="hero-in mx-auto mt-5 max-w-xl text-base text-slate-400 sm:text-lg lg:mx-0"
+              className="hero-in mx-auto mt-5 max-w-xl text-base text-slate-500 sm:text-lg lg:mx-0"
               style={{ animationDelay: '180ms' }}
             >
               WAMUGII TECH SOLUTIONS designs, builds, and supports the software, websites, and IT systems that keep

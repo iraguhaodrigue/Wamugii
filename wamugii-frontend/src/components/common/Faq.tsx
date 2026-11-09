@@ -22,7 +22,7 @@ export function Faq({ items }: FaqProps) {
           <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-semibold text-slate-900 marker:content-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 sm:text-base">
             {item.question}
             <ChevronDown
-              className="size-4 shrink-0 text-brand-400 transition-transform duration-200 group-open:rotate-180"
+              className="size-4 shrink-0 text-brand-600 transition-transform duration-200 group-open:rotate-180"
               aria-hidden="true"
             />
           </summary>

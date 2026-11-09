@@ -89,7 +89,7 @@ function Thread({ q, courseId, queryKey }: { q: LessonQuestion; courseId: number
         <span className="font-semibold text-slate-700">{q.is_mine ? 'You' : q.author_name}</span>
         <span>· {when(q.created_at)}</span>
         {q.answered_by_instructor && (
-          <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 font-semibold text-emerald-600">Answered</span>
+          <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 font-semibold tone-emerald">Answered</span>
         )}
       </div>
       <p className="mt-1.5 whitespace-pre-line text-sm text-slate-800">{q.body}</p>

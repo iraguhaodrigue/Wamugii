@@ -235,7 +235,7 @@ export function ChatWidget() {
                     <ul className="mt-2 space-y-1">
                       {entry.bullets.map((bullet) => (
                         <li key={bullet} className="flex gap-1.5 text-xs">
-                          <span className="text-brand-400" aria-hidden="true">
+                          <span className="text-brand-600" aria-hidden="true">
                             •
                           </span>
                           <span>{bullet}</span>

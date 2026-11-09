@@ -25,7 +25,7 @@ export function CapabilityChips({ services, isLoading = false }: CapabilityChips
                 <Reveal key={service.id} delay={index * 40}>
                   <Link
                     to={paths.serviceDetail(service.id)}
-                    className="inline-flex rounded-full border border-slate-200 bg-panel px-3.5 py-1.5 text-xs font-medium text-slate-500 backdrop-blur-sm transition-colors hover:border-brand-400/40 hover:text-brand-400"
+                    className="inline-flex rounded-full border border-slate-200 bg-panel px-3.5 py-1.5 text-xs font-medium text-slate-500 backdrop-blur-sm transition-colors hover:border-brand-400/40 hover:text-brand-700"
                   >
                     {service.name}
                   </Link>

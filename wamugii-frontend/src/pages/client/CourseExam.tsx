@@ -277,9 +277,9 @@ function ExamIntro({
                   <li key={a.id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-sm">
                     <span className="text-slate-600">{fmtDate(a.started_at)}</span>
                     {a.status === 'IN_PROGRESS' ? (
-                      <span className="font-semibold text-amber-600">In progress</span>
+                      <span className="font-semibold tone-amber">In progress</span>
                     ) : (
-                      <span className={cn('font-semibold', a.passed ? 'text-emerald-600' : 'text-red-600')}>
+                      <span className={cn('font-semibold', a.passed ? 'tone-emerald' : 'text-red-600')}>
                         {a.percent}% · {a.passed ? 'Passed' : 'Not passed'}
                         {a.submit_reason && a.submit_reason !== 'STUDENT' && (
                           <span className="ml-1 font-normal text-slate-500">({a.submit_reason === 'TIME_UP' ? 'time up' : 'left the screen'})</span>
@@ -298,7 +298,7 @@ function ExamIntro({
                 <p className="flex items-center gap-2 font-semibold text-emerald-800">
                   <Award className="size-5" aria-hidden="true" /> You passed with {ov.best_percent}%. Your certificate is ready.
                 </p>
-                <Link to={`${paths.client.courseDetail(slug)}?certificate=1`} className="inline-flex h-10 items-center rounded-lg bg-emerald-600 px-4 text-sm font-semibold text-white hover:bg-emerald-700">
+                <Link to={`${paths.client.courseDetail(slug)}?certificate=1`} className="inline-flex h-10 items-center rounded-lg bg-emerald-700 px-4 text-sm font-semibold text-white hover:bg-emerald-800">
                   Get my certificate
                 </Link>
               </div>
@@ -485,7 +485,7 @@ function ExamRunner({ session, onFinished }: { session: ExamSession; onFinished:
           <span
             className={cn(
               'hidden items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-semibold sm:inline-flex',
-              leaves === 0 ? 'bg-emerald-500/10 text-emerald-600' : 'bg-red-500/10 text-red-600',
+              leaves === 0 ? 'bg-emerald-500/10 tone-emerald' : 'bg-red-500/10 text-red-600',
             )}
             title="Times you left the exam screen"
           >
@@ -775,7 +775,7 @@ function ExamResultView({ result: r, slug, courseTitle, onBack }: { result: Exam
 
         <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
           {r.certificate_ready ? (
-            <Link to={`${paths.client.courseDetail(slug)}?certificate=1`} className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-emerald-600 px-5 text-sm font-semibold text-white hover:bg-emerald-700">
+            <Link to={`${paths.client.courseDetail(slug)}?certificate=1`} className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-emerald-700 px-5 text-sm font-semibold text-white hover:bg-emerald-800">
               <Award className="size-4" aria-hidden="true" /> Get my certificate
             </Link>
           ) : (

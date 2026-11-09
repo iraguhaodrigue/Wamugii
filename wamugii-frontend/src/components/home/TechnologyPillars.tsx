@@ -62,12 +62,12 @@ export function TechnologyPillars() {
                 <AnimInView className="relative mb-6 h-36 overflow-hidden rounded-xl border border-white/10 bg-[#06131c] p-2 transition-transform duration-500 group-hover:scale-[1.02]">
                   <PrincipleArt kind={art} />
                 </AnimInView>
-                <div className="icon-live flex size-12 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500/15 to-accent-500/15 text-brand-400 ring-1 ring-inset ring-brand-400/20">
+                <div className="icon-live flex size-12 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500/15 to-accent-500/15 text-brand-600 ring-1 ring-inset ring-brand-400/20">
                   <Icon className="size-6" aria-hidden="true" />
                 </div>
                 <h3 className="mt-5 text-lg font-semibold text-slate-900">{title}</h3>
                 <p className="mt-2.5 text-sm leading-relaxed text-slate-500">{description}</p>
-                <p className="mt-4 border-t border-slate-200 pt-3 text-xs font-medium text-brand-400">{support}</p>
+                <p className="mt-4 border-t border-slate-200 pt-3 text-xs font-medium text-brand-600">{support}</p>
               </div>
             </Reveal>
           ))}

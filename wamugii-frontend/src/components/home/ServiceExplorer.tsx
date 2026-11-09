@@ -50,7 +50,7 @@ export function ServiceExplorer({ services, isLoading = false }: ServiceExplorer
 
   return (
     <div className="mx-auto mt-12 max-w-2xl rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-md sm:p-5">
-      <label htmlFor="service-explorer" className="flex items-center gap-2 text-xs font-medium text-brand-300">
+      <label htmlFor="service-explorer" className="flex items-center gap-2 text-xs font-medium text-brand-600">
         <Sparkles className="size-3.5" aria-hidden="true" />
         What does your business need?
       </label>
@@ -85,8 +85,8 @@ export function ServiceExplorer({ services, isLoading = false }: ServiceExplorer
             className={cn(
               'rounded-full border px-3 py-1.5 text-xs font-medium transition-colors',
               activePrompt === prompt.label
-                ? 'border-brand-400/50 bg-brand-500/15 text-brand-300'
-                : 'border-white/10 bg-white/5 text-slate-400 hover:border-brand-400/30 hover:text-slate-900',
+                ? 'border-brand-400/50 bg-brand-500/15 text-brand-600'
+                : 'border-white/10 bg-white/5 text-slate-500 hover:border-brand-400/30 hover:text-slate-900',
             )}
           >
             {prompt.label}
@@ -108,7 +108,7 @@ export function ServiceExplorer({ services, isLoading = false }: ServiceExplorer
                   >
                     <span className="font-medium text-slate-900">{service.name}</span>
                     <ArrowRight
-                      className="size-4 shrink-0 text-brand-400 transition-transform group-hover:translate-x-0.5"
+                      className="size-4 shrink-0 text-brand-600 transition-transform group-hover:translate-x-0.5"
                       aria-hidden="true"
                     />
                   </Link>
@@ -120,7 +120,7 @@ export function ServiceExplorer({ services, isLoading = false }: ServiceExplorer
               <p className="text-sm text-slate-400">No direct match — tell us about it and we'll advise.</p>
               <Link
                 to={paths.requestQuote}
-                className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-400 hover:text-brand-300"
+                className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-600 hover:text-brand-700"
               >
                 Request a quote
                 <ArrowRight className="size-4" aria-hidden="true" />

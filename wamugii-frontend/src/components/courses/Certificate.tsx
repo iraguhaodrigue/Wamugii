@@ -124,7 +124,7 @@ export function Certificate({ certificate, onClose }: CertificateProps) {
           </h2>
 
           <p
-            className="mt-[1.5%] text-[#64748b]"
+            className="mt-[1.5%] text-[#475569]"
             style={{ fontSize: 'clamp(8px, 1.2cqw, 13px)' }}
           >
             {certificate.lesson_count} {certificate.lesson_count === 1 ? 'lesson' : 'lessons'}{' '}
@@ -142,7 +142,7 @@ export function Certificate({ certificate, onClose }: CertificateProps) {
               </p>
               <div className="mt-[6%] h-px w-full bg-[#cbd5e1]" aria-hidden="true" />
               <p
-                className="mt-[4%] uppercase tracking-wider text-[#64748b]"
+                className="mt-[4%] uppercase tracking-wider text-[#475569]"
                 style={{ fontSize: 'clamp(6px, 0.95cqw, 11px)' }}
               >
                 Date issued
@@ -157,14 +157,14 @@ export function Certificate({ certificate, onClose }: CertificateProps) {
                 WAMUGII TECH SOLUTIONS
               </p>
               <p
-                className="mt-[2%] italic text-[#0e7490]"
+                className="mt-[2%] italic text-[#155e75]"
                 style={{ fontSize: 'clamp(7px, 1.1cqw, 12px)' }}
               >
                 We Build. We Innovate. We Empower.
               </p>
               <div className="mt-[6%] h-px w-full bg-[#cbd5e1]" aria-hidden="true" />
               <p
-                className="mt-[4%] uppercase tracking-wider text-[#64748b]"
+                className="mt-[4%] uppercase tracking-wider text-[#475569]"
                 style={{ fontSize: 'clamp(6px, 0.95cqw, 11px)' }}
               >
                 Authorised signature
@@ -173,7 +173,7 @@ export function Certificate({ certificate, onClose }: CertificateProps) {
           </div>
 
           <p
-            className="mt-[3%] font-mono uppercase tracking-widest text-[#94a3b8]"
+            className="mt-[3%] font-mono uppercase tracking-widest text-[#475569]"
             style={{ fontSize: 'clamp(6px, 0.9cqw, 11px)' }}
           >
             {certificate.certificate_id}

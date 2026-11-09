@@ -175,7 +175,7 @@ export function AdminSettings() {
 
         <div className="flex items-center justify-end gap-3">
           {saved && !isDirty && (
-            <span className="inline-flex items-center gap-1.5 text-sm font-medium text-green-600">
+            <span className="inline-flex items-center gap-1.5 text-sm font-medium tone-green">
               <CheckCircle2 className="size-4" aria-hidden="true" />
               Saved
               {settingsQuery.data?.updated_at && (

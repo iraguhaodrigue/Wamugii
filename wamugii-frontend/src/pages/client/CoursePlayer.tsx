@@ -527,7 +527,7 @@ export function ClientCoursePlayer() {
                     ? 'border-emerald-400/40 bg-emerald-500/10'
                     : exam.lessons_complete
                       ? 'border-amber-400/50 bg-amber-50 hover:border-amber-500'
-                      : 'border-slate-200 opacity-80 hover:opacity-100',
+                      : 'border-slate-200',
                 )}
               >
                 <span

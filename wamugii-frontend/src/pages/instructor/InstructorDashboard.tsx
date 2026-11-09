@@ -70,7 +70,7 @@ function Stat({ icon: Icon, label, value, highlight }: { icon: typeof BookOpen; 
     <div className="flex items-center gap-2">
       <Icon className={highlight ? 'size-4 text-amber-500' : 'size-4 text-slate-400'} aria-hidden="true" />
       <span className="text-slate-500">{label}</span>
-      <span className={highlight ? 'ml-auto font-bold text-amber-600' : 'ml-auto font-semibold text-slate-900'}>{value}</span>
+      <span className={highlight ? 'ml-auto font-bold tone-amber' : 'ml-auto font-semibold text-slate-900'}>{value}</span>
     </div>
   )
 }

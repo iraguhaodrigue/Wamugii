@@ -99,7 +99,7 @@ function Clock() {
         <path d="M92 24 V8" stroke={C.amber} strokeWidth="1.8" strokeLinecap="round" />
       </g>
       <circle cx="92" cy="24" r="2.5" fill={C.amber} />
-      <text x="48" y="29" textAnchor="middle" fontSize="13" fontWeight="800" fill={C.cyan} {...a('mt-glow')}>
+      <text x="48" y="29" textAnchor="middle" fontSize="13" fontWeight="800" fill="currentColor" {...a('mt-glow tone-cyan')}>
         24/7
       </text>
     </svg>

@@ -85,7 +85,7 @@ export function SolutionShowcase() {
           {solutions.map(({ icon: Icon, title, description, art, span }, index) => (
             <Reveal key={title} delay={index * 70} className={cn('h-full', span)}>
               <div className="group flex h-full flex-col rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:border-brand-400/30 hover:bg-white/[0.07]">
-                <div className="icon-live flex size-10 items-center justify-center rounded-lg bg-brand-500/15 text-brand-400">
+                <div className="icon-live flex size-10 items-center justify-center rounded-lg bg-brand-500/15 text-brand-600">
                   <Icon className="size-5" aria-hidden="true" />
                 </div>
                 <h3 className="mt-4 text-base font-semibold text-white">{title}</h3>
@@ -102,7 +102,7 @@ export function SolutionShowcase() {
           <div className="mt-10 text-center">
             <Link
               to={paths.services}
-              className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-400 hover:text-brand-300"
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-600 hover:text-brand-700"
             >
               See all services
               <ArrowRight className="size-4" aria-hidden="true" />

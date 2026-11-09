@@ -68,12 +68,12 @@ export function Footer() {
               <h3 className="text-sm font-semibold text-slate-900">Company</h3>
               <ul className="mt-3 space-y-2 text-sm text-slate-500">
                 <li>
-                  <Link to={paths.home} className="hover:text-brand-400">
+                  <Link to={paths.home} className="hover:text-brand-700">
                     Home
                   </Link>
                 </li>
                 <li>
-                  <Link to={paths.services} className="hover:text-brand-400">
+                  <Link to={paths.services} className="hover:text-brand-700">
                     Services
                   </Link>
                 </li>
@@ -84,12 +84,12 @@ export function Footer() {
               <h3 className="text-sm font-semibold text-slate-900">Get started</h3>
               <ul className="mt-3 space-y-2 text-sm text-slate-500">
                 <li>
-                  <Link to={paths.requestQuote} className="hover:text-brand-400">
+                  <Link to={paths.requestQuote} className="hover:text-brand-700">
                     Request a Quote
                   </Link>
                 </li>
                 <li>
-                  <Link to={paths.services} className="hover:text-brand-400">
+                  <Link to={paths.services} className="hover:text-brand-700">
                     Explore Solutions
                   </Link>
                 </li>
@@ -100,12 +100,12 @@ export function Footer() {
               <h3 className="text-sm font-semibold text-slate-900">Account</h3>
               <ul className="mt-3 space-y-2 text-sm text-slate-500">
                 <li>
-                  <Link to={paths.login} className="hover:text-brand-400">
+                  <Link to={paths.login} className="hover:text-brand-700">
                     Login
                   </Link>
                 </li>
                 <li>
-                  <Link to={paths.register} className="hover:text-brand-400">
+                  <Link to={paths.register} className="hover:text-brand-700">
                     Register
                   </Link>
                 </li>

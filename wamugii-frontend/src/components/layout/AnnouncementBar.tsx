@@ -11,7 +11,7 @@ export function AnnouncementBar() {
   return (
     <div className="dark relative z-40 border-b border-white/5 bg-[#05070d] backdrop-blur-sm">
       <div className="mx-auto flex max-w-6xl items-center justify-center gap-2 px-4 py-2 text-center">
-        <Sparkles className="hidden size-3 shrink-0 text-brand-400 sm:block" aria-hidden="true" />
+        <Sparkles className="hidden size-3 shrink-0 text-brand-600 sm:block" aria-hidden="true" />
         <p className="text-[11px] font-medium tracking-wide text-slate-400 sm:text-xs">
           <span className="text-slate-900">WAMUGII TECH SOLUTIONS</span>
           <span className="mx-2 text-slate-500" aria-hidden="true">

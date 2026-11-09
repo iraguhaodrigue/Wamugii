@@ -68,7 +68,7 @@ export function ClientDashboard() {
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-slate-900">
               <span className="inline-flex items-center gap-2">
-                <GraduationCap className="size-5 text-brand-500" aria-hidden="true" />
+                <GraduationCap className="size-5 text-brand-600" aria-hidden="true" />
                 My Learning
               </span>
             </h2>

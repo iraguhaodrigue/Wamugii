@@ -43,7 +43,7 @@ def main() -> None:
 
     for pack in ("ai_career_essentials", "ai_foundations", "math_python_for_ai",
                  "machine_learning_fundamentals", "deep_learning_neural_networks",
-                 "modern_ai_llms_generative"):
+                 "modern_ai_llms_generative", "responsible_ai_deployment"):
         print(f"\n--- full content pack: {pack} ---")
         load(pack)
     print("\n" + "=" * 60)

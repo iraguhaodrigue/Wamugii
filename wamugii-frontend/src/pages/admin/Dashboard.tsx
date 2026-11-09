@@ -133,7 +133,7 @@ export function AdminDashboard() {
             />
           </Link>
         </div>
-        <p className="mt-3 text-xs text-slate-400">
+        <p className="mt-3 text-xs text-slate-500">
           Users: {data.users.clients} clients · {data.users.staff} staff · {data.users.admins} admins ·{' '}
           {data.team.approved_members} team members
         </p>

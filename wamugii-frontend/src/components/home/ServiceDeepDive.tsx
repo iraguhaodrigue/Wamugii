@@ -101,10 +101,10 @@ export function ServiceDeepDive({ services }: ServiceDeepDiveProps) {
               <Reveal key={name}>
                 <div className="grid items-center gap-8 lg:grid-cols-2 lg:gap-14">
                   <div className={cn(isReversed && 'lg:order-2')}>
-                    <div className="flex size-11 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500/15 to-accent-500/15 text-brand-400 ring-1 ring-inset ring-brand-400/20">
+                    <div className="flex size-11 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500/15 to-accent-500/15 text-brand-600 ring-1 ring-inset ring-brand-400/20">
                       <Icon className="size-5" aria-hidden="true" />
                     </div>
-                    <p className="mt-5 text-xs font-semibold uppercase tracking-wider text-brand-400">{name}</p>
+                    <p className="mt-5 text-xs font-semibold uppercase tracking-wider text-brand-600">{name}</p>
                     <h3 className="mt-2 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">{promise}</h3>
                     <p className="mt-3.5 text-base leading-relaxed text-slate-500">{description}</p>
                     <Link
@@ -132,7 +132,7 @@ export function ServiceDeepDive({ services }: ServiceDeepDiveProps) {
                           <li key={point}>
                             <Reveal delay={pointIndex * 60}>
                               <div className="flex items-start gap-3 rounded-lg border border-white/5 bg-white/[0.03] px-3.5 py-3">
-                                <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-brand-400" aria-hidden="true" />
+                                <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-brand-600" aria-hidden="true" />
                                 <span className="text-sm text-slate-500">{point}</span>
                               </div>
                             </Reveal>

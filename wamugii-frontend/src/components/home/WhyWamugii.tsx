@@ -62,7 +62,7 @@ export function WhyWamugii() {
                 aria-hidden="true"
               />
               <div className="relative">
-                <div className="icon-live flex size-12 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-brand-400">
+                <div className="icon-live flex size-12 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-brand-600">
                   <lead.icon className="size-6" aria-hidden="true" />
                 </div>
                 <h3 className="mt-6 text-xl font-semibold text-white">{lead.title}</h3>

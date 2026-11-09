@@ -68,8 +68,8 @@ export function Header() {
               end={link.to === paths.home}
               className={({ isActive }) =>
                 cn(
-                  'nav-underline text-sm font-medium transition-colors duration-200 hover:text-brand-400',
-                  isActive ? 'text-brand-400' : 'text-slate-400',
+                  'nav-underline text-sm font-medium transition-colors duration-200 hover:text-brand-700',
+                  isActive ? 'text-brand-600' : 'text-slate-400',
                 )
               }
             >
@@ -140,7 +140,7 @@ export function Header() {
                 end={link.to === paths.home}
                 onClick={() => setIsMenuOpen(false)}
                 className={({ isActive }) =>
-                  cn('text-sm font-medium', isActive ? 'text-brand-400' : 'text-slate-400')
+                  cn('text-sm font-medium', isActive ? 'text-brand-600' : 'text-slate-400')
                 }
               >
                 {link.label}

@@ -139,7 +139,7 @@ export function ServiceDetail() {
                     <Reveal delay={index * 70} className="h-full">
                       <div className="group flex h-full items-start gap-2.5 rounded-lg border border-slate-200 bg-panel p-3 text-sm text-slate-700 transition-all duration-300 hover:-translate-y-0.5 hover:border-brand-400/40 hover:shadow-[var(--shadow-glow-brand)]">
                         <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-brand-50 transition-transform duration-300 group-hover:scale-110">
-                          <Check className="size-3.5 text-brand-500" aria-hidden="true" />
+                          <Check className="size-3.5 text-brand-600" aria-hidden="true" />
                         </span>
                         {feature}
                       </div>

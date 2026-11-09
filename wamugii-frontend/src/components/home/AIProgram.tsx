@@ -30,13 +30,13 @@ interface ProgramCourse {
 }
 
 const ACCENTS = {
-  cyan: { text: 'text-cyan-500', glow: 'from-cyan-500/30', ring: 'hover:ring-cyan-400/50', dot: 'bg-cyan-400' },
-  violet: { text: 'text-violet-500', glow: 'from-violet-500/30', ring: 'hover:ring-violet-400/50', dot: 'bg-violet-400' },
-  emerald: { text: 'text-emerald-500', glow: 'from-emerald-500/30', ring: 'hover:ring-emerald-400/50', dot: 'bg-emerald-400' },
-  fuchsia: { text: 'text-fuchsia-500', glow: 'from-fuchsia-500/30', ring: 'hover:ring-fuchsia-400/50', dot: 'bg-fuchsia-400' },
-  pink: { text: 'text-pink-500', glow: 'from-pink-500/30', ring: 'hover:ring-pink-400/50', dot: 'bg-pink-400' },
-  amber: { text: 'text-amber-500', glow: 'from-amber-500/30', ring: 'hover:ring-amber-400/50', dot: 'bg-amber-400' },
-  green: { text: 'text-green-500', glow: 'from-green-500/30', ring: 'hover:ring-green-400/50', dot: 'bg-green-400' },
+  cyan: { text: 'tone-cyan', glow: 'from-cyan-500/30', ring: 'hover:ring-cyan-400/50', dot: 'bg-cyan-400' },
+  violet: { text: 'tone-violet', glow: 'from-violet-500/30', ring: 'hover:ring-violet-400/50', dot: 'bg-violet-400' },
+  emerald: { text: 'tone-emerald', glow: 'from-emerald-500/30', ring: 'hover:ring-emerald-400/50', dot: 'bg-emerald-400' },
+  fuchsia: { text: 'tone-fuchsia', glow: 'from-fuchsia-500/30', ring: 'hover:ring-fuchsia-400/50', dot: 'bg-fuchsia-400' },
+  pink: { text: 'tone-pink', glow: 'from-pink-500/30', ring: 'hover:ring-pink-400/50', dot: 'bg-pink-400' },
+  amber: { text: 'tone-amber', glow: 'from-amber-500/30', ring: 'hover:ring-amber-400/50', dot: 'bg-amber-400' },
+  green: { text: 'tone-green', glow: 'from-green-500/30', ring: 'hover:ring-green-400/50', dot: 'bg-green-400' },
 }
 
 const PROGRAM: ProgramCourse[] = [
@@ -97,19 +97,19 @@ const PROGRAM: ProgramCourse[] = [
   {
     slug: 'responsible-ai-deployment',
     title: 'Responsible AI & Deployment',
-    summary: 'Fairness, safety and privacy, then ship a real AI app in your capstone project.',
+    summary: 'Deploy, test and monitor a model, check fairness, privacy and security, then build your capstone.',
     level: 'Capstone',
-    lessons: 8,
+    lessons: 24,
     art: 'deploy',
     accent: ACCENTS.green,
   },
 ]
 
 const LEVEL_STYLE: Record<ProgramCourse['level'], string> = {
-  Beginner: 'bg-emerald-500/10 text-emerald-600',
-  Intermediate: 'bg-sky-500/10 text-sky-600',
-  Advanced: 'bg-violet-500/10 text-violet-600',
-  Capstone: 'bg-amber-500/15 text-amber-600',
+  Beginner: 'bg-emerald-500/10 tone-emerald',
+  Intermediate: 'bg-sky-500/10 tone-sky',
+  Advanced: 'bg-violet-500/10 tone-violet',
+  Capstone: 'bg-amber-500/15 tone-amber',
 }
 
 function ProgramTrack() {
@@ -130,7 +130,7 @@ function ProgramTrack() {
               className="group flex size-10 items-center justify-center rounded-full border-2 border-slate-200 bg-panel text-sm font-bold text-slate-700 transition-transform duration-300 hover:scale-110"
               aria-label={`Course ${i + 1}: ${c.title}`}
             >
-              <span className={cn('pa-track-node flex size-6 items-center justify-center rounded-full text-[11px] text-white', c.accent.dot)} style={{ animationDelay: `${i * 0.6}s` }}>
+              <span className={cn('pa-track-node flex size-6 items-center justify-center rounded-full text-[11px] text-[#06131c]', c.accent.dot)} style={{ animationDelay: `${i * 0.6}s` }}>
                 {i + 1}
               </span>
             </a>
@@ -167,7 +167,7 @@ export function AIProgram() {
         <Reveal className="mt-8 flex flex-wrap justify-center gap-2.5">
           {stats.map(({ icon: Icon, label }) => (
             <span key={label} className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-panel px-3.5 py-1.5 text-sm font-medium text-slate-700 shadow-[var(--shadow-card)]">
-              <Icon className="size-4 text-brand-500" aria-hidden="true" />
+              <Icon className="size-4 text-brand-600" aria-hidden="true" />
               {label}
             </span>
           ))}
@@ -223,7 +223,7 @@ export function AIProgram() {
           <div className="shine relative flex flex-col items-center justify-between gap-5 overflow-hidden rounded-2xl bg-gradient-to-r from-[var(--color-brand-solid)] to-[var(--color-accent-solid)] p-6 text-center sm:flex-row sm:p-8 sm:text-left">
             <div>
               <p className="text-xl font-bold text-white">Ready to start your AI journey?</p>
-              <p className="mt-1 text-sm text-white/80">Create a free account, enroll in Course 1 and finish your first lesson today.</p>
+              <p className="mt-1 text-sm text-white/90">Create a free account, enroll in Course 1 and finish your first lesson today.</p>
             </div>
             <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
               <Link

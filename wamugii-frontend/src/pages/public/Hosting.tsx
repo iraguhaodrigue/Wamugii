@@ -62,7 +62,7 @@ function PlanCard({ plan, billing }: { plan: HostingPlan; billing: Billing }) {
       <ul className="mt-5 flex-1 space-y-2">
         {featureList(plan.features).map((feature) => (
           <li key={feature} className="flex items-start gap-2 text-sm text-slate-600 transition-transform duration-300 group-hover:translate-x-0.5">
-            <Check className="mt-0.5 size-4 shrink-0 text-brand-400" aria-hidden="true" />
+            <Check className="mt-0.5 size-4 shrink-0 text-brand-600" aria-hidden="true" />
             {feature}
           </li>
         ))}

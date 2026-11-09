@@ -154,7 +154,7 @@ export function ExamManager({ courseId, topics }: { courseId: number; topics: st
                     {!q.is_active && <Badge variant="neutral">Hidden</Badge>}
                   </div>
                   <p className="mt-1 text-sm text-slate-900">{q.question}</p>
-                  <p className="mt-0.5 text-xs text-emerald-600">
+                  <p className="mt-0.5 text-xs tone-emerald">
                     Answer:{' '}
                     {q.kind === 'FILL_BLANK'
                       ? (q.correct as string[]).join(' / ')
@@ -451,13 +451,13 @@ function AiDraftDialog({ open, courseId, available, onClose, onSaved }: { open: 
                       {d.kind !== 'FILL_BLANK' && (
                         <ul className="mt-1 text-xs text-slate-500">
                           {(d.options ?? []).map((o, j) => (
-                            <li key={j} className={cn((d.correct as number[]).includes(j) && 'font-semibold text-emerald-600')}>
+                            <li key={j} className={cn((d.correct as number[]).includes(j) && 'font-semibold tone-emerald')}>
                               {(d.correct as number[]).includes(j) ? '✓' : '·'} {o}
                             </li>
                           ))}
                         </ul>
                       )}
-                      {d.kind === 'FILL_BLANK' && <p className="mt-1 text-xs text-emerald-600">Answer: {(d.correct as string[]).join(' / ')}</p>}
+                      {d.kind === 'FILL_BLANK' && <p className="mt-1 text-xs tone-emerald">Answer: {(d.correct as string[]).join(' / ')}</p>}
                     </div>
                   </li>
                 ))}
@@ -500,7 +500,7 @@ export function ExamResults({ courseId }: { courseId: number }) {
             {a.status === 'IN_PROGRESS' ? (
               <Badge variant="warning">In progress</Badge>
             ) : (
-              <span className={cn('text-sm font-semibold', a.passed ? 'text-emerald-600' : 'text-red-600')}>
+              <span className={cn('text-sm font-semibold', a.passed ? 'tone-emerald' : 'text-red-600')}>
                 {a.percent}% · {a.passed ? 'Passed' : 'Not passed'}
               </span>
             )}

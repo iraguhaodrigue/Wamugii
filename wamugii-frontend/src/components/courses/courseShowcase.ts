@@ -364,6 +364,58 @@ const SHOWCASES: Record<string, CourseShowcase> = {
       { icon: Users, title: 'Future AI builders', text: 'Step 5 of the WAMUGII AI Program, after deep learning.' },
     ],
   },
+  'responsible-ai-deployment': {
+    tagline:
+      'The capstone of the AI Program: take a model from notebook to a tested, monitored, fair and documented product — then build your own end-to-end project.',
+    level: 'Capstone',
+    lessonCount: 24,
+    hours: 27,
+    weeks: [
+      {
+        title: 'Week 1 · From Notebook to Product',
+        summary: 'Model artifacts, reproducible training, a FastAPI service, ML tests and Docker packaging.',
+        icon: Rocket,
+      },
+      {
+        title: 'Week 2 · MLOps: Running Models in Production',
+        summary: 'CI/CD and quality gates, a model registry, monitoring, drift, and safe releases.',
+        icon: Wrench,
+      },
+      {
+        title: 'Week 3 · Fairness, Explainability, Privacy and Security',
+        summary: 'Fairness metrics and bias fixes, explanations, Rwanda data protection, and AI security — then a full audit.',
+        icon: Scale,
+      },
+      {
+        title: 'Week 4 · Governance, Documentation and the Capstone',
+        summary: 'AI law and accountability, model cards, human oversight, and your own end-to-end project.',
+        icon: ShieldCheck,
+      },
+    ],
+    highlights: [
+      'FastAPI Model Serving',
+      'Testing ML Systems',
+      'Docker Packaging',
+      'CI/CD Quality Gates',
+      'Monitoring & Drift',
+      'Fairness Audits',
+      'Explainable Decisions',
+      'Privacy by Design',
+      'AI Security',
+      'Model Cards & Governance',
+    ],
+    outcomes: [
+      { icon: Rocket, title: 'Ship models', text: 'A validated, versioned, tested API packaged with Docker.' },
+      { icon: Wrench, title: 'Run them well', text: 'CI/CD, registries, monitoring, drift detection and safe releases.' },
+      { icon: Scale, title: 'Make them fair', text: 'Measure and reduce bias, explain decisions, protect personal data.' },
+      { icon: ShieldCheck, title: 'Govern them', text: 'Risk registers, model cards, human oversight — and your capstone.' },
+    ],
+    audience: [
+      { icon: GraduationCap, title: 'Students', text: 'A final-year or master\'s capstone that employers can see working.' },
+      { icon: Briefcase, title: 'Developers & data teams', text: 'Put models into production safely and keep them healthy.' },
+      { icon: Users, title: 'Managers & policy makers', text: 'Understand fairness, privacy, risk and accountability in AI.' },
+    ],
+  },
 }
 
 export function getShowcase(slug: string | undefined): CourseShowcase | undefined {

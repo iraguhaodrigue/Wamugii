@@ -11,7 +11,7 @@ export function NotFound() {
         className="w-full max-w-[260px]"
         style={{ aspectRatio: '730 / 760' }}
       />
-      <p className="text-sm font-semibold text-brand-400">404</p>
+      <p className="text-sm font-semibold text-brand-600">404</p>
       <h1 className="text-2xl font-semibold text-slate-900">Page not found</h1>
       <p className="max-w-sm text-sm text-slate-500">
         The page you're looking for doesn't exist or may have been moved.

@@ -85,7 +85,7 @@ export function QuizPanel({
           </div>
         </div>
         {quiz.passed && !result && (
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 px-3 py-1 text-sm font-semibold text-emerald-600">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 px-3 py-1 text-sm font-semibold tone-emerald">
             <CheckCircle2 className="size-4" aria-hidden="true" />
             Passed · best {quiz.best_score}/{quiz.best_total}
           </span>
@@ -120,15 +120,15 @@ export function QuizPanel({
                         !marked && !chosen && 'border-slate-200 text-slate-700 hover:-translate-y-0.5 hover:border-brand-400/50',
                         isCorrect && 'border-emerald-400 bg-emerald-500/10 text-slate-900',
                         isWrongPick && 'border-red-400 bg-red-500/10 text-slate-900',
-                        marked && !isCorrect && !isWrongPick && 'border-slate-200 text-slate-500 opacity-70',
+                        marked && !isCorrect && !isWrongPick && 'border-slate-200 text-slate-600 opacity-90',
                       )}
                     >
                       <span
                         className={cn(
                           'mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full border text-[11px] font-bold',
-                          chosen ? 'border-brand-500 bg-brand-500 text-white' : 'border-slate-300 text-slate-400',
-                          isCorrect && 'border-emerald-500 bg-emerald-500 text-white',
-                          isWrongPick && 'border-red-500 bg-red-500 text-white',
+                          chosen ? 'border-brand-500 bg-brand-500 text-[#06131c]' : 'border-slate-300 text-slate-500',
+                          isCorrect && 'border-emerald-500 bg-emerald-500 text-[#06131c]',
+                          isWrongPick && 'border-red-600 bg-red-600 text-white',
                         )}
                       >
                         {String.fromCharCode(65 + oi)}

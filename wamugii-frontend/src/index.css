@@ -46,6 +46,14 @@
   --color-brand-solid: #0e7490;
   --color-accent-solid: #6d28d9;
 
+  /* Muted text greys, darkened for the light theme so small helper text
+     (nav links, captions, "· 24 lessons", section labels) passes WCAG AA
+     (4.5:1) on white and on the page background. Tailwind's defaults
+     (#94a3b8 / #64748b) only reach 2.4:1 and 4.4:1 there. The `.dark`
+     scope below sets its own values, so the dark theme is unchanged. */
+  --color-slate-400: #5f6e85;
+  --color-slate-500: #56657b;
+
   /* Background — page backdrop, sits behind sidebar/panel for layered depth. */
   --color-bg: #f5f7fb;
 
@@ -191,8 +199,8 @@ body {
   --color-slate-100: rgb(255 255 255 / 6%);
   --color-slate-200: rgb(255 255 255 / 10%);
   --color-slate-300: rgb(255 255 255 / 16%);
-  --color-slate-400: #8a96ad;
-  --color-slate-500: #98a4ba;
+  --color-slate-400: #9aa5ba;
+  --color-slate-500: #a6b1c5;
   --color-slate-600: #b8c2d6;
   --color-slate-700: #d8dfec;
   --color-slate-800: #e8ecf5;
@@ -1420,3 +1428,28 @@ body {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: none; }
 }
+
+/*
+ * Theme-aware coloured text ("tone-*"). Vivid 400/500 shades read well on
+ * dark surfaces but almost disappear on white (cyan-500 is 2.4:1, amber-500
+ * about 2:1). These classes use the deep 700 shade in the light theme and the
+ * bright 400 shade inside any `.dark` scope (dark theme, dark bands), so the
+ * same label is readable everywhere. Use them for coloured TEXT; decorative
+ * fills and icons can keep the plain Tailwind colours.
+ */
+.tone-cyan { color: #0e7490; }
+.tone-sky { color: #0369a1; }
+.tone-violet { color: #6d28d9; }
+.tone-emerald { color: #047857; }
+.tone-green { color: #15803d; }
+.tone-fuchsia { color: #a21caf; }
+.tone-pink { color: #be185d; }
+.tone-amber { color: #92400e; }
+.dark .tone-cyan, .dark.tone-cyan { color: #22d3ee; }
+.dark .tone-sky, .dark.tone-sky { color: #38bdf8; }
+.dark .tone-violet, .dark.tone-violet { color: #a78bfa; }
+.dark .tone-emerald, .dark.tone-emerald { color: #34d399; }
+.dark .tone-green, .dark.tone-green { color: #4ade80; }
+.dark .tone-fuchsia, .dark.tone-fuchsia { color: #e879f9; }
+.dark .tone-pink, .dark.tone-pink { color: #f472b6; }
+.dark .tone-amber, .dark.tone-amber { color: #fbbf24; }

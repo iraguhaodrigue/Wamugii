@@ -145,7 +145,7 @@ function CourseCard({ course }: { course: Course }) {
             loading="lazy"
           />
         ) : (
-          <div className="flex size-full items-center justify-center text-brand-500">
+          <div className="flex size-full items-center justify-center text-brand-600">
             <GraduationCap className="size-10" aria-hidden="true" />
           </div>
         )}

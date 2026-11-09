@@ -238,7 +238,7 @@ export function CourseDetail() {
           <div className="space-y-16 lg:col-span-2">
             {/* About */}
             <Reveal>
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-brand-500">About this course</h2>
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-brand-600">About this course</h2>
               <div className="mt-3 space-y-4 text-base leading-relaxed text-slate-600">
                 <p>{showcase ? firstParagraph : moreParagraphs[0] ?? firstParagraph}</p>
                 {(showcase ? moreParagraphs : moreParagraphs.slice(1)).map((para, i) => (
@@ -250,7 +250,7 @@ export function CourseDetail() {
             {/* Learning path */}
             <section>
               <Reveal>
-                <h2 className="text-sm font-semibold uppercase tracking-wide text-brand-500">Your learning path</h2>
+                <h2 className="text-sm font-semibold uppercase tracking-wide text-brand-600">Your learning path</h2>
                 <p className="mt-2 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
                   {hasWeeks ? `${modules.length} weeks · ${lessonCount} lessons` : `${lessonCount} steps, one clear journey`}
                 </p>
@@ -280,7 +280,7 @@ export function CourseDetail() {
                             >
                               <summary className="flex cursor-pointer list-none items-start justify-between gap-3 p-4">
                                 <div className="min-w-0">
-                                  <p className="text-xs font-semibold uppercase tracking-wide text-brand-500">
+                                  <p className="text-xs font-semibold uppercase tracking-wide text-brand-600">
                                     {module.title ? module.title.split('·')[0]!.trim() : `Part ${mi + 1}`}
                                     <span className="ml-2 font-medium normal-case text-slate-400">
                                       · {module.lessons.length} lessons{minutes > 0 && ` · ${formatMinutes(minutes)}`}
@@ -300,7 +300,7 @@ export function CourseDetail() {
                                       to={`${paths.client.courseDetail(course.slug)}?lesson=${lesson.id}`}
                                       className="group/lesson flex items-center gap-3 rounded-lg px-2 py-2 text-sm transition-colors hover:bg-brand-50"
                                     >
-                                      <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-brand-50 text-[11px] font-bold text-brand-700">
+                                      <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-brand-50 text-[11px] font-bold tone-cyan">
                                         {index + 1}
                                       </span>
                                       <span className="min-w-0 flex-1">
@@ -315,7 +315,7 @@ export function CourseDetail() {
                                         <span className="hidden shrink-0 text-xs text-slate-400 sm:inline">{lesson.duration_minutes} min</span>
                                       )}
                                       {lesson.has_video ? (
-                                        <PlayCircle className="size-4 shrink-0 text-brand-500 transition-transform group-hover/lesson:scale-125" aria-label="Has video" />
+                                        <PlayCircle className="size-4 shrink-0 text-brand-600 transition-transform group-hover/lesson:scale-125" aria-label="Has video" />
                                       ) : (
                                         <BookOpen className="size-3.5 shrink-0 text-slate-400" aria-label="Reading lesson" />
                                       )}
@@ -334,7 +334,7 @@ export function CourseDetail() {
                           <Award className="size-5" aria-hidden="true" />
                         </span>
                         <div className="shine relative flex-1 overflow-hidden rounded-2xl border border-amber-400/40 bg-amber-400/10 p-4">
-                          <p className="text-xs font-semibold uppercase tracking-wide text-amber-500">Finish line</p>
+                          <p className="text-xs font-semibold uppercase tracking-wide tone-amber">Finish line</p>
                           <p className="mt-1 font-semibold text-slate-900">Your WAMUGII certificate</p>
                           <p className="mt-1 text-sm text-slate-600">Complete every lesson and download your certificate of completion.</p>
                         </div>
@@ -348,7 +348,7 @@ export function CourseDetail() {
             {showcase && (
               <section>
                 <Reveal>
-                  <h2 className="text-sm font-semibold uppercase tracking-wide text-brand-500">What you'll be able to do</h2>
+                  <h2 className="text-sm font-semibold uppercase tracking-wide text-brand-600">What you'll be able to do</h2>
                 </Reveal>
                 <div className="mt-6 grid gap-4 sm:grid-cols-2">
                   {showcase.outcomes.map(({ icon: Icon, title, text }, i) => (
@@ -369,7 +369,7 @@ export function CourseDetail() {
             {showcase && (
               <section>
                 <Reveal>
-                  <h2 className="text-sm font-semibold uppercase tracking-wide text-brand-500">Who it's for</h2>
+                  <h2 className="text-sm font-semibold uppercase tracking-wide text-brand-600">Who it's for</h2>
                 </Reveal>
                 <div className="mt-6 grid gap-4 sm:grid-cols-3">
                   {showcase.audience.map(({ icon: Icon, title, text }, i) => (
@@ -403,7 +403,7 @@ export function CourseDetail() {
                   'Certificate when you finish',
                 ].map((item) => (
                   <li key={item} className="flex items-start gap-2">
-                    <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-brand-500" aria-hidden="true" />
+                    <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-brand-600" aria-hidden="true" />
                     {item}
                   </li>
                 ))}
