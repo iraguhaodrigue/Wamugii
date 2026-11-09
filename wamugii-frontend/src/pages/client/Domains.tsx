@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link, useNavigate } from 'react-router-dom'
-import { ArrowRight, Globe } from 'lucide-react'
+import { AlertTriangle, Globe, Search } from 'lucide-react'
 import { listClientDomains } from '@/api/domains'
 import { paths } from '@/routes/paths'
 import {
@@ -28,6 +28,11 @@ export function ClientDomains() {
     refetch,
   } = useQuery({ queryKey: ['client', 'domains'], queryFn: listClientDomains })
 
+  const soon = Date.now() + 30 * 24 * 3600 * 1000
+  const expiringSoon = (domains ?? []).filter(
+    (d) => d.status === 'ACTIVE' && d.expires_at && new Date(d.expires_at).getTime() <= soon,
+  )
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -38,13 +43,34 @@ export function ClientDomains() {
           </p>
         </div>
         <Link
-          to={`${paths.requestQuote}?service=domain`}
+          to={paths.client.findDomain}
           className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-[var(--color-brand-solid)] to-[var(--color-accent-solid)] px-4 text-sm font-semibold text-white shadow-[var(--shadow-glow-brand)] transition-[filter] hover:brightness-110"
         >
-          Register another
-          <ArrowRight className="size-4" aria-hidden="true" />
+          <Search className="size-4" aria-hidden="true" />
+          Find a domain
         </Link>
       </div>
+
+      {expiringSoon.length > 0 && (
+        <div role="status" className="flex items-start gap-3 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+          <p>
+            {expiringSoon.length === 1 ? (
+              <>
+                <strong>{expiringSoon[0]?.domain_name}</strong> expires on {formatDate(expiringSoon[0]?.expires_at)}.
+              </>
+            ) : (
+              <>
+                {expiringSoon.length} domains expire within 30 days:{' '}
+                <strong>{expiringSoon.map((d) => d.domain_name).join(', ')}</strong>.
+              </>
+            )}{' '}
+            {expiringSoon.every((d) => d.auto_renew)
+              ? 'They renew automatically — watch for our invoice.'
+              : 'Contact us to renew so you don\'t lose your website and email.'}
+          </p>
+        </div>
+      )}
 
       {isLoading ? (
         <div className="space-y-3">
@@ -62,7 +88,7 @@ export function ClientDomains() {
         <EmptyState
           icon={Globe}
           title="No domains yet"
-          description="Any domain we register for you will show up here."
+          description="Search for a name and request it — your domains will show up here."
         />
       ) : (
         <Table>

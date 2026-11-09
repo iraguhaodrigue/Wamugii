@@ -1,3 +1,4 @@
+import re
 from datetime import datetime
 from decimal import Decimal
 
@@ -18,11 +19,17 @@ def _normalise_extension(value: str) -> str:
         raise ValueError("extension cannot be empty")
     if not text.startswith("."):
         text = "." + text
-    # Rough-and-ready: letters, digits and the leading dot. Prevents whole URLs
-    # from being pasted into this field by accident.
+    # Letters, digits and hyphens, in one or two dot-separated parts, so
+    # second-level extensions such as ".co.rw" and ".ac.rw" are allowed while
+    # whole URLs pasted by accident are still rejected.
     body = text[1:]
-    if not body or any(c in body for c in " /\\?#:@") or "." in body:
-        raise ValueError("extension must be a single TLD like '.com' or '.rw'")
+    labels = body.split(".")
+    if (
+        not body
+        or len(labels) > 2
+        or any(not re.fullmatch(r"[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", label) for label in labels)
+    ):
+        raise ValueError("extension must look like '.com', '.rw' or '.co.rw'")
     return text
 
 
@@ -72,3 +79,16 @@ class DomainExtensionRead(BaseModel):
     display_order: int
     created_at: datetime
     updated_at: datetime
+
+
+class DomainExtensionPublic(BaseModel):
+    """
+    What visitors see: the extension and its yearly price only. The cost price
+    and margin are business information and stay on the admin endpoints.
+    """
+
+    model_config = ConfigDict(from_attributes=True)
+
+    extension: str
+    client_price: Decimal
+    display_order: int

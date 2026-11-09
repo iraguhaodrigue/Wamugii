@@ -81,3 +81,52 @@ export function totalFee(registrationFee: string, serviceFee: string | null): st
   const total = Number(registrationFee || 0) + Number(serviceFee || 0)
   return total.toFixed(2)
 }
+
+// --- search, ordering, dashboard and price list -----------------------------
+
+export type DomainSearchResponse = components['schemas']['DomainSearchResponse']
+export type DomainCheckResult = components['schemas']['DomainCheckResult']
+export type DomainOrderCreate = components['schemas']['DomainOrderCreate']
+export type DomainDashboard = components['schemas']['DomainDashboard']
+export type DashboardDomainRow = components['schemas']['DashboardDomainRow']
+export type DomainExtensionPublic = components['schemas']['DomainExtensionPublic']
+export type DomainExtension = components['schemas']['DomainExtensionRead']
+export type DomainExtensionCreate = components['schemas']['DomainExtensionCreate']
+export type DomainExtensionUpdate = components['schemas']['DomainExtensionUpdate']
+
+/** Availability of a name across the price-list extensions (public, rate-limited). */
+export async function searchDomains(q: string): Promise<DomainSearchResponse> {
+  const { data } = await apiClient.get<DomainSearchResponse>('/domains/search', { params: { q } })
+  return data
+}
+
+/** A signed-in client asks us to register an available domain. */
+export async function orderDomain(payload: DomainOrderCreate): Promise<ClientDomainDetail> {
+  const { data } = await apiClient.post<ClientDomainDetail>('/client/domains/order', payload)
+  return data
+}
+
+export async function getDomainDashboard(): Promise<DomainDashboard> {
+  const { data } = await apiClient.get<DomainDashboard>('/domains/dashboard')
+  return data
+}
+
+export async function listPublicExtensions(): Promise<DomainExtensionPublic[]> {
+  const { data } = await apiClient.get<DomainExtensionPublic[]>('/domains/extensions')
+  return data
+}
+
+export async function listAllExtensions(): Promise<DomainExtension[]> {
+  const { data } = await apiClient.get<DomainExtension[]>('/domains/extensions/manage')
+  return data
+}
+
+export async function createExtension(payload: DomainExtensionCreate): Promise<DomainExtension> {
+  const { data } = await apiClient.post<DomainExtension>('/domains/extensions', payload)
+  return data
+}
+
+export async function updateExtension(id: number, payload: DomainExtensionUpdate): Promise<DomainExtension> {
+  const { data } = await apiClient.patch<DomainExtension>(`/domains/extensions/${id}`, payload)
+  return data
+}

@@ -7,6 +7,7 @@ import { AnimInView } from './AnimInView'
  *
  *  * ServicesOrbit — our services orbiting the WAMUGII core
  *  * HostingArt    — a live rack sending data to the cloud, domains being found
+ *  * DomainArt     — a browser address bar trying extensions until one is free
  *  * QuoteArt      — your request flies, as a paper plane, into our inbox
  *  * AuthArt       — a fingerprint scan opens your client portal
  *
@@ -129,6 +130,48 @@ export function HostingArt() {
             ✓ Available
           </text>
         </g>
+      </svg>
+    </AnimInView>
+  )
+}
+
+export function DomainArt() {
+  const tries = [
+    { ext: '.rw', ok: true },
+    { ext: '.co.rw', ok: true },
+    { ext: '.com', ok: false },
+  ]
+  return (
+    <AnimInView className="w-full">
+      <svg viewBox="0 0 360 260" className="h-auto w-full" fill="none">
+        {/* browser window */}
+        <rect x="16" y="34" width="328" height="192" rx="16" fill="#0b1726" stroke="#fff" strokeOpacity="0.15" />
+        <circle cx="38" cy="56" r="5" fill="#f472b6" />
+        <circle cx="54" cy="56" r="5" fill={C.amber} />
+        <circle cx="70" cy="56" r="5" fill={C.mint} />
+        <rect x="34" y="78" width="292" height="44" rx="22" fill="#fff" fillOpacity="0.08" stroke="#fff" strokeOpacity="0.2" />
+        <path d="M54 94 a6 6 0 0 1 12 0 v3 h2 v10 h-16 v-10 h2z" stroke={C.mint} strokeWidth="1.8" />
+        <text x="80" y="106" fontSize="17" fontWeight="700" fill="#e2e8f0">
+          yourname
+        </text>
+        {tries.map((t, i) => (
+          <g key={t.ext} {...a('pg-cycle3', i * 3)}>
+            <text x="163" y="106" fontSize="17" fontWeight="800" fill={C.cyan}>
+              {t.ext}
+            </text>
+            <rect x="214" y="142" width="112" height="26" rx="13" fill={t.ok ? C.mint : '#94a3b8'} fillOpacity="0.18"
+              stroke={t.ok ? C.mint : '#94a3b8'} strokeOpacity="0.7" />
+            <text x="270" y="159" textAnchor="middle" fontSize="11" fontWeight="800" fill={t.ok ? C.mint : '#cbd5e1'}>
+              {t.ok ? '\u2713 Available' : 'Taken'}
+            </text>
+          </g>
+        ))}
+        {/* page skeleton */}
+        <rect x="34" y="142" width="150" height="10" rx="5" fill="#fff" fillOpacity="0.12" />
+        <rect x="34" y="162" width="110" height="10" rx="5" fill="#fff" fillOpacity="0.08" />
+        <rect x="34" y="190" width="292" height="18" rx="9" fill={C.cyan} fillOpacity="0.12" {...a('ba-grow', 0, { '--d': '3s' }, '34px 199px')} />
+        <circle cx="326" cy="28" r="7" fill={C.mint} />
+        <circle cx="326" cy="28" r="7" fill={C.mint} {...a('ba-ping', 0, { '--d': '2s' }, '326px 28px')} />
       </svg>
     </AnimInView>
   )

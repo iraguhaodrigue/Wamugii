@@ -30,6 +30,7 @@ const Services = lazyNamed(() => import('@/pages/public/Services'), 'Services')
 const ServiceDetail = lazyNamed(() => import('@/pages/public/ServiceDetail'), 'ServiceDetail')
 const RequestQuote = lazyNamed(() => import('@/pages/public/RequestQuote'), 'RequestQuote')
 const Hosting = lazyNamed(() => import('@/pages/public/Hosting'), 'Hosting')
+const PublicDomains = lazyNamed(() => import('@/pages/public/Domains'), 'Domains')
 const Courses = lazyNamed(() => import('@/pages/public/Courses'), 'Courses')
 const CourseDetail = lazyNamed(() => import('@/pages/public/CourseDetail'), 'CourseDetail')
 const Login = lazyNamed(() => import('@/pages/auth/Login'), 'Login')
@@ -46,6 +47,7 @@ const ClientInvoiceDetail = lazyNamed(() => import('@/pages/client/InvoiceDetail
 const ClientHosting = lazyNamed(() => import('@/pages/client/Hosting'), 'ClientHosting')
 const ClientHostingDetail = lazyNamed(() => import('@/pages/client/HostingDetail'), 'ClientHostingDetail')
 const ClientDomains = lazyNamed(() => import('@/pages/client/Domains'), 'ClientDomains')
+const ClientFindDomain = lazyNamed(() => import('@/pages/client/FindDomain'), 'ClientFindDomain')
 const ClientLearning = lazyNamed(() => import('@/pages/client/Learning'), 'ClientLearning')
 const ClientCoursePlayer = lazyNamed(() => import('@/pages/client/CoursePlayer'), 'ClientCoursePlayer')
 const ClientCourseExam = lazyNamed(() => import('@/pages/client/CourseExam'), 'ClientCourseExam')
@@ -65,6 +67,7 @@ const StaffInvoiceDetail = lazyNamed(() => import('@/pages/staff/InvoiceDetail')
 const StaffHostingAccounts = lazyNamed(() => import('@/pages/staff/HostingAccounts'), 'StaffHostingAccounts')
 const StaffHostingAccountDetail = lazyNamed(() => import('@/pages/staff/HostingAccountDetail'), 'StaffHostingAccountDetail')
 const StaffDomains = lazyNamed(() => import('@/pages/staff/Domains'), 'StaffDomains')
+const StaffDomainDashboard = lazyNamed(() => import('@/pages/staff/Domains'), 'StaffDomainDashboard')
 const StaffDomainDetail = lazyNamed(() => import('@/pages/staff/DomainDetail'), 'StaffDomainDetail')
 const StaffTickets = lazyNamed(() => import('@/pages/staff/Tickets'), 'StaffTickets')
 const StaffTicketDetail = lazyNamed(() => import('@/pages/staff/TicketDetail'), 'StaffTicketDetail')
@@ -81,6 +84,7 @@ const AdminHostingPlans = lazyNamed(() => import('@/pages/admin/HostingPlans'), 
 const AdminHostingAccounts = lazyNamed(() => import('@/pages/admin/HostingAccounts'), 'AdminHostingAccounts')
 const AdminHostingAccountDetail = lazyNamed(() => import('@/pages/admin/HostingAccountDetail'), 'AdminHostingAccountDetail')
 const AdminDomains = lazyNamed(() => import('@/pages/admin/Domains'), 'AdminDomains')
+const AdminDomainDashboard = lazyNamed(() => import('@/pages/admin/Domains'), 'AdminDomainDashboard')
 const AdminDomainDetail = lazyNamed(() => import('@/pages/admin/DomainDetail'), 'AdminDomainDetail')
 const AdminTickets = lazyNamed(() => import('@/pages/admin/Tickets'), 'AdminTickets')
 const AdminTicketDetail = lazyNamed(() => import('@/pages/admin/TicketDetail'), 'AdminTicketDetail')
@@ -154,6 +158,7 @@ function App() {
         <Route path="/services/:serviceId" element={<ServiceDetail />} />
         <Route path={paths.requestQuote} element={<RequestQuote />} />
         <Route path={paths.hosting} element={<Hosting />} />
+        <Route path={paths.domains} element={<PublicDomains />} />
         <Route path={paths.courses} element={<Courses />} />
         <Route path="/courses/:slug" element={<CourseDetail />} />
       </Route>
@@ -191,6 +196,7 @@ function App() {
             <Route path={paths.client.hosting} element={<ClientHosting />} />
             <Route path="/client/hosting/:accountId" element={<ClientHostingDetail />} />
             <Route path={paths.client.domains} element={<ClientDomains />} />
+            <Route path={paths.client.findDomain} element={<ClientFindDomain />} />
             <Route path={paths.client.learning} element={<ClientLearning />} />
             <Route path="/client/learning/:slug" element={<ClientCoursePlayer />} />
             <Route path="/client/domains/:domainId" element={<ClientDomainDetail />} />
@@ -231,7 +237,8 @@ function App() {
             <Route path="/staff/invoices/:invoiceId" element={<StaffInvoiceDetail />} />
             <Route path={paths.staff.hostingAccounts} element={<StaffHostingAccounts />} />
             <Route path="/staff/hosting/accounts/:accountId" element={<StaffHostingAccountDetail />} />
-            <Route path={paths.staff.domains} element={<StaffDomains />} />
+            <Route path={paths.staff.domains} element={<StaffDomainDashboard />} />
+            <Route path={paths.staff.domainsAll} element={<StaffDomains />} />
             <Route path="/staff/domains/:domainId" element={<StaffDomainDetail />} />
             <Route path={paths.staff.tickets} element={<StaffTickets />} />
             <Route path="/staff/support/:ticketId" element={<StaffTicketDetail />} />
@@ -253,7 +260,8 @@ function App() {
             <Route path={paths.admin.hostingPlans} element={<AdminHostingPlans />} />
             <Route path={paths.admin.hostingAccounts} element={<AdminHostingAccounts />} />
             <Route path="/admin/hosting/accounts/:accountId" element={<AdminHostingAccountDetail />} />
-            <Route path={paths.admin.domains} element={<AdminDomains />} />
+            <Route path={paths.admin.domains} element={<AdminDomainDashboard />} />
+            <Route path={paths.admin.domainsAll} element={<AdminDomains />} />
             <Route path="/admin/domains/:domainId" element={<AdminDomainDetail />} />
             <Route path={paths.admin.tickets} element={<AdminTickets />} />
             <Route path="/admin/support/:ticketId" element={<AdminTicketDetail />} />

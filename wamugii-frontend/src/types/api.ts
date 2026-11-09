@@ -924,6 +924,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/client/domains/order": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Ask WAMUGII to register an available domain (creates a PENDING domain)
+         * @description Re-checks availability, prices it from the price list for the chosen number
+         *     of years and notifies the team. Nothing is charged here: staff register the
+         *     domain and send the invoice through the normal flow.
+         */
+        post: operations["order_domain_api_v1_client_domains_order_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/client/domains/{domain_id}": {
         parameters: {
             query?: never;
@@ -2149,7 +2171,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * List active domain extensions with computed client prices (public)
+         * List active domain extensions with their yearly client price (public)
          * @description Open, because the public Domains page shows a price table and the quote
          *     form may reference it. Only active rows come back; staff manage soft-deleted
          *     ones through the dedicated admin endpoint below.
@@ -2202,6 +2224,44 @@ export interface paths {
         head?: never;
         /** Edit a domain extension (ADMIN only) */
         patch: operations["update_domain_extension_api_v1_domains_extensions__extension_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/domains/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Check which extensions of a name are available, with prices (public)
+         * @description Availability comes from each registry over RDAP (free, no API key). Prices
+         *     are the active price-list rows. Rate-limited per visitor.
+         */
+        get: operations["search_domains_api_v1_domains_search_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/domains/dashboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Domain dashboard: requests, renewals, value and search demand (ADMIN or STAFF) */
+        get: operations["domain_dashboard_api_v1_domains_dashboard_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/v1/domains/{domain_id}": {
@@ -3279,6 +3339,34 @@ export interface components {
             /** Is Active */
             is_active?: boolean | null;
         };
+        /** DashboardDomainRow */
+        DashboardDomainRow: {
+            /** Id */
+            id: number;
+            /** Domain Name */
+            domain_name: string;
+            /** Client Id */
+            client_id: number;
+            /** Client Name */
+            client_name: string;
+            status: components["schemas"]["DomainStatus"];
+            /** Total Fee */
+            total_fee: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Expires At */
+            expires_at?: string | null;
+            /** Days Left */
+            days_left?: number | null;
+            /**
+             * Auto Renew
+             * @default false
+             */
+            auto_renew: boolean;
+        };
         /** DashboardStats */
         DashboardStats: {
             users: components["schemas"]["UserStats"];
@@ -3337,6 +3425,29 @@ export interface components {
              */
             training: components["schemas"]["TrainingStats"];
         };
+        /** DomainCheckResult */
+        DomainCheckResult: {
+            /** Domain */
+            domain: string;
+            /** Extension */
+            extension: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "available" | "taken" | "unknown";
+            /**
+             * Price
+             * @description Price per year in RWF; null when we do not sell this extension online
+             */
+            price?: string | null;
+            /** Expires At */
+            expires_at?: string | null;
+            /** Registrar */
+            registrar?: string | null;
+            /** Reason */
+            reason?: string | null;
+        };
         /** DomainCreate */
         DomainCreate: {
             /** Client Id */
@@ -3375,6 +3486,29 @@ export interface components {
             /** Invoice Id */
             invoice_id?: number | null;
         };
+        /** DomainDashboard */
+        DomainDashboard: {
+            /** Counts */
+            counts: {
+                [key: string]: number;
+            };
+            /** Yearly Value */
+            yearly_value: string;
+            /** Pending Requests */
+            pending_requests: components["schemas"]["DashboardDomainRow"][];
+            /** Expiring */
+            expiring: components["schemas"]["DashboardDomainRow"][];
+            /** By Extension */
+            by_extension: components["schemas"]["ExtensionCount"][];
+            /** Searches 7 Days */
+            searches_7_days: number;
+            /** Searches 30 Days */
+            searches_30_days: number;
+            /** Top Searches */
+            top_searches: components["schemas"]["SearchedName"][];
+            /** Available Share */
+            available_share: number | null;
+        };
         /** DomainExtensionCreate */
         DomainExtensionCreate: {
             /** Extension */
@@ -3395,6 +3529,19 @@ export interface components {
              * Display Order
              * @default 0
              */
+            display_order: number;
+        };
+        /**
+         * DomainExtensionPublic
+         * @description What visitors see: the extension and its yearly price only. The cost price
+         *     and margin are business information and stay on the admin endpoints.
+         */
+        DomainExtensionPublic: {
+            /** Extension */
+            extension: string;
+            /** Client Price */
+            client_price: string;
+            /** Display Order */
             display_order: number;
         };
         /**
@@ -3468,6 +3615,16 @@ export interface components {
              */
             created_at: string;
         };
+        /** DomainOrderCreate */
+        DomainOrderCreate: {
+            /** Domain Name */
+            domain_name: string;
+            /**
+             * Years
+             * @default 1
+             */
+            years: number;
+        };
         /**
          * DomainRead
          * @description Full staff view, including the internal notes.
@@ -3514,6 +3671,27 @@ export interface components {
              * Format: date-time
              */
             updated_at: string;
+        };
+        /** DomainSearchResponse */
+        DomainSearchResponse: {
+            /** Query */
+            query: string;
+            /** Name */
+            name: string;
+            /** Results */
+            results: components["schemas"]["DomainCheckResult"][];
+            /** Suggestions */
+            suggestions: components["schemas"]["DomainCheckResult"][];
+            /**
+             * Checked At
+             * Format: date-time
+             */
+            checked_at: string;
+            /**
+             * Note
+             * @default Availability comes straight from each registry. A few names are reserved or premium; we confirm the final availability when we register it for you.
+             */
+            note: string;
         };
         /**
          * DomainStatus
@@ -3984,6 +4162,13 @@ export interface components {
             exam_cooldown_hours?: number | null;
             /** Exam Max Leaves */
             exam_max_leaves?: number | null;
+        };
+        /** ExtensionCount */
+        ExtensionCount: {
+            /** Extension */
+            extension: string;
+            /** Count */
+            count: number;
         };
         /**
          * ExtraVideo
@@ -4737,7 +4922,7 @@ export interface components {
          * NotificationType
          * @enum {string}
          */
-        NotificationType: "QUOTE_SUBMITTED" | "QUOTE_STATUS_CHANGED" | "PROJECT_CREATED" | "PROJECT_STATUS_CHANGED" | "MILESTONE_COMPLETED" | "FILE_UPLOADED" | "INVOICE_CREATED" | "INVOICE_DUE" | "PAYMENT_RECORDED" | "HOSTING_ACCOUNT_CREATED" | "HOSTING_STATUS_CHANGED" | "TICKET_CREATED" | "TICKET_REPLY" | "TICKET_STATUS_CHANGED" | "DOMAIN_REGISTERED" | "DOMAIN_STATUS_CHANGED" | "TEAM_MEMBER_REGISTERED" | "TEAM_MEMBER_APPROVED" | "PROJECT_ASSIGNMENT" | "COURSE_ENROLLED" | "COURSE_ACCESS_ACTIVE" | "COURSE_COMPLETED" | "EXAM_PASSED" | "LESSON_QUESTION" | "LESSON_ANSWER" | "COURSE_ASSIGNED";
+        NotificationType: "QUOTE_SUBMITTED" | "QUOTE_STATUS_CHANGED" | "PROJECT_CREATED" | "PROJECT_STATUS_CHANGED" | "MILESTONE_COMPLETED" | "FILE_UPLOADED" | "INVOICE_CREATED" | "INVOICE_DUE" | "PAYMENT_RECORDED" | "HOSTING_ACCOUNT_CREATED" | "HOSTING_STATUS_CHANGED" | "TICKET_CREATED" | "TICKET_REPLY" | "TICKET_STATUS_CHANGED" | "DOMAIN_REGISTERED" | "DOMAIN_STATUS_CHANGED" | "DOMAIN_REQUESTED" | "TEAM_MEMBER_REGISTERED" | "TEAM_MEMBER_APPROVED" | "PROJECT_ASSIGNMENT" | "COURSE_ENROLLED" | "COURSE_ACCESS_ACTIVE" | "COURSE_COMPLETED" | "EXAM_PASSED" | "LESSON_QUESTION" | "LESSON_ANSWER" | "COURSE_ASSIGNED";
         /** PaymentCreate */
         PaymentCreate: {
             /** Amount */
@@ -5432,6 +5617,18 @@ export interface components {
          * @enum {string}
          */
         Role: "ADMIN" | "STAFF" | "CLIENT" | "TEAM_MEMBER" | "INSTRUCTOR";
+        /** SearchedName */
+        SearchedName: {
+            /** Name */
+            name: string;
+            /** Searches */
+            searches: number;
+            /**
+             * Last Searched
+             * Format: date-time
+             */
+            last_searched: string;
+        };
         /** ServiceCreate */
         ServiceCreate: {
             /** Name */
@@ -8083,6 +8280,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ClientDomainListItem"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    order_domain_api_v1_client_domains_order_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DomainOrderCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClientDomainDetail"];
                 };
             };
             /** @description Validation Error */
@@ -11070,7 +11300,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["DomainExtensionRead"][];
+                    "application/json": components["schemas"]["DomainExtensionPublic"][];
                 };
             };
         };
@@ -11201,6 +11431,58 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    search_domains_api_v1_domains_search_get: {
+        parameters: {
+            query: {
+                /** @description A name like kigalishop or kigalishop.rw */
+                q: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainSearchResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    domain_dashboard_api_v1_domains_dashboard_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainDashboard"];
                 };
             };
         };

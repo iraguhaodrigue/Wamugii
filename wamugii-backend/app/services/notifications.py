@@ -339,6 +339,19 @@ def notify_domain_registered(db: Session, domain: Domain) -> None:
         _send_email(client, email_templates.domain_registered_client(domain, client))
 
 
+def notify_domain_requested(db: Session, domain: Domain, client: User, years: int) -> None:
+    """A client asked for a domain from the search page: tell the whole team."""
+    _emit_to_staff(
+        db,
+        type=NotificationType.DOMAIN_REQUESTED,
+        title="New domain request",
+        message=(f"{client.full_name} requested {domain.domain_name} for {years} "
+                 f"year{'s' if years > 1 else ''}. Register it and send the invoice."),
+        related_type="domain",
+        related_id=domain.id,
+    )
+
+
 def notify_domain_status_changed(db: Session, domain: Domain) -> None:
     """
     Called only for transitions the client should hear about (ACTIVE, EXPIRED,

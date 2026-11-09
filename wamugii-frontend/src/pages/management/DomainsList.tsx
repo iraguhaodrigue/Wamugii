@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { ChevronLeft, ChevronRight, Globe, Plus, Search } from 'lucide-react'
 import { DOMAIN_STATUSES, listDomains, type DomainStatus } from '@/api/domains'
 import { useUsersMap } from '@/hooks/useUsersMap'
@@ -30,7 +30,7 @@ import { cn } from '@/utils/cn'
 const LIMIT = 10
 
 export function DomainsList() {
-  usePageTitle('Domains')
+  usePageTitle('All domains')
   const navigate = useNavigate()
   const { user } = useAuth()
   const isAdmin = user?.role === 'ADMIN'
@@ -77,9 +77,17 @@ export function DomainsList() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-sm text-slate-500">
-          Domains registered for clients. Billing runs through the normal invoicing flow.
-        </p>
+        <div>
+          <Link
+            to={isAdmin ? paths.admin.domains : paths.staff.domains}
+            className="inline-flex items-center gap-1 text-sm font-medium text-brand-600 hover:text-brand-700"
+          >
+            <ChevronLeft className="size-4" aria-hidden="true" /> Domain dashboard
+          </Link>
+          <p className="mt-1 text-sm text-slate-500">
+            Domains registered for clients. Billing runs through the normal invoicing flow.
+          </p>
+        </div>
         <Button size="sm" leftIcon={<Plus className="size-4" />} onClick={() => setIsCreateOpen(true)}>
           Register Domain
         </Button>

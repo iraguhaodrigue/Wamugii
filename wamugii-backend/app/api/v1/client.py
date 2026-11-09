@@ -55,6 +55,7 @@ from app.schemas.course import (
     QUIZ_PASS_PERCENT,
 )
 from app.schemas.domain import ClientDomainDetail, ClientDomainListItem
+from app.schemas.domain_search import DomainOrderCreate
 from app.schemas.invoice import InvoiceCreate, InvoiceItemCreate
 from app.schemas.support import (
     ClientTicketDetail,
@@ -63,7 +64,7 @@ from app.schemas.support import (
     SupportTicketCreate,
     TicketMessageCreate,
 )
-from app.services import notifications
+from app.services import domain_search, notifications
 
 router = APIRouter(prefix="/client", tags=["client"])
 logger = logging.getLogger(__name__)
@@ -378,6 +379,23 @@ def list_domains(db: DbDep, current_user: ClientOnly, status: DomainStatus | Non
     if status is not None:
         domains = [d for d in domains if d.status == status]
     return [ClientDomainListItem.model_validate(d) for d in domains]
+
+
+@router.post(
+    "/domains/order",
+    response_model=ClientDomainDetail,
+    status_code=201,
+    summary="Ask WAMUGII to register an available domain (creates a PENDING domain)",
+)
+async def order_domain(data: DomainOrderCreate, db: DbDep, current_user: ClientOnly):
+    """
+    Re-checks availability, prices it from the price list for the chosen number
+    of years and notifies the team. Nothing is charged here: staff register the
+    domain and send the invoice through the normal flow.
+    """
+    domain = await domain_search.order(db, current_user, data)
+    logger.info("client %s requested domain %s", current_user.id, domain.domain_name)
+    return ClientDomainDetail.model_validate(domain)
 
 
 @router.get(

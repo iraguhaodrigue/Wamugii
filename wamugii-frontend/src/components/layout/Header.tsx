@@ -10,6 +10,7 @@ const navLinks = [
   { label: 'Home', to: paths.home },
   { label: 'Services', to: paths.services },
   { label: 'Hosting', to: paths.hosting },
+  { label: 'Domains', to: paths.domains },
   { label: 'Courses', to: paths.courses },
 ]
 

@@ -1,10 +1,11 @@
 import logging
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.orm import Session
 
-from app.api.deps import DbDep, require_roles
+from app.api.deps import DbDep, OptionalUser, require_roles
+from app.core.rate_limit import SlidingWindowLimiter
 from app.crud import domain as domain_crud
 from app.crud import domain_extension as extension_crud
 from app.crud import hosting as hosting_crud
@@ -20,10 +21,12 @@ from app.schemas.domain import (
 )
 from app.schemas.domain_extension import (
     DomainExtensionCreate,
+    DomainExtensionPublic,
     DomainExtensionRead,
     DomainExtensionUpdate,
 )
-from app.services import notifications
+from app.schemas.domain_search import DomainDashboard, DomainSearchResponse
+from app.services import domain_search, notifications
 
 router = APIRouter(prefix="/domains", tags=["domains"])
 logger = logging.getLogger(__name__)
@@ -143,8 +146,8 @@ def list_domains(
 
 @router.get(
     "/extensions",
-    response_model=list[DomainExtensionRead],
-    summary="List active domain extensions with computed client prices (public)",
+    response_model=list[DomainExtensionPublic],
+    summary="List active domain extensions with their yearly client price (public)",
 )
 def list_domain_extensions(db: DbDep):
     """
@@ -224,6 +227,56 @@ def deactivate_domain_extension(extension_id: int, db: DbDep, admin: AdminOnly):
     updated = extension_crud.deactivate(db, row)
     logger.info("admin %s deactivated domain extension %s", admin.id, extension_id)
     return updated
+
+
+# --- search and dashboard ---------------------------------------------------
+# Declared before "/{domain_id}" so these fixed paths are matched first.
+
+# 20 searches per minute per visitor: plenty for a person, too little for a bot
+# trying to use us as a free bulk-lookup service.
+search_limiter = SlidingWindowLimiter(limit=20, window_seconds=60)
+
+
+def _visitor_key(request: Request) -> str:
+    """
+    The visitor's address for rate limiting. Behind nginx every request comes
+    from 127.0.0.1, so prefer the address nginx adds: the LAST entry of
+    X-Forwarded-For (earlier entries can be typed by the visitor), then
+    X-Real-IP, then the socket address.
+    """
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        return forwarded.split(",")[-1].strip() or "unknown"
+    return request.headers.get("x-real-ip") or (request.client.host if request.client else "unknown")
+
+
+@router.get(
+    "/search",
+    response_model=DomainSearchResponse,
+    summary="Check which extensions of a name are available, with prices (public)",
+)
+async def search_domains(
+    request: Request,
+    db: DbDep,
+    user: OptionalUser,
+    q: str = Query(..., min_length=1, max_length=120, description="A name like kigalishop or kigalishop.rw"),
+):
+    """
+    Availability comes from each registry over RDAP (free, no API key). Prices
+    are the active price-list rows. Rate-limited per visitor.
+    """
+    if not search_limiter.allow(_visitor_key(request)):
+        raise HTTPException(status_code=429, detail="Too many searches. Please wait a minute and try again.")
+    return await domain_search.search(db, q, user)
+
+
+@router.get(
+    "/dashboard",
+    response_model=DomainDashboard,
+    summary="Domain dashboard: requests, renewals, value and search demand (ADMIN or STAFF)",
+)
+def domain_dashboard(db: DbDep, current_user: StaffOrAdmin):
+    return domain_search.dashboard(db)
 
 
 @router.get("/{domain_id}", response_model=DomainRead, summary="Get a domain (ADMIN or STAFF)")
