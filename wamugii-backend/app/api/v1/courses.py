@@ -40,7 +40,8 @@ from app.schemas.course import (
     QuizQuestionAdmin,
     QuizQuestionWrite,
 )
-from app.services import storage
+from app.schemas.course_review import CourseReviewsPage, ReviewAdminRead, ReviewModerate
+from app.services import course_reviews, storage
 
 router = APIRouter(prefix="/courses", tags=["courses"])
 logger = logging.getLogger(__name__)
@@ -95,6 +96,10 @@ def _public_course_detail(db: Session, course: Course) -> CoursePublicDetail:
         detail.lessons.append(brief)
     detail.student_count = course_crud.count_students(db, course.id)
     detail.total_minutes = sum(l.duration_minutes or 0 for l in lessons)
+    rating = course_reviews.summary(db, course.id)
+    detail.rating_average, detail.rating_count = rating.average, rating.count
+    detail.instructors = course_reviews.instructor_names(db, course.id)
+    detail.handbook = course_reviews.handbook_info(course.slug)
     return detail
 
 
@@ -129,7 +134,13 @@ def list_public_courses(
             db, limit=limit, offset=offset, category=category, search=search,
         )
     counts = course_crud.active_lesson_counts(db, [c.id for c in courses])
-    return [_course_read(c, counts.get(c.id, 0)) for c in courses]
+    ratings = course_reviews.summaries(db, [c.id for c in courses])
+    out = []
+    for c in courses:
+        read = _course_read(c, counts.get(c.id, 0))
+        read.rating_average, read.rating_count = ratings.get(c.id, (None, 0))
+        out.append(read)
+    return out
 
 
 @router.get(
@@ -151,6 +162,48 @@ def get_public_course(slug: str, db: DbDep, current_user: OptionalUser):
     if course.status != CourseStatus.PUBLISHED and not _is_staff(current_user):
         raise HTTPException(status_code=404, detail="Course not found")
     return _public_course_detail(db, course)
+
+
+def _published_or_404(db: Session, slug: str, current_user: User | None) -> Course:
+    course = course_crud.get_course_by_slug(db, slug)
+    if not course or not course.is_active:
+        raise HTTPException(status_code=404, detail="Course not found")
+    if course.status != CourseStatus.PUBLISHED and not _is_staff(current_user):
+        raise HTTPException(status_code=404, detail="Course not found")
+    return course
+
+
+@router.get(
+    "/{slug}/reviews",
+    response_model=CourseReviewsPage,
+    summary="Star ratings and student reviews for a published course (public)",
+)
+def list_course_reviews(
+    slug: str,
+    db: DbDep,
+    current_user: OptionalUser,
+    limit: int = Query(6, ge=1, le=50),
+    offset: int = Query(0, ge=0),
+):
+    """Visible reviews with a comment, newest first, plus the rating summary.
+    Reviewers appear as first name and initial only."""
+    course = _published_or_404(db, slug, current_user)
+    return course_reviews.public_page(db, course, limit, offset)
+
+
+@router.get(
+    "/{slug}/sample-chapter",
+    summary="Download a free sample chapter of the course's Student Handbook (public)",
+)
+def download_sample_chapter(slug: str, db: DbDep, current_user: OptionalUser):
+    """Chapter 1 as a PDF, so visitors can see the quality before enrolling.
+    Only courses that have a handbook offer it."""
+    course = _published_or_404(db, slug, current_user)
+    path = course_reviews.sample_chapter_path(course.slug)
+    if path is None:
+        raise HTTPException(status_code=404, detail="No sample chapter for this course")
+    name = f"{course.title} - Sample chapter.pdf".replace("/", "-")
+    return FileResponse(path, media_type="application/pdf", filename=name)
 
 
 # --- admin / staff: courses ------------------------------------------------
@@ -448,3 +501,28 @@ def list_course_enrollments(course_id: int, db: DbDep):
         read.exam_extra_attempts = enrollment.exam_extra_attempts or 0
         out.append(read)
     return out
+
+
+# --- admin / staff: review moderation ----------------------------------------
+
+
+@router.get(
+    "/by-id/{course_id}/reviews",
+    response_model=list[ReviewAdminRead],
+    dependencies=[Depends(require_roles(Role.ADMIN, Role.STAFF))],
+    summary="All reviews on a course, including hidden ones (ADMIN or STAFF)",
+)
+def list_reviews_for_staff(course_id: int, db: DbDep):
+    _get_course_or_404(db, course_id)
+    return course_reviews.admin_list(db, course_id)
+
+
+@router.patch(
+    "/by-id/{course_id}/reviews/{review_id}",
+    response_model=ReviewAdminRead,
+    dependencies=[Depends(require_roles(Role.ADMIN, Role.STAFF))],
+    summary="Hide or show a review (ADMIN or STAFF)",
+)
+def moderate_review(course_id: int, review_id: int, data: ReviewModerate, db: DbDep):
+    _get_course_or_404(db, course_id)
+    return course_reviews.moderate(db, course_id, review_id, data.is_hidden)

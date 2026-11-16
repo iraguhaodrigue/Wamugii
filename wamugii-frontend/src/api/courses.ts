@@ -24,6 +24,14 @@ export type CourseProgress = components['schemas']['CourseProgressRead']
 export type QuizQuestionAdmin = components['schemas']['QuizQuestionAdmin']
 export type QuizQuestionWrite = components['schemas']['QuizQuestionWrite']
 
+export type CourseReviewsPage = components['schemas']['CourseReviewsPage']
+export type ReviewPublic = components['schemas']['ReviewPublic']
+export type RatingSummary = components['schemas']['RatingSummary']
+export type MyReviewStatus = components['schemas']['MyReviewStatus']
+export type ReviewWrite = components['schemas']['ReviewWrite']
+export type ReviewAdmin = components['schemas']['ReviewAdminRead']
+export type HandbookInfo = components['schemas']['HandbookInfo']
+
 export const COURSE_STATUSES: CourseStatus[] = ['DRAFT', 'PUBLISHED']
 
 // --- public catalogue -----------------------------------------------------
@@ -266,5 +274,43 @@ export async function replaceLessonQuiz(
     `/courses/${courseId}/lessons/${lessonId}/quiz`,
     questions,
   )
+  return data
+}
+
+// --- ratings, reviews and the handbook sample ------------------------------
+
+export async function getCourseReviews(slug: string, limit = 6, offset = 0): Promise<CourseReviewsPage> {
+  const { data } = await apiClient.get<CourseReviewsPage>(`/courses/${slug}/reviews`, { params: { limit, offset } })
+  return data
+}
+
+/** Direct link to the free sample chapter (chapter 1 of the Student Handbook). */
+export function sampleChapterUrl(slug: string): string {
+  return `${apiClient.defaults.baseURL ?? ''}/courses/${slug}/sample-chapter`
+}
+
+export async function getMyReview(courseId: number): Promise<MyReviewStatus> {
+  const { data } = await apiClient.get<MyReviewStatus>(`/client/courses/${courseId}/review`)
+  return data
+}
+
+export async function saveMyReview(courseId: number, payload: ReviewWrite): Promise<MyReviewStatus> {
+  const { data } = await apiClient.put<MyReviewStatus>(`/client/courses/${courseId}/review`, payload)
+  return data
+}
+
+export async function deleteMyReview(courseId: number): Promise<void> {
+  await apiClient.delete(`/client/courses/${courseId}/review`)
+}
+
+export async function listReviewsForStaff(courseId: number): Promise<ReviewAdmin[]> {
+  const { data } = await apiClient.get<ReviewAdmin[]>(`/courses/by-id/${courseId}/reviews`)
+  return data
+}
+
+export async function moderateReview(courseId: number, reviewId: number, isHidden: boolean): Promise<ReviewAdmin> {
+  const { data } = await apiClient.patch<ReviewAdmin>(`/courses/by-id/${courseId}/reviews/${reviewId}`, {
+    is_hidden: isHidden,
+  })
   return data
 }

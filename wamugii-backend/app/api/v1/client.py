@@ -66,7 +66,8 @@ from app.schemas.support import (
     SupportTicketCreate,
     TicketMessageCreate,
 )
-from app.services import domain_search, notifications
+from app.schemas.course_review import MyReviewStatus, ReviewWrite
+from app.services import course_reviews, domain_search, notifications
 
 router = APIRouter(prefix="/client", tags=["client"])
 logger = logging.getLogger(__name__)
@@ -660,6 +661,38 @@ def get_course_progress(course_id: int, db: DbDep, current_user: ClientOnly):
         completed_lesson_ids=course_crud.completed_lesson_ids(db, enrollment.id),
         passed_quiz_lesson_ids=course_crud.passed_quiz_lesson_ids(db, enrollment.id),
     )
+
+
+@router.get(
+    "/courses/{course_id}/review",
+    response_model=MyReviewStatus,
+    summary="My rating of a course, and whether I can rate it yet (CLIENT)",
+)
+def get_my_course_review(course_id: int, db: DbDep, current_user: ClientOnly):
+    course = _course_or_404(db, course_id)
+    return course_reviews.my_status(db, course, current_user)
+
+
+@router.put(
+    "/courses/{course_id}/review",
+    response_model=MyReviewStatus,
+    summary="Rate a course 1-5 stars with an optional comment (CLIENT)",
+)
+def write_my_course_review(course_id: int, data: ReviewWrite, db: DbDep, current_user: ClientOnly):
+    """Needs an ACTIVE enrollment and at least a quarter of the lessons completed.
+    Writing again updates the same review."""
+    course = _course_or_404(db, course_id)
+    return course_reviews.write(db, course, current_user, data)
+
+
+@router.delete(
+    "/courses/{course_id}/review",
+    status_code=204,
+    summary="Delete my rating of a course (CLIENT)",
+)
+def delete_my_course_review(course_id: int, db: DbDep, current_user: ClientOnly):
+    course = _course_or_404(db, course_id)
+    course_reviews.delete(db, course, current_user)
 
 
 @router.get(

@@ -4,6 +4,7 @@ from decimal import Decimal
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.models.course import CourseStatus, EnrollmentStatus
+from app.schemas.course_review import HandbookInfo
 
 # Reused in two places so the price rule lives once.
 MAX_PRICE = Decimal("100000000")
@@ -70,6 +71,9 @@ class CourseRead(BaseModel):
     display_order: int
     is_active: bool
     lesson_count: int = 0
+    # Star rating from students (hidden reviews excluded); None until rated.
+    rating_average: float | None = None
+    rating_count: int = 0
     created_at: datetime
     updated_at: datetime
 
@@ -100,6 +104,10 @@ class CoursePublicDetail(CourseRead):
     # total expected study time (sum of lesson durations, 0 when unset).
     student_count: int = 0
     total_minutes: int = 0
+    # Names of the instructors assigned to the course.
+    instructors: list[str] = []
+    # The course's Student Handbook (PDF), when one has been built.
+    handbook: HandbookInfo | None = None
 
 
 class ExtraVideo(BaseModel):

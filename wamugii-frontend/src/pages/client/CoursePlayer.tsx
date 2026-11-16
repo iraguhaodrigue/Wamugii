@@ -46,6 +46,8 @@ import { LessonContent, sectionTitles } from '@/components/courses/LessonContent
 import { QuizPanel } from '@/components/courses/QuizPanel'
 import { FullLectures } from '@/components/courses/FullLectures'
 import { LessonQnA } from '@/components/courses/LessonQnA'
+import { RateCourseCard } from '@/components/courses/CourseReviews'
+import { colabLessonUrl } from '@/lib/python/colab'
 import { getExamOverview } from '@/api/exams'
 import { groupByModule } from '@/components/courses/courseShowcase'
 import { formatFileSize } from '@/utils/format'
@@ -617,7 +619,11 @@ export function ClientCoursePlayer() {
                 <FullLectures key={`lectures-${activeLesson.id}`} videos={activeLesson.extra_videos} />
               )}
               {activeLesson.content ? (
-                <LessonContent content={activeLesson.content} lessonKey={activeLesson.id} />
+                <LessonContent
+                  content={activeLesson.content}
+                  lessonKey={activeLesson.id}
+                  colabUrl={colabLessonUrl(course.slug, activeLesson.display_order)}
+                />
               ) : (
                 !activeLesson.video_url && <VideoPlaceholder />
               )}
@@ -684,6 +690,8 @@ export function ClientCoursePlayer() {
               )}
 
               <LessonQnA key={`qna-${activeLesson.id}`} courseId={course.id} lessonId={activeLesson.id} />
+
+              <RateCourseCard courseId={course.id} completedLessons={enrollment.completed_lessons} />
 
               {completeError && (
                 <p

@@ -34,6 +34,7 @@ from app.models.course import (  # noqa: F401
     LessonQuizAttempt,
     LessonQuizQuestion,
 )
+from app.models.course_review import CourseReview  # noqa: F401
 from app.models.password_reset_token import PasswordResetToken  # noqa: F401
 from app.models.project import Project  # noqa: F401
 from app.models.project_member import ProjectMember, ProjectRole  # noqa: F401

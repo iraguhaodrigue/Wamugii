@@ -1,6 +1,8 @@
 import { Fragment, useMemo, useState, type ReactNode } from 'react'
-import { Check, CheckCircle2, Circle, Copy, Lightbulb, PenLine, Sparkles, Target } from 'lucide-react'
+import { Check, CheckCircle2, Circle, Copy, ExternalLink, Lightbulb, NotebookPen, PenLine, Sparkles, Target } from 'lucide-react'
 import { Reveal } from '@/components/common/Reveal'
+import { PythonCodeBlock, PythonLesson } from '@/components/courses/PythonRunner'
+import { colabOnlyReasons } from '@/lib/python/runtime'
 import { cn } from '@/utils/cn'
 
 /**
@@ -26,7 +28,7 @@ type Block =
   | { kind: 'p'; text: string }
   | { kind: 'ul'; items: string[] }
   | { kind: 'ol'; items: string[] }
-  | { kind: 'code'; lang: string; text: string }
+  | { kind: 'code'; lang: string; text: string; py?: number }
   | { kind: 'quote'; text: string }
   | { kind: 'table'; head: string[]; rows: string[][] }
 
@@ -147,8 +149,9 @@ const LANG_LABEL: Record<string, string> = { python: 'Python', py: 'Python', tex
  * A code example with a one-tap Copy button, so students can paste it straight
  * into Google Colab. Long lines scroll sideways inside the box, never the page.
  */
-function CodeBlock({ lang, text }: { lang: string; text: string }) {
+function CodeBlock({ lang, text, py }: { lang: string; text: string; py?: number }) {
   const [copied, setCopied] = useState(false)
+  if (py !== undefined) return <PythonCodeBlock code={text} index={py} label={LANG_LABEL[lang.toLowerCase()] ?? 'Python'} />
   async function copy() {
     try {
       await navigator.clipboard.writeText(text)
@@ -237,7 +240,7 @@ function BlockView({ block }: { block: Block }) {
         </blockquote>
       )
     case 'code':
-      return <CodeBlock lang={block.lang} text={block.text} />
+      return <CodeBlock lang={block.lang} text={block.text} py={block.py} />
     case 'table': {
       const table = (
         <div className="overflow-x-auto rounded-xl border border-slate-200">
@@ -377,6 +380,8 @@ export interface LessonContentProps {
   content: string
   /** Changes whenever the lesson changes, so ticked activities reset. */
   lessonKey: number | string
+  /** "Open in Google Colab" link for this lesson's notebook (coding lessons only). */
+  colabUrl?: string | null
 }
 
 export function sectionTitles(content: string): string[] {
@@ -385,10 +390,10 @@ export function sectionTitles(content: string): string[] {
     .filter((t): t is string => Boolean(t))
 }
 
-export function LessonContent({ content, lessonKey }: LessonContentProps) {
+export function LessonContent({ content, lessonKey, colabUrl }: LessonContentProps) {
   const [done, setDone] = useState<Record<string, boolean>>({})
 
-  const { objective, takeaway, sections } = useMemo(() => {
+  const { objective, takeaway, sections, pyNeeds } = useMemo(() => {
     let objective: string | null = null
     let takeaway: string | null = null
     const sections = parseSections(content).map((s) => {
@@ -398,7 +403,23 @@ export function LessonContent({ content, lessonKey }: LessonContentProps) {
       if (t.text && !takeaway) takeaway = t.text
       return { ...s, blocks: t.rest }
     })
-    return { objective, takeaway, sections: sections.filter((s) => s.title || s.blocks.length) }
+    // Number the Python blocks in reading order: they share one namespace, so
+    // "run the earlier blocks first" needs to know which ones come before.
+    const pyCodes: string[] = []
+    for (const s of sections) {
+      for (const b of s.blocks) {
+        if (b.kind === 'code' && /^(python|py)$/i.test(b.lang)) {
+          b.py = pyCodes.length
+          pyCodes.push(b.text)
+        }
+      }
+    }
+    return {
+      objective,
+      takeaway,
+      sections: sections.filter((s) => s.title || s.blocks.length),
+      pyNeeds: pyCodes.length ? colabOnlyReasons(pyCodes) : null,
+    }
   }, [content])
 
   let step = 0
@@ -406,8 +427,32 @@ export function LessonContent({ content, lessonKey }: LessonContentProps) {
   // the player's section chips can jump straight to them.
   let titled = -1
 
-  return (
+  const body = (
     <div className="space-y-6" key={lessonKey}>
+      {pyNeeds && colabUrl && (
+        <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-panel p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex gap-3">
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#0b1220] text-[#fbbf24]">
+              <NotebookPen className="size-5" aria-hidden="true" />
+            </span>
+            <div>
+              <p className="text-sm font-semibold text-slate-900">Prefer a notebook? Run this whole lesson in Google Colab</p>
+              <p className="mt-0.5 text-sm text-slate-500">
+                Free, nothing to install, with a GPU for the heavy examples. Use <b>File → Save a copy in Drive</b> to keep your work.
+              </p>
+            </div>
+          </div>
+          <a
+            href={colabUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-[#f9ab00] px-3.5 py-2 text-sm font-semibold text-[#1f1f1f] transition-colors hover:bg-[#ffbd2e]"
+          >
+            Open in Colab
+            <ExternalLink className="size-4" aria-hidden="true" />
+          </a>
+        </div>
+      )}
       {objective && (
         <Reveal>
           <div className="flex gap-3 rounded-2xl border border-brand-200 bg-brand-50/70 p-4 sm:gap-4 sm:p-5">
@@ -513,5 +558,12 @@ export function LessonContent({ content, lessonKey }: LessonContentProps) {
         </Reveal>
       )}
     </div>
+  )
+  return pyNeeds ? (
+    <PythonLesson key={lessonKey} lessonKey={lessonKey} needs={pyNeeds} colabUrl={colabUrl ?? null}>
+      {body}
+    </PythonLesson>
+  ) : (
+    body
   )
 }

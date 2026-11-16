@@ -55,9 +55,9 @@ import { VideoEmbed } from '@/components/courses/VideoEmbed'
 import { isSupportedVideoUrl } from '@/utils/videoEmbed'
 import { cn } from '@/utils/cn'
 import { grantExtraAttempt } from '@/api/exams'
-import { ExamManager, ExamResults, InstructorsPanel, QuestionsInbox } from '@/components/courses/admin/CourseStaffPanels'
+import { ExamManager, ExamResults, InstructorsPanel, QuestionsInbox, ReviewsPanel } from '@/components/courses/admin/CourseStaffPanels'
 
-type Tab = 'content' | 'lessons' | 'enrollments' | 'exam' | 'results' | 'questions' | 'instructors'
+type Tab = 'content' | 'lessons' | 'enrollments' | 'exam' | 'results' | 'questions' | 'instructors' | 'reviews'
 
 export function AdminCourseDetail() {
   const { courseId } = useParams<{ courseId: string }>()
@@ -161,6 +161,7 @@ export function AdminCourseDetail() {
     { key: 'results', label: 'Exam results' },
     { key: 'questions', label: 'Questions' },
     { key: 'instructors', label: 'Instructors' },
+    ...(isInstructor ? [] : [{ key: 'reviews' as Tab, label: 'Reviews' }]),
   ]
 
   return (
@@ -346,6 +347,7 @@ export function AdminCourseDetail() {
       {tab === 'results' && <ExamResults courseId={course.id} />}
       {tab === 'questions' && <QuestionsInbox courseId={course.id} />}
       {tab === 'instructors' && <InstructorsPanel courseId={course.id} canManage={isAdmin} />}
+      {tab === 'reviews' && <ReviewsPanel courseId={course.id} />}
 
       <ConfirmDialog
         isOpen={isDeleteOpen}

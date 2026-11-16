@@ -4,6 +4,48 @@
  */
 
 export interface paths {
+    "/api/v1/health": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Liveness and database check (public, no login)
+         * @description 200 while the API can reach the database, 503 when it cannot.
+         *
+         *     The body is deliberately tiny and says nothing an attacker could use: no
+         *     driver name, no host, no error text. The real reason is logged instead,
+         *     where an operator can read it. The database probe is a plain `SELECT 1`,
+         *     which is cheap enough for a monitor to call every minute.
+         */
+        get: operations["health_api_v1_health_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sitemap.xml": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** sitemap.xml for the public site (public) */
+        get: operations["sitemap_api_v1_sitemap_xml_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/register": {
         parameters: {
             query?: never;
@@ -30,19 +72,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * Register Team Member
-         * @description Public self-registration for a project collaborator.
-         *
-         *     The account is created PENDING: it can log in, but the approval gate in
-         *     `deps.get_current_active_user` closes every other endpoint until an admin
-         *     approves it.
-         *
-         *     Returns a message rather than the user row, and the *same* message whether
-         *     or not the address was already taken — otherwise this endpoint becomes an
-         *     account-enumeration oracle, the same reasoning as forgot-password. A
-         *     duplicate simply creates nothing.
-         */
+        /** Register Team Member */
         post: operations["register_team_member_api_v1_auth_register_team_member_post"];
         delete?: never;
         options?: never;
@@ -139,13 +169,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * Reset Password
-         * @description Complete a password reset.
-         *
-         *     Every failure — unknown token, expired, already spent, deactivated user —
-         *     returns the same 400 so none of them can be told apart.
-         */
+        /** Reset Password */
         post: operations["reset_password_api_v1_auth_reset_password_post"];
         delete?: never;
         options?: never;
@@ -938,6 +962,9 @@ export interface paths {
          * @description Re-checks availability, prices it from the price list for the chosen number
          *     of years and notifies the team. Nothing is charged here: staff register the
          *     domain and send the invoice through the normal flow.
+         *
+         *     Limited per user rather than per IP: every order needs an account, and each
+         *     one creates a PENDING domain plus a notification for the team.
          */
         post: operations["order_domain_api_v1_client_domains_order_post"];
         delete?: never;
@@ -1088,6 +1115,29 @@ export interface paths {
         put?: never;
         post?: never;
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/client/courses/{course_id}/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My rating of a course, and whether I can rate it yet (CLIENT) */
+        get: operations["get_my_course_review_api_v1_client_courses__course_id__review_get"];
+        /**
+         * Rate a course 1-5 stars with an optional comment (CLIENT)
+         * @description Needs an ACTIVE enrollment and at least a quarter of the lessons completed.
+         *     Writing again updates the same review.
+         */
+        put: operations["write_my_course_review_api_v1_client_courses__course_id__review_put"];
+        post?: never;
+        /** Delete my rating of a course (CLIENT) */
+        delete: operations["delete_my_course_review_api_v1_client_courses__course_id__review_delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1247,6 +1297,48 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/courses/{slug}/reviews": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Star ratings and student reviews for a published course (public)
+         * @description Visible reviews with a comment, newest first, plus the rating summary.
+         *     Reviewers appear as first name and initial only.
+         */
+        get: operations["list_course_reviews_api_v1_courses__slug__reviews_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/courses/{slug}/sample-chapter": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Download a free sample chapter of the course's Student Handbook (public)
+         * @description Chapter 1 as a PDF, so visitors can see the quality before enrolling.
+         *     Only courses that have a handbook offer it.
+         */
+        get: operations["download_sample_chapter_api_v1_courses__slug__sample_chapter_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/courses/by-id/{course_id}": {
         parameters: {
             query?: never;
@@ -1395,6 +1487,40 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/api/v1/courses/by-id/{course_id}/reviews": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** All reviews on a course, including hidden ones (ADMIN or STAFF) */
+        get: operations["list_reviews_for_staff_api_v1_courses_by_id__course_id__reviews_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/courses/by-id/{course_id}/reviews/{review_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Hide or show a review (ADMIN or STAFF) */
+        patch: operations["moderate_review_api_v1_courses_by_id__course_id__reviews__review_id__patch"];
         trace?: never;
     };
     "/api/v1/client/courses/{course_id}/exam": {
@@ -3242,6 +3368,13 @@ export interface components {
              * @default 0
              */
             lesson_count: number;
+            /** Rating Average */
+            rating_average?: number | null;
+            /**
+             * Rating Count
+             * @default 0
+             */
+            rating_count: number;
             /**
              * Created At
              * Format: date-time
@@ -3267,6 +3400,12 @@ export interface components {
              * @default 0
              */
             total_minutes: number;
+            /**
+             * Instructors
+             * @default []
+             */
+            instructors: string[];
+            handbook?: components["schemas"]["HandbookInfo"] | null;
         };
         /** CourseRead */
         CourseRead: {
@@ -3296,6 +3435,13 @@ export interface components {
              * @default 0
              */
             lesson_count: number;
+            /** Rating Average */
+            rating_average?: number | null;
+            /**
+             * Rating Count
+             * @default 0
+             */
+            rating_count: number;
             /**
              * Created At
              * Format: date-time
@@ -3306,6 +3452,14 @@ export interface components {
              * Format: date-time
              */
             updated_at: string;
+        };
+        /** CourseReviewsPage */
+        CourseReviewsPage: {
+            summary: components["schemas"]["RatingSummary"];
+            /** Reviews */
+            reviews: components["schemas"]["ReviewPublic"][];
+            /** Total With Comments */
+            total_with_comments: number;
         };
         /**
          * CourseStatus
@@ -4200,6 +4354,20 @@ export interface components {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
         };
+        /** HandbookInfo */
+        HandbookInfo: {
+            /** Pages */
+            pages: number;
+            /** Words */
+            words: number;
+            /** Chapters */
+            chapters: number;
+            /**
+             * Sample Available
+             * @default false
+             */
+            sample_available: boolean;
+        };
         /** HostingAccountCreate */
         HostingAccountCreate: {
             /** Client Id */
@@ -4891,6 +5059,27 @@ export interface components {
          * @enum {string}
          */
         MilestoneStatus: "PENDING" | "IN_PROGRESS" | "COMPLETED" | "ON_HOLD" | "CANCELLED";
+        /**
+         * MyReviewStatus
+         * @description For the student: their own review (if any) and whether they may write one.
+         */
+        MyReviewStatus: {
+            review?: components["schemas"]["ReviewPublic"] | null;
+            /** Can Review */
+            can_review: boolean;
+            /** Reason */
+            reason?: string | null;
+            /**
+             * Completed Lessons
+             * @default 0
+             */
+            completed_lessons: number;
+            /**
+             * Lessons Needed
+             * @default 0
+             */
+            lessons_needed: number;
+        };
         /**
          * NotificationRead
          * @description A notification as its own recipient sees it. There is no Create schema on
@@ -5592,6 +5781,20 @@ export interface components {
          * @enum {string}
          */
         QuoteStatus: "NEW" | "REVIEWING" | "QUOTED" | "ACCEPTED" | "REJECTED" | "CANCELLED";
+        /** RatingSummary */
+        RatingSummary: {
+            /** Average */
+            average?: number | null;
+            /**
+             * Count
+             * @default 0
+             */
+            count: number;
+            /** Distribution */
+            distribution?: {
+                [key: string]: number;
+            };
+        };
         /** RefreshRequest */
         RefreshRequest: {
             /** Refresh Token */
@@ -5611,6 +5814,69 @@ export interface components {
             token: string;
             /** Password */
             password: string;
+        };
+        /** ReviewAdminRead */
+        ReviewAdminRead: {
+            /** Id */
+            id: number;
+            /** Rating */
+            rating: number;
+            /** Comment */
+            comment: string | null;
+            /** Reviewer Name */
+            reviewer_name: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** User Id */
+            user_id: number;
+            /** Reviewer Full Name */
+            reviewer_full_name: string;
+            /** Is Hidden */
+            is_hidden: boolean;
+        };
+        /** ReviewModerate */
+        ReviewModerate: {
+            /** Is Hidden */
+            is_hidden: boolean;
+        };
+        /**
+         * ReviewPublic
+         * @description What everyone sees: first name and initial only, never the email.
+         */
+        ReviewPublic: {
+            /** Id */
+            id: number;
+            /** Rating */
+            rating: number;
+            /** Comment */
+            comment: string | null;
+            /** Reviewer Name */
+            reviewer_name: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** ReviewWrite */
+        ReviewWrite: {
+            /** Rating */
+            rating: number;
+            /** Comment */
+            comment?: string | null;
         };
         /**
          * Role
@@ -6252,6 +6518,46 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    health_api_v1_health_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
+    sitemap_api_v1_sitemap_xml_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     register_api_v1_auth_register_post: {
         parameters: {
             query?: never;
@@ -8534,6 +8840,101 @@ export interface operations {
             };
         };
     };
+    get_my_course_review_api_v1_client_courses__course_id__review_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MyReviewStatus"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    write_my_course_review_api_v1_client_courses__course_id__review_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReviewWrite"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MyReviewStatus"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_my_course_review_api_v1_client_courses__course_id__review_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_lesson_for_enrolled_client_api_v1_client_courses__course_id__lessons__lesson_id__get: {
         parameters: {
             query?: never;
@@ -8816,6 +9217,71 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CoursePublicDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_course_reviews_api_v1_courses__slug__reviews_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CourseReviewsPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    download_sample_chapter_api_v1_courses__slug__sample_chapter_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */
@@ -9217,6 +9683,73 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["EnrollmentRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_reviews_for_staff_api_v1_courses_by_id__course_id__reviews_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewAdminRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    moderate_review_api_v1_courses_by_id__course_id__reviews__review_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+                review_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReviewModerate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewAdminRead"];
                 };
             };
             /** @description Validation Error */

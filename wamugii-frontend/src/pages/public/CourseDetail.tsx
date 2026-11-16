@@ -3,19 +3,27 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import {
   ArrowLeft,
+  ArrowRight,
   Award,
   BookOpen,
   CheckCircle2,
   Clock,
+  Download,
+  FileText,
   GraduationCap,
   PlayCircle,
   SearchX,
   Signal,
+  SquareTerminal,
+  Star,
   Users,
 } from 'lucide-react'
 import {
   enrollInCourse,
   getPublicCourse,
+  listMyEnrollments,
+  sampleChapterUrl,
+  type ClientEnrollment,
   type CoursePublicDetail,
   type EnrollResponse,
 } from '@/api/courses'
@@ -29,6 +37,9 @@ import { Reveal } from '@/components/common/Reveal'
 import { NeuralArt } from '@/components/courses/NeuralArt'
 import { formatMinutes, getShowcase, groupByModule } from '@/components/courses/courseShowcase'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
+import { CourseReviewsSection, Stars } from '@/components/courses/CourseReviews'
+import { CourseFaq } from '@/components/courses/CourseFaq'
+import { CODING_COURSES } from '@/lib/python/colab'
 
 function formatDuration(minutes: number): string {
   if (minutes < 75) return minutes < 50 ? `${minutes} minutes` : 'About 1 hour'
@@ -59,6 +70,15 @@ export function CourseDetail() {
   // Falls back to "Courses" until the course loads, so the tab never shows a
   // bare site name while the request is in flight.
   useDocumentTitle(course?.title ?? 'Courses', course?.description)
+
+  // A signed-in student who is already enrolled gets "Continue learning" instead of "Enroll".
+  const isClient = isAuthenticated && user?.role === 'CLIENT'
+  const { data: myEnrollments } = useQuery<ClientEnrollment[], ApiError>({
+    queryKey: ['client', 'learning'],
+    queryFn: listMyEnrollments,
+    enabled: isClient,
+  })
+  const myEnrollment = myEnrollments?.find((e) => e.course_slug === slug && e.status === 'ACTIVE')
 
   const enrollMutation = useMutation<EnrollResponse, ApiError, number>({
     mutationFn: (courseId) => enrollInCourse(courseId),
@@ -147,6 +167,10 @@ export function CourseDetail() {
   const lastWord = words.pop()
   const [firstParagraph, ...moreParagraphs] = course.description.split(/\n\s*\n/)
 
+  const coding = CODING_COURSES.has(course.slug)
+  const handbook = course.handbook ?? null
+  const rated = course.rating_count > 0 && course.rating_average != null
+
   const stats = [
     { icon: BookOpen, label: `${lessonCount} lessons` },
     { icon: Clock, label: formatDuration(totalMinutes) },
@@ -155,9 +179,32 @@ export function CourseDetail() {
     ...(course.student_count > 0
       ? [{ icon: Users, label: `${course.student_count} student${course.student_count === 1 ? '' : 's'} enrolled` }]
       : []),
+    ...(handbook ? [{ icon: FileText, label: `${handbook.pages}-page handbook` }] : []),
   ]
 
-  const enrollButton = (dark: boolean) => (
+  const included = [
+    `${lessonCount} lessons with quizzes & activities`,
+    ...(handbook ? [`${handbook.pages}-page Student Handbook (PDF) — learn by reading too`] : []),
+    ...(coding ? ['Run the Python examples right in your browser'] : []),
+    'Learn at your own pace',
+    coding ? 'Practice code in every lesson' : 'Simple English, no coding needed',
+    'Certificate when you finish',
+  ]
+
+  const enrollButton = (dark: boolean) =>
+    myEnrollment ? (
+      <Link
+        to={paths.client.courseDetail(course.slug)}
+        className={
+          (dark ? 'w-full sm:w-auto shadow-[var(--shadow-glow-brand)] ' : 'w-full ') +
+          'inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-[var(--color-brand-solid)] to-[var(--color-accent-solid)] px-6 text-base font-semibold text-white transition-opacity hover:opacity-95'
+        }
+      >
+        <PlayCircle className="size-5" aria-hidden="true" />
+        {myEnrollment.progress_percent > 0 ? `Continue learning · ${myEnrollment.progress_percent}% done` : 'Start learning'}
+        <ArrowRight className="size-4" aria-hidden="true" />
+      </Link>
+    ) : (
     <Button
       className={dark ? 'w-full sm:w-auto shadow-[var(--shadow-glow-brand)]' : 'w-full'}
       size="lg"
@@ -167,7 +214,7 @@ export function CourseDetail() {
     >
       {course.is_free ? 'Enroll free — start learning' : 'Enroll and generate invoice'}
     </Button>
-  )
+    )
 
   return (
     <>
@@ -219,6 +266,19 @@ export function CourseDetail() {
                   </li>
                 ))}
               </ul>
+              {rated && (
+                <a
+                  href="#reviews"
+                  className="hero-in mt-4 inline-flex items-center gap-2 text-sm text-white/85 hover:text-white"
+                  style={{ animationDelay: '320ms' }}
+                >
+                  <span className="text-base font-bold text-amber-300">{course.rating_average!.toFixed(1)}</span>
+                  <Stars value={course.rating_average!} size="sm" />
+                  <span className="underline-offset-2 hover:underline">
+                    ({course.rating_count} rating{course.rating_count === 1 ? '' : 's'})
+                  </span>
+                </a>
+              )}
               <div className="hero-in mt-8" style={{ animationDelay: '360ms' }}>
                 {enrollButton(true)}
                 {enrollError && (
@@ -389,6 +449,103 @@ export function CourseDetail() {
                 </div>
               </section>
             )}
+
+            {handbook && (
+              <section>
+                <Reveal>
+                  <h2 className="text-sm font-semibold uppercase tracking-wide text-brand-600">Learn by reading, too</h2>
+                </Reveal>
+                <Reveal className="mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-panel shadow-[var(--shadow-card)]">
+                  <div className="grid gap-6 p-5 sm:grid-cols-[auto_1fr] sm:p-6">
+                    <div
+                      className="dark relative mx-auto flex h-40 w-28 shrink-0 flex-col justify-between overflow-hidden rounded-lg bg-gradient-to-br from-[#0b1120] via-[#0c2a36] to-[#2a1660] p-3 text-white shadow-[var(--shadow-glow-brand)]"
+                      aria-hidden="true"
+                    >
+                      <span className="text-[7px] font-bold uppercase tracking-[0.2em] text-cyan-300">Student Handbook</span>
+                      <span className="text-sm font-extrabold leading-tight">{course.title}</span>
+                      <span className="h-1 w-8 rounded bg-gradient-to-r from-cyan-400 to-violet-500" />
+                    </div>
+                    <div>
+                      <p className="text-xl font-bold tracking-tight text-slate-900">
+                        The complete course in one {handbook.pages}-page book
+                      </p>
+                      <p className="mt-2 text-sm leading-relaxed text-slate-600">
+                        Every lesson becomes a full chapter, written in simple English so you can understand it by reading
+                        alone: step-by-step explanations, worked examples, diagrams, common mistakes, examples from Rwanda,
+                        self-checks with answers, and a glossary.
+                      </p>
+                      <ul className="mt-3 flex flex-wrap gap-2 text-xs font-medium text-slate-600">
+                        <li className="rounded-full bg-slate-100 px-2.5 py-1">{handbook.chapters} chapters</li>
+                        <li className="rounded-full bg-slate-100 px-2.5 py-1">about {Math.round(handbook.words / 1000)},000 words</li>
+                        <li className="rounded-full bg-slate-100 px-2.5 py-1">answer key</li>
+                        <li className="rounded-full bg-slate-100 px-2.5 py-1">prints well</li>
+                      </ul>
+                      {handbook.sample_available && (
+                        <a
+                          href={sampleChapterUrl(course.slug)}
+                          className="mt-4 inline-flex items-center gap-2 rounded-lg border border-brand-300 px-3.5 py-2 text-sm font-semibold text-brand-700 transition-colors hover:bg-brand-50"
+                        >
+                          <Download className="size-4" aria-hidden="true" />
+                          Download a free sample chapter (PDF)
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                </Reveal>
+              </section>
+            )}
+
+            {coding && (
+              <section>
+                <Reveal>
+                  <h2 className="text-sm font-semibold uppercase tracking-wide text-brand-600">Practise as you read</h2>
+                </Reveal>
+                <Reveal className="mt-6 flex gap-4 rounded-2xl border border-slate-200 bg-panel p-5 shadow-[var(--shadow-card)] sm:p-6">
+                  <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-[#0b1220] text-[#67e8f9]">
+                    <SquareTerminal className="size-5" aria-hidden="true" />
+                  </span>
+                  <div>
+                    <p className="font-semibold text-slate-900">Run the Python examples right in the lesson</p>
+                    <p className="mt-1 text-sm leading-relaxed text-slate-600">
+                      Press <b>Run</b> on any code example to run it in your browser, change it, and run it again. No
+                      installation and nothing to set up: numpy, pandas, scikit-learn and charts all work on a normal
+                      laptop. Every lesson also opens in Google Colab with one click, with a free GPU for the deep-learning examples.
+                    </p>
+                  </div>
+                </Reveal>
+              </section>
+            )}
+
+            {course.instructors.length > 0 && (
+              <section>
+                <Reveal>
+                  <h2 className="text-sm font-semibold uppercase tracking-wide text-brand-600">Your instructors</h2>
+                </Reveal>
+                <div className="mt-6 flex flex-wrap gap-3">
+                  {course.instructors.map((name) => (
+                    <Reveal key={name}>
+                      <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-panel py-2.5 pl-2.5 pr-5">
+                        <span className="flex size-10 items-center justify-center rounded-full bg-gradient-to-br from-[var(--color-brand-solid)] to-[var(--color-accent-solid)] text-sm font-bold text-white">
+                          {name
+                            .split(/\s+/)
+                            .map((w) => w.charAt(0))
+                            .slice(0, 2)
+                            .join('')}
+                        </span>
+                        <div>
+                          <p className="text-sm font-semibold text-slate-900">{name}</p>
+                          <p className="text-xs text-slate-500">Instructor · answers your lesson questions</p>
+                        </div>
+                      </div>
+                    </Reveal>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            <CourseReviewsSection slug={course.slug} />
+
+            <CourseFaq isFree={course.is_free} coding={coding} hasHandbook={Boolean(handbook)} />
           </div>
 
           <aside className="lg:col-span-1">
@@ -400,13 +557,16 @@ export function CourseDetail() {
                   We'll generate an invoice; lessons unlock once we've recorded payment.
                 </p>
               )}
-              <ul className="mt-5 space-y-2.5 text-sm text-slate-600">
-                {[
-                  `${lessonCount} lessons with quizzes & activities`,
-                  'Learn at your own pace',
-                  showcase ? 'Simple English, no coding needed' : 'Practice in every lesson',
-                  'Certificate when you finish',
-                ].map((item) => (
+              {rated && (
+                <a href="#reviews" className="mt-2 flex items-center gap-1.5 text-sm text-slate-600 hover:text-brand-700">
+                  <Star className="size-4 fill-amber-400 text-amber-400" aria-hidden="true" />
+                  <span className="font-semibold text-slate-900">{course.rating_average!.toFixed(1)}</span>
+                  <span>· {course.rating_count} rating{course.rating_count === 1 ? '' : 's'}</span>
+                </a>
+              )}
+              <p className="mt-5 text-xs font-semibold uppercase tracking-wide text-slate-500">What's included</p>
+              <ul className="mt-2.5 space-y-2.5 text-sm text-slate-600">
+                {included.map((item) => (
                   <li key={item} className="flex items-start gap-2">
                     <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-brand-600" aria-hidden="true" />
                     {item}

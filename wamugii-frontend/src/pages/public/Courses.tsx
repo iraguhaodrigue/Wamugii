@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
-import { ArrowRight, GraduationCap, Search } from 'lucide-react'
+import { ArrowRight, GraduationCap, Search, Star } from 'lucide-react'
 import { listPublicCourses, type Course } from '@/api/courses'
 import { paths } from '@/routes/paths'
 import { Badge, Container, EmptyState, ErrorState, Input, Skeleton } from '@/components/ui'
@@ -171,8 +171,15 @@ function CourseCard({ course }: { course: Course }) {
         )}
         <p className="mt-3 line-clamp-3 text-sm text-slate-500">{course.description}</p>
         <div className="mt-auto flex items-center justify-between pt-5">
-          <span className="text-xs text-slate-500">
+          <span className="flex items-center gap-2 text-xs text-slate-500">
             {course.lesson_count} lesson{course.lesson_count === 1 ? '' : 's'}
+            {course.rating_count > 0 && course.rating_average != null && (
+              <span className="inline-flex items-center gap-1" title={`${course.rating_count} rating${course.rating_count === 1 ? '' : 's'}`}>
+                <Star className="size-3.5 fill-amber-400 text-amber-400" aria-hidden="true" />
+                <span className="font-semibold text-slate-700">{course.rating_average.toFixed(1)}</span>
+                <span>({course.rating_count})</span>
+              </span>
+            )}
           </span>
           <span className="inline-flex items-center gap-1 text-sm font-medium text-brand-600">
             Learn more

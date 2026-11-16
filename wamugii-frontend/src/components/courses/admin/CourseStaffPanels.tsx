@@ -7,6 +7,7 @@ import {
   Plus,
   Send,
   Sparkles,
+  Star,
   Trash2,
   UserPlus,
   Users,
@@ -32,6 +33,7 @@ import {
   type ExamSettings,
   type LessonQuestion,
 } from '@/api/exams'
+import { listReviewsForStaff, moderateReview, type ReviewAdmin } from '@/api/courses'
 import type { ApiError } from '@/lib/apiClient'
 import {
   Badge,
@@ -696,6 +698,83 @@ export function InstructorsPanel({ courseId, canManage }: { courseId: number; ca
           ))}
         </ul>
       )}
+    </div>
+  )
+}
+
+/**
+ * Student ratings on a course. Staff can hide a review that breaks the rules
+ * (spam, insults, personal details); hidden reviews leave the public page and
+ * the average but are kept, so the decision can be undone.
+ */
+export function ReviewsPanel({ courseId }: { courseId: number }) {
+  const queryClient = useQueryClient()
+  const { data, isLoading, isError, refetch } = useQuery<ReviewAdmin[], ApiError>({
+    queryKey: ['courses', courseId, 'reviews-staff'],
+    queryFn: () => listReviewsForStaff(courseId),
+  })
+  const toggle = useMutation<ReviewAdmin, ApiError, { id: number; hidden: boolean }>({
+    mutationFn: ({ id, hidden }) => moderateReview(courseId, id, hidden),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['courses', courseId, 'reviews-staff'] })
+      queryClient.invalidateQueries({ queryKey: ['courses', 'reviews'] })
+    },
+  })
+
+  if (isLoading) return <Skeleton className="h-40 rounded-xl" />
+  if (isError || !data) return <ErrorState title="Couldn't load reviews" onRetry={() => refetch()} />
+  if (data.length === 0) {
+    return (
+      <EmptyState
+        icon={Star}
+        title="No ratings yet"
+        description="Students can rate the course after completing a quarter of its lessons."
+      />
+    )
+  }
+  const visible = data.filter((r) => !r.is_hidden)
+  const average = visible.length ? visible.reduce((n, r) => n + r.rating, 0) / visible.length : 0
+
+  return (
+    <div className="space-y-4">
+      <p className="text-sm text-slate-600">
+        <span className="font-semibold text-slate-900">{average ? average.toFixed(1) : '—'}</span> average from{' '}
+        {visible.length} visible rating{visible.length === 1 ? '' : 's'}
+        {data.length > visible.length && ` · ${data.length - visible.length} hidden`}
+      </p>
+      <ul className="space-y-3">
+        {data.map((r) => (
+          <li
+            key={r.id}
+            className={cn('rounded-xl border p-4', r.is_hidden ? 'border-dashed border-slate-300 opacity-70' : 'border-slate-200 bg-panel')}
+          >
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center gap-0.5" aria-label={`${r.rating} out of 5 stars`}>
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <Star key={i} className={cn('size-4', i <= r.rating ? 'fill-amber-400 text-amber-400' : 'text-slate-300')} aria-hidden="true" />
+                  ))}
+                </span>
+                <span className="text-sm font-semibold text-slate-900">{r.reviewer_full_name}</span>
+                <span className="text-xs text-slate-400">shown as {r.reviewer_name} · {when(r.updated_at)}</span>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                isLoading={toggle.isPending && toggle.variables?.id === r.id}
+                onClick={() => toggle.mutate({ id: r.id, hidden: !r.is_hidden })}
+              >
+                {r.is_hidden ? 'Show again' : 'Hide'}
+              </Button>
+            </div>
+            {r.comment ? (
+              <p className="mt-2 whitespace-pre-line text-sm text-slate-600">{r.comment}</p>
+            ) : (
+              <p className="mt-2 text-xs italic text-slate-400">Rating only, no comment.</p>
+            )}
+          </li>
+        ))}
+      </ul>
     </div>
   )
 }

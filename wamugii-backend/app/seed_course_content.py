@@ -7,7 +7,9 @@ A content pack is a Python module with a COURSE dict: course details plus
 modules -> lessons, each lesson with notes (markdown), study minutes, an
 optional video URL and a quiz. PDFs in `app/course_content/pdfs/<slug>/` named
 `<NN>.pdf` (NN = lesson number in the course, 01, 02, ...) are attached to the
-matching lesson as downloadable materials.
+matching lesson as downloadable materials. A complete Student Handbook in
+`app/course_content/handbooks/<slug>/handbook.pdf` (built with
+scripts/course_make_handbook.py) is attached to the first lesson too.
 
 Safe to run again and again -- that is how you publish edits:
 
@@ -44,6 +46,7 @@ from app.schemas.exam import ExamQuestionWrite
 from app.services import storage
 
 PDF_ROOT = Path(__file__).parent / "course_content" / "pdfs"
+HANDBOOK_ROOT = Path(__file__).parent / "course_content" / "handbooks"
 MAX_PDF_BYTES = 25 * 1024 * 1024
 
 
@@ -100,8 +103,12 @@ def _shuffled(question: str, options: list[str], correct: int) -> tuple[list[str
     return [options[i] for i in order], order.index(correct)
 
 
-def _attach_pdf(db, lesson: Lesson, pdf: Path, uploader_id: int) -> bool:
-    nice_name = f"{lesson.title}.pdf".replace("/", "-")
+def handbook_filename(course_title: str) -> str:
+    return f"{course_title} - Complete Student Handbook.pdf".replace("/", "-")
+
+
+def _attach_pdf(db, lesson: Lesson, pdf: Path, uploader_id: int, nice_name: str | None = None) -> bool:
+    nice_name = nice_name or f"{lesson.title}.pdf".replace("/", "-")
     new_bytes = pdf.read_bytes()
     for existing in course_crud.list_materials(db, lesson.id):
         if existing.original_filename == nice_name:
@@ -183,6 +190,7 @@ def load(pack_name: str, dry_run: bool = False) -> None:
 
         uploader = db.scalar(select(User).where(User.role == Role.ADMIN).order_by(User.id))
         pdf_dir = PDF_ROOT / slug
+        handbook = HANDBOOK_ROOT / slug / "handbook.pdf"
 
         for item in lessons:
             lectures = [
@@ -224,6 +232,9 @@ def load(pack_name: str, dry_run: bool = False) -> None:
                     print("    (no ADMIN user yet -- PDF not attached)")
                 elif _attach_pdf(db, lesson, pdf, uploader.id):
                     print(f"    + PDF {pdf.name}")
+            if item["number"] == 1 and handbook.is_file() and uploader is not None:
+                if _attach_pdf(db, lesson, handbook, uploader.id, handbook_filename(data["title"])):
+                    print("    + Student Handbook")
 
         if not dry_run and data.get("exam") is not None:
             bank = exam_bank(data, lessons)
