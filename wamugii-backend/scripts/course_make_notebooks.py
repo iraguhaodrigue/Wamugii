@@ -3,10 +3,10 @@
 One notebook per lesson that has Python code: the lesson text becomes text
 cells and every Python example becomes a code cell, in the same order, so
 "Runtime > Run all" runs the whole lesson. The notebooks go into the public
-repository github.com/iraguhaodrigue/wamugii-notebooks, and each lesson on the
+repository github.com/wamugii/notebooks, and each lesson on the
 website gets an "Open in Google Colab" button pointing at its notebook:
 
-    https://colab.research.google.com/github/iraguhaodrigue/wamugii-notebooks/blob/main/<course-slug>/lesson-NN.ipynb
+    https://colab.research.google.com/github/wamugii/notebooks/blob/main/<course-slug>/lesson-NN.ipynb
 
 Only lesson content goes into the notebooks -- never site code, keys or data.
 
@@ -24,7 +24,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-REPO = "iraguhaodrigue/wamugii-notebooks"
+REPO = "wamugii/notebooks"
 BRANCH = "main"
 SITE = "https://wamugii.kento.rw"
 LOGO = f"{SITE}/logo-emblem-128.png"

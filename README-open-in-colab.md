@@ -13,7 +13,7 @@ Every lesson of the 5 coding courses now has an **Open in Colab** button. One cl
   - for lessons that call an AI model: how to add an API key safely with Colab's **Secrets** (the key icon);
   - a link back to the course on the website, for the quiz and the certificate.
 
-## Part 1: the notebooks repository (github.com/iraguhaodrigue/wamugii-notebooks)
+## Part 1: the notebooks repository (github.com/wamugii/notebooks)
 
 The zip contains a folder **`wamugii-notebooks`** with:
 
@@ -23,7 +23,7 @@ The zip contains a folder **`wamugii-notebooks`** with:
 **Put them on GitHub** (the repository is still empty):
 
 ```
-git clone https://github.com/iraguhaodrigue/wamugii-notebooks.git
+git clone https://github.com/wamugii/notebooks.git
 cd wamugii-notebooks
 # copy everything from the zip's wamugii-notebooks folder into here, then:
 git add -A
@@ -32,7 +32,7 @@ git branch -M main
 git push -u origin main
 ```
 
-**Check it works:** open https://github.com/iraguhaodrigue/wamugii-notebooks. You should see the table; click any **Open in Colab** badge and the lesson opens in Colab.
+**Check it works:** open https://github.com/wamugii/notebooks. You should see the table; click any **Open in Colab** badge and the lesson opens in Colab.
 
 The repository must stay **public** (Colab can only open public GitHub notebooks), and it must use the branch **`main`**. It contains only lesson content: no site code, keys or student data.
 
