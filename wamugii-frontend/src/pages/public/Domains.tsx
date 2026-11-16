@@ -8,6 +8,7 @@ import { DomainSearch } from '@/components/domains/DomainSearch'
 import { Container, Skeleton } from '@/components/ui'
 import { paths } from '@/routes/paths'
 import { formatMoney } from '@/utils/format'
+import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 
 const STEPS = [
   { icon: Search, title: 'Search', text: 'Type a name. We ask each registry live whether it is free.' },
@@ -17,7 +18,21 @@ const STEPS = [
 
 /** Public "find a domain" page: live availability search plus the price list. */
 export function Domains() {
+  useDocumentTitle(
+    'Domains',
+    'Search domain names live against each official registry, see which are free, and have WAMUGII register yours in your own name.',
+  )
   const prices = useQuery({ queryKey: ['domains', 'extensions', 'public'], queryFn: listPublicExtensions })
+
+  // Built from the live price list, which the public endpoint returns filtered
+  // to ACTIVE rows only. Hard-coding the list is how the page came to advertise
+  // .co.rw while it was switched off: now an extension can only appear here
+  // once it is actually sellable.
+  const active = (prices.data ?? []).map((p) => p.extension)
+  const named = active.slice(0, 3).join(', ')
+  const description = named
+    ? `Search ${named}${active.length > 3 ? ' and more' : ''}. See instantly which names are free — checked live with each official registry — and get yours registered by our team.`
+    : 'See instantly which domain names are free — checked live with each official registry — and get yours registered by our team.'
 
   return (
     <>
@@ -25,7 +40,7 @@ export function Domains() {
         eyebrow="Domains"
         title="Find the right"
         highlight="domain name"
-        description="Search .rw, .co.rw, .com and more. See instantly which names are free — checked live with each official registry — and get yours registered by our team."
+        description={description}
         art={<DomainArt />}
       />
 

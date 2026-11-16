@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   BILLING_CYCLES,
@@ -50,7 +50,7 @@ export function CreateHostingAccountModal({
   const {
     register,
     handleSubmit,
-    watch,
+    control,
     formState: { errors },
   } = useForm<AccountFormValues>({
     defaultValues: {
@@ -64,9 +64,9 @@ export function CreateHostingAccountModal({
     },
   })
 
-  const startDate = watch('start_date')
-  const cycle = watch('billing_cycle')
-  const planId = watch('plan_id')
+  const startDate = useWatch({ control, name: 'start_date' })
+  const cycle = useWatch({ control, name: 'billing_cycle' })
+  const planId = useWatch({ control, name: 'plan_id' })
 
   // Preview only — the server recomputes and stores its own value.
   const nextBilling = startDate ? previewNextBillingDate(startDate, cycle) : null

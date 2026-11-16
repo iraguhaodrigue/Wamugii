@@ -736,6 +736,8 @@ def test_no_route_outside_team_answers_a_team_member(client, admin_headers, sent
         "/api/v1/domains/extensions", # public domain-extension price list -- same shape
         "/api/v1/courses",          # public course catalogue -- same shape as /services
         "/health",                  # liveness probe, no body to speak of
+        "/api/v1/health",           # same probe under the API prefix: status + version only
+        "/api/v1/sitemap.xml",      # public page list for crawlers -- published courses only
     )
 
     served: list[str] = []

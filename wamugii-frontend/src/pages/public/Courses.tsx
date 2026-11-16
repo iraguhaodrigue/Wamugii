@@ -10,6 +10,7 @@ import { LottieOnView } from '@/components/common/LottieOnView'
 import { PageHeader } from '@/components/common/PageHeader'
 import { Reveal } from '@/components/common/Reveal'
 import { ProgramArt, type ProgramArtKind } from '@/components/home/ProgramArt'
+import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 
 /** Each AI Program course gets its own animated cover (the same art as on the homepage). */
 const COURSE_ART: Record<string, { kind: ProgramArtKind; glow: string }> = {
@@ -24,6 +25,10 @@ const COURSE_ART: Record<string, { kind: ProgramArtKind; glow: string }> = {
 
 /** Public catalogue: every PUBLISHED, active course. */
 export function Courses() {
+  useDocumentTitle(
+    'Courses',
+    'Practical technology courses from WAMUGII TECH SOLUTIONS. Free courses give instant access; paid courses unlock once payment is recorded.',
+  )
   const [search, setSearch] = useState('')
 
   const {

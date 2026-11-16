@@ -1,0 +1,31 @@
+# WAMUGII TECH SOLUTIONS
+#
+# Public marketing pages are open to crawlers. Everything behind a sign-in is
+# disallowed: those pages need a session, so a crawler would only ever index a
+# redirect to the login screen.
+#
+# Disallow is a request, not a protection. The real guard is the API's
+# role checks -- this only keeps private areas out of search results.
+
+User-agent: *
+
+Allow: /
+Allow: /services
+Allow: /hosting
+Allow: /domains
+Allow: /courses
+Allow: /request-quote
+
+Disallow: /admin
+Disallow: /staff
+Disallow: /client
+Disallow: /team
+Disallow: /instructor
+Disallow: /login
+Disallow: /register
+Disallow: /reset-password
+Disallow: /forgot-password
+Disallow: /pending-approval
+Disallow: /join
+
+Sitemap: https://wamugii.kento.rw/sitemap.xml

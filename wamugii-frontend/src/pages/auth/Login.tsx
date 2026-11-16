@@ -7,6 +7,7 @@ import { LOGOUT_REASON_MESSAGES, type LogoutReason, useAuth } from '@/context/Au
 import { isPathAllowedForRole, paths, roleHomePath } from '@/routes/paths'
 import { Button, Input } from '@/components/ui'
 import type { ApiError } from '@/lib/apiClient'
+import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 
 const schema = z.object({
   email: z.string().email('Enter a valid email address'),
@@ -16,6 +17,7 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>
 
 export function Login() {
+  useDocumentTitle('Log in')
   const { login } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()

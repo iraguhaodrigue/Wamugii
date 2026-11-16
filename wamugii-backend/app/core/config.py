@@ -14,6 +14,9 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     PROJECT_NAME: str = "WAMUGII TECH SOLUTIONS API"
+    # Reported by GET /api/v1/health so a monitor can see which build is
+    # live. Safe to expose: it is a release tag, not a dependency list.
+    APP_VERSION: str = "1.0.0"
     API_V1_PREFIX: str = "/api/v1"
 
     # Database
@@ -53,6 +56,35 @@ class Settings(BaseSettings):
     # means the "Draft with AI" button explains that it is not set up.
     ANTHROPIC_API_KEY: str | None = None
     AI_DRAFT_MODEL: str = "claude-sonnet-5-5"
+
+    # --- Rate limits ----------------------------------------------------
+    # Counted per process and per IP (see app/core/rate_limit.py), except the
+    # two noted below. Every value is an env var, so a limit can be relaxed on
+    # the server without a redeploy. Setting RATE_LIMIT_ENABLED=false turns the
+    # checks off, which is what the test suite does for everything except the
+    # tests that exercise the limits themselves.
+    RATE_LIMIT_ENABLED: bool = True
+
+    RATE_LIMIT_LOGIN_PER_MINUTE: int = 5
+    # Per EMAIL, and only failed attempts are counted -- someone signing in
+    # correctly is never locked out of their own account.
+    RATE_LIMIT_LOGIN_FAILURES_PER_EMAIL: int = 10
+    RATE_LIMIT_LOGIN_FAILURE_WINDOW_MINUTES: int = 15
+
+    RATE_LIMIT_REGISTER_PER_HOUR: int = 5
+    RATE_LIMIT_REFRESH_PER_MINUTE: int = 30
+
+    # Per IP *and* per email, so one address cannot be mail-bombed from many
+    # IPs and one IP cannot walk a list of addresses.
+    RATE_LIMIT_FORGOT_PASSWORD_PER_WINDOW: int = 3
+    RATE_LIMIT_FORGOT_PASSWORD_WINDOW_MINUTES: int = 15
+    RATE_LIMIT_RESET_PASSWORD_PER_WINDOW: int = 10
+    RATE_LIMIT_RESET_PASSWORD_WINDOW_MINUTES: int = 15
+
+    RATE_LIMIT_QUOTE_PER_HOUR: int = 5
+    RATE_LIMIT_DOMAIN_SEARCH_PER_MINUTE: int = 20
+    # Per authenticated user rather than per IP: ordering needs an account.
+    RATE_LIMIT_DOMAIN_ORDER_PER_HOUR: int = 10
 
 
 settings = Settings()

@@ -12,6 +12,7 @@ import { cn } from '@/utils/cn'
 
 type Billing = 'monthly' | 'yearly'
 import { formatMoney } from '@/utils/format'
+import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 
 /** "3 websites, SSL, 50GB SSD" -> one bullet per item. */
 function featureList(features: string): string[] {
@@ -80,6 +81,10 @@ function PlanCard({ plan, billing }: { plan: HostingPlan; billing: Billing }) {
 }
 
 export function Hosting() {
+  useDocumentTitle(
+    'Hosting',
+    'Reliable website and application hosting with setup, email configuration, backups and renewals handled by our team in Rwanda.',
+  )
   const {
     data: plans,
     isLoading,

@@ -2,10 +2,12 @@ import logging
 from datetime import date
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.orm import Session
 
 from app.api.deps import DbDep, require_roles
+from app.core.config import settings
+from app.core.rate_limit import SlidingWindowLimiter, enforce
 from app.api.v1.support import validate_project_for_ticket
 from app.crud import client as client_crud
 from app.crud import course as course_crud
@@ -381,18 +383,29 @@ def list_domains(db: DbDep, current_user: ClientOnly, status: DomainStatus | Non
     return [ClientDomainListItem.model_validate(d) for d in domains]
 
 
+domain_order_limiter = SlidingWindowLimiter(
+    limit=settings.RATE_LIMIT_DOMAIN_ORDER_PER_HOUR, window_seconds=3600
+)
+
+
 @router.post(
     "/domains/order",
     response_model=ClientDomainDetail,
     status_code=201,
     summary="Ask WAMUGII to register an available domain (creates a PENDING domain)",
 )
-async def order_domain(data: DomainOrderCreate, db: DbDep, current_user: ClientOnly):
+async def order_domain(
+    data: DomainOrderCreate, db: DbDep, current_user: ClientOnly, request: Request
+):
     """
     Re-checks availability, prices it from the price list for the chosen number
     of years and notifies the team. Nothing is charged here: staff register the
     domain and send the invoice through the normal flow.
+
+    Limited per user rather than per IP: every order needs an account, and each
+    one creates a PENDING domain plus a notification for the team.
     """
+    enforce(domain_order_limiter, f"user:{current_user.id}")
     domain = await domain_search.order(db, current_user, data)
     logger.info("client %s requested domain %s", current_user.id, domain.domain_name)
     return ClientDomainDetail.model_validate(domain)

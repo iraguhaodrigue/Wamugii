@@ -5,6 +5,7 @@ import { lazyDefault } from '@/lib/lazyPage'
 import { Hero } from '@/components/home/Hero'
 import { CapabilityChips } from '@/components/home/CapabilityChips'
 import { MetricCards } from '@/components/home/MetricCards'
+import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 
 // Everything below the first screen loads as a separate file, so the hero
 // appears sooner; the rest streams in while the visitor reads it.
@@ -17,6 +18,10 @@ const HomeBelowFold = lazyDefault(() => import('@/components/home/HomeBelowFold'
  * rather than each firing their own request.
  */
 export function Home() {
+  useDocumentTitle(
+    null,
+    'WAMUGII TECH SOLUTIONS builds websites, software, hosting and IT systems for businesses in Rwanda. We Build. We Innovate. We Empower.',
+  )
   const { data: services, isLoading, isError, refetch } = useQuery({
     queryKey: ['services', 'home-preview'],
     queryFn: () => listServices(),

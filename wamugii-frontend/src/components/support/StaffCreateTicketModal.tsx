@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   TICKET_CATEGORIES,
@@ -47,7 +47,7 @@ export function StaffCreateTicketModal({
   const {
     register,
     handleSubmit,
-    watch,
+    control,
     formState: { errors },
   } = useForm<TicketFormValues>({
     defaultValues: {
@@ -60,7 +60,7 @@ export function StaffCreateTicketModal({
     },
   })
 
-  const clientId = watch('client_id')
+  const clientId = useWatch({ control, name: 'client_id' })
 
   // Projects are scoped to the chosen client: the backend rejects a ticket
   // pointed at another client's project (422), so never offer one.

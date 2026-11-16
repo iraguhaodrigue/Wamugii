@@ -20,6 +20,7 @@ import { cn } from '@/utils/cn'
 import { Button, Container, Input, Select, Skeleton, Textarea } from '@/components/ui'
 import { QuestionField, type AnswerMap } from '@/components/services/QuestionField'
 import type { ApiError } from '@/lib/apiClient'
+import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 
 const schema = z.object({
   full_name: z.string().min(1, 'Full name is required'),
@@ -46,6 +47,10 @@ type FormValues = z.infer<typeof schema>
 const PLAN_ANSWER_LABEL = 'Selected hosting plan'
 
 export function RequestQuote() {
+  useDocumentTitle(
+    'Request a Quote',
+    'Tell us what you need and we will come back with a clear scope, timeline and price before any work starts.',
+  )
   const [searchParams] = useSearchParams()
   // `?service=` accepts an id or a slug: the hosting page links with
   // `?service=hosting`, and the domain pages with `?service=domain`, so matching

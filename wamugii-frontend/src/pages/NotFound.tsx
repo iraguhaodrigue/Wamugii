@@ -1,8 +1,11 @@
 import { Link } from 'react-router-dom'
 import { paths } from '@/routes/paths'
 import { LottieOnView } from '@/components/common/LottieOnView'
+import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 
 export function NotFound() {
+  useDocumentTitle('Page not found')
+
   return (
     <div className="dark app-atmosphere flex min-h-svh flex-col items-center justify-center gap-4 px-4 text-center">
       <LottieOnView

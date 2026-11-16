@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1.router import api_router
@@ -27,6 +27,35 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Headers that cost nothing and close off whole classes of attack. Set here
+# rather than only in nginx so they are present however the API is reached --
+# straight to the container, through a different proxy, or in local dev.
+#
+# HSTS and Content-Security-Policy are deliberately NOT here: both belong on
+# the edge that terminates TLS and serves the HTML (Plesk nginx), and a CSP set
+# on JSON responses protects nothing. See deploy/nginx-security-headers.conf.
+SECURITY_HEADERS = {
+    # Stop the browser second-guessing our Content-Type.
+    "X-Content-Type-Options": "nosniff",
+    # No framing at all: nothing here is meant to be embedded.
+    "X-Frame-Options": "DENY",
+    # Send the full URL only to ourselves, the origin alone to anyone else.
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    # The API never needs these, so refuse them for anything it serves.
+    "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+}
+
+
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    response = await call_next(request)
+    # setdefault, not assignment: a route that deliberately sets its own value
+    # (a future embeddable widget, say) keeps it.
+    for header, value in SECURITY_HEADERS.items():
+        response.headers.setdefault(header, value)
+    return response
+
 
 app.include_router(api_router, prefix=settings.API_V1_PREFIX)
 

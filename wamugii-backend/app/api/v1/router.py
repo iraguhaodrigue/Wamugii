@@ -8,6 +8,7 @@ from app.api.v1 import (
     courses,
     exams,
     domains,
+    health,
     hosting,
     invoices,
     notifications,
@@ -18,12 +19,16 @@ from app.api.v1 import (
     quote_requests,
     services,
     settings,
+    sitemap,
     support,
     team,
     users,
 )
 
 api_router = APIRouter()
+# First, so an uptime monitor's path is never shadowed by a later router.
+api_router.include_router(health.router)
+api_router.include_router(sitemap.router)
 api_router.include_router(auth.router)
 api_router.include_router(users.router)
 api_router.include_router(services.router)

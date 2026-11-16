@@ -1,7 +1,7 @@
 import logging
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
 from app.api.deps import DbDep, require_roles
 from app.api.v1.projects import (
@@ -11,6 +11,8 @@ from app.api.v1.projects import (
 )
 from app.crud import project as project_crud
 from app.crud import quote_request as quote_crud
+from app.core.config import settings
+from app.core.rate_limit import SlidingWindowLimiter, enforce, visitor_key
 from app.crud import service as service_crud
 from app.crud import service_question as question_crud
 from app.crud import user as user_crud
@@ -98,13 +100,21 @@ def resolve_answers(
     return [triple for triple in resolved if triple[2]]
 
 
+quote_limiter = SlidingWindowLimiter(
+    limit=settings.RATE_LIMIT_QUOTE_PER_HOUR, window_seconds=3600
+)
+
+
 @router.post(
     "",
     response_model=QuoteRequestPublicRead,
     status_code=201,
     summary="Submit a quote request (public, no account needed)",
 )
-def create_quote_request(data: QuoteRequestCreate, db: DbDep):
+def create_quote_request(data: QuoteRequestCreate, db: DbDep, request: Request):
+    # Public and unauthenticated, so it is the obvious target for form spam.
+    enforce(quote_limiter, visitor_key(request))
+
     if data.service_id is not None:
         service = service_crud.get_by_id(db, data.service_id)
         if not service or not service.is_active:

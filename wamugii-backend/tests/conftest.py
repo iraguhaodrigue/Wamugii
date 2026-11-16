@@ -7,6 +7,7 @@ from sqlalchemy.pool import StaticPool
 import app.models  # noqa: F401  -- register models on Base.metadata
 from app.core.config import settings
 from app.core.database import Base, get_db
+from app.core import rate_limit
 from app.core.security import create_access_token
 from app.crud import user as user_crud
 from app.main import app
@@ -57,6 +58,38 @@ def _no_outbound_email(monkeypatch):
     """
     monkeypatch.setattr(settings, "BREVO_API_KEY", None)
     monkeypatch.setattr(settings, "BREVO_FROM_EMAIL", None)
+
+
+@pytest.fixture(autouse=True)
+def _rate_limits_off(monkeypatch):
+    """
+    Rate limiting is off by default in tests, and every limiter is emptied
+    between tests.
+
+    Without this, the suite would trip its own limits: TestClient always
+    presents the same address, so the many tests that register users or sign in
+    repeatedly would start getting 429s from each other. `tests/test_rate_limit.py`
+    turns it back on for the tests that are about the limits, which run after
+    this fixture and therefore win.
+    """
+    monkeypatch.setattr(settings, "RATE_LIMIT_ENABLED", False)
+    rate_limit.reset_all()
+    yield
+    rate_limit.reset_all()
+
+
+@pytest.fixture
+def limits_on(monkeypatch):
+    """
+    Opt back in to rate limiting for one test, starting from empty counters.
+
+    Requested by the tests that are *about* the limits. It runs after the
+    autouse fixture above, so its value wins.
+    """
+    monkeypatch.setattr(settings, "RATE_LIMIT_ENABLED", True)
+    rate_limit.reset_all()
+    yield
+    rate_limit.reset_all()
 
 
 @pytest.fixture

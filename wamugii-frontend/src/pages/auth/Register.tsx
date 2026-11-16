@@ -7,6 +7,7 @@ import { useAuth } from '@/context/AuthContext'
 import { paths, roleHomePath } from '@/routes/paths'
 import { Button, Input } from '@/components/ui'
 import type { ApiError } from '@/lib/apiClient'
+import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 
 const schema = z.object({
   full_name: z.string().min(1, 'Full name is required'),
@@ -18,6 +19,7 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>
 
 export function Register() {
+  useDocumentTitle('Create your account')
   const { register: registerUser } = useAuth()
   const navigate = useNavigate()
   const [formError, setFormError] = useState<string | null>(null)

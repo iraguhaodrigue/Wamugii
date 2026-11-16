@@ -28,6 +28,7 @@ import { AnimatedTechBackground } from '@/components/common/AnimatedTechBackgrou
 import { Reveal } from '@/components/common/Reveal'
 import { NeuralArt } from '@/components/courses/NeuralArt'
 import { formatMinutes, getShowcase, groupByModule } from '@/components/courses/courseShowcase'
+import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 
 function formatDuration(minutes: number): string {
   if (minutes < 75) return minutes < 50 ? `${minutes} minutes` : 'About 1 hour'
@@ -54,6 +55,10 @@ export function CourseDetail() {
     enabled: Boolean(slug),
     retry: (count, err) => err.status !== 404 && count < 1,
   })
+
+  // Falls back to "Courses" until the course loads, so the tab never shows a
+  // bare site name while the request is in flight.
+  useDocumentTitle(course?.title ?? 'Courses', course?.description)
 
   const enrollMutation = useMutation<EnrollResponse, ApiError, number>({
     mutationFn: (courseId) => enrollInCourse(courseId),

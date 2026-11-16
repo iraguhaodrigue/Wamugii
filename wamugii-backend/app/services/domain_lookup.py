@@ -53,6 +53,45 @@ FALLBACK_SERVERS: dict[str, str] = {
 
 USER_AGENT = "WAMUGII-domain-search/1.0 (+https://wamugii.kento.rw)"
 
+# WHOIS (RFC 3912) fallback, for extensions the IANA RDAP bootstrap does not
+# list. Plain text over TCP 43: send the name, read the reply, close. Used ONLY
+# when there is no RDAP server, because RDAP is structured and WHOIS output has
+# no agreed format -- every registry words "not registered" differently, which
+# is why the parsing below is deliberately conservative.
+#
+# Add an extension by adding its server here; nothing else needs to change.
+WHOIS_SERVERS: dict[str, str] = {
+    "io": "whois.nic.io",
+    "co": "whois.registry.co",
+}
+WHOIS_PORT = 43
+WHOIS_TIMEOUT = 5.0
+WHOIS_MAX_BYTES = 64 * 1024        # a reply is a few KB; stop runaway servers
+
+# Phrases that mean "this name is not registered". Only an explicit phrase from
+# this list counts as available -- anything unrecognised stays "unknown", so a
+# reworded or truncated reply never shows a taken domain as free.
+_WHOIS_NOT_FOUND = (
+    "not found",
+    "no data found",
+    "no match for",
+    "no match",
+    "domain not found",
+    "no entries found",
+    "not registered",
+    "available for registration",
+    "status: free",
+    "status: available",
+)
+
+_WHOIS_DOMAIN_RECORD = re.compile(r"^\s*domain name\s*:", re.I | re.M)
+_WHOIS_EXPIRY = re.compile(
+    r"^\s*(?:registry expiry date|registrar registration expiration date"
+    r"|expiry date|expiration date|expires on|expire date|paid-till)\s*:\s*(\S+)",
+    re.I | re.M,
+)
+_WHOIS_REGISTRAR = re.compile(r"^\s*registrar\s*:\s*(.+?)\s*$", re.I | re.M)
+
 _LABEL = re.compile(r"^(?!-)[a-z0-9-]{1,63}(?<!-)$")
 
 
@@ -182,14 +221,98 @@ def _parse_record(data: dict) -> tuple[date | None, str | None]:
     return expires, registrar
 
 
+async def _whois_query(host: str, domain: str) -> str:
+    """
+    Ask a WHOIS server about one name. Raises on timeout or connection failure,
+    which the caller turns into an "unknown" result.
+    """
+    reader, writer = await asyncio.open_connection(host, WHOIS_PORT)
+    try:
+        writer.write(f"{domain}\r\n".encode())
+        await writer.drain()
+        chunks: list[bytes] = []
+        size = 0
+        while size < WHOIS_MAX_BYTES:
+            chunk = await reader.read(4096)
+            if not chunk:
+                break
+            chunks.append(chunk)
+            size += len(chunk)
+        # Replies are ASCII in practice, but a stray byte must not raise.
+        return b"".join(chunks).decode("utf-8", "replace")
+    finally:
+        writer.close()
+        try:
+            await writer.wait_closed()
+        except Exception:                      # already gone; nothing to do
+            pass
+
+
+def _parse_whois(domain: str, extension: str, text: str) -> Check:
+    """
+    Read a WHOIS reply conservatively.
+
+    A "Domain Name:" record is the strongest signal there is, so it decides
+    "taken" on its own -- even when the reply also carries boilerplate
+    containing one of the not-found phrases, which several registries attach to
+    every answer. Without a record, an explicit not-found phrase means
+    available. Everything else is "unknown": better to say "could not tell"
+    than to advertise a registered name as free.
+    """
+    has_record = bool(_WHOIS_DOMAIN_RECORD.search(text))
+    lowered = text.lower()
+
+    if has_record:
+        expires = None
+        match = _WHOIS_EXPIRY.search(text)
+        if match:
+            try:
+                expires = date.fromisoformat(match.group(1)[:10])
+            except ValueError:
+                expires = None
+        registrar = None
+        match = _WHOIS_REGISTRAR.search(text)
+        if match:
+            registrar = match.group(1)[:100] or None
+        return Check(domain, extension, "taken", expires, registrar)
+
+    if any(phrase in lowered for phrase in _WHOIS_NOT_FOUND):
+        return Check(domain, extension, "available")
+
+    return Check(domain, extension, "unknown", reason="The registry's answer could not be read")
+
+
+async def _check_via_whois(domain: str, extension: str, host: str) -> Check:
+    try:
+        text = await asyncio.wait_for(_whois_query(host, domain), timeout=WHOIS_TIMEOUT)
+    except asyncio.TimeoutError:
+        logger.info("WHOIS lookup for %s timed out", domain)
+        return Check(domain, extension, "unknown", reason="The registry did not answer in time")
+    except (OSError, asyncio.IncompleteReadError) as exc:
+        # Port 43 blocked outbound is the usual cause on a locked-down host.
+        logger.info("WHOIS lookup for %s failed: %s", domain, exc)
+        return Check(domain, extension, "unknown", reason="The registry could not be reached")
+    return _parse_whois(domain, extension, text)
+
+
 async def check_domain(domain: str, extension: str, client: httpx.AsyncClient) -> Check:
     now = time.time()
     cached = _cache.results.get(domain)
     if cached and cached[0] > now:
         return cached[1]
-    server = await rdap_server(tld_of(extension), client)
+    tld = tld_of(extension)
+    server = await rdap_server(tld, client)
     if server is None:
-        result = Check(domain, extension, "unknown", reason="No public lookup service for this extension")
+        # No RDAP for this extension (.io and .co are not in the IANA bootstrap
+        # file). Fall back to WHOIS, which is the only public option left.
+        whois_host = WHOIS_SERVERS.get(tld)
+        if whois_host:
+            result = await _check_via_whois(domain, extension, whois_host)
+        else:
+            result = Check(
+                domain, extension, "unknown",
+                reason="No public lookup service for this extension",
+            )
     else:
         try:
             r = await client.get(f"{server}domain/{domain}", headers={"Accept": "application/rdap+json"})

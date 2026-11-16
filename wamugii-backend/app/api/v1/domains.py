@@ -5,7 +5,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.orm import Session
 
 from app.api.deps import DbDep, OptionalUser, require_roles
-from app.core.rate_limit import SlidingWindowLimiter
+from app.core.config import settings
+from app.core.rate_limit import SlidingWindowLimiter, visitor_key
 from app.crud import domain as domain_crud
 from app.crud import domain_extension as extension_crud
 from app.crud import hosting as hosting_crud
@@ -234,20 +235,9 @@ def deactivate_domain_extension(extension_id: int, db: DbDep, admin: AdminOnly):
 
 # 20 searches per minute per visitor: plenty for a person, too little for a bot
 # trying to use us as a free bulk-lookup service.
-search_limiter = SlidingWindowLimiter(limit=20, window_seconds=60)
-
-
-def _visitor_key(request: Request) -> str:
-    """
-    The visitor's address for rate limiting. Behind nginx every request comes
-    from 127.0.0.1, so prefer the address nginx adds: the LAST entry of
-    X-Forwarded-For (earlier entries can be typed by the visitor), then
-    X-Real-IP, then the socket address.
-    """
-    forwarded = request.headers.get("x-forwarded-for")
-    if forwarded:
-        return forwarded.split(",")[-1].strip() or "unknown"
-    return request.headers.get("x-real-ip") or (request.client.host if request.client else "unknown")
+search_limiter = SlidingWindowLimiter(
+    limit=settings.RATE_LIMIT_DOMAIN_SEARCH_PER_MINUTE, window_seconds=60
+)
 
 
 @router.get(
@@ -265,7 +255,7 @@ async def search_domains(
     Availability comes from each registry over RDAP (free, no API key). Prices
     are the active price-list rows. Rate-limited per visitor.
     """
-    if not search_limiter.allow(_visitor_key(request)):
+    if not search_limiter.allow(visitor_key(request)):
         raise HTTPException(status_code=429, detail="Too many searches. Please wait a minute and try again.")
     return await domain_search.search(db, q, user)
 

@@ -156,13 +156,13 @@ def test_bad_input_is_a_422_with_a_clear_message(client, admin_headers):
     assert "letters, numbers and hyphens" in r.json()["detail"]
 
 
-def test_search_is_rate_limited(client, admin_headers):
+def test_search_is_rate_limited(client, admin_headers, limits_on):
     _prices(client, admin_headers)
     codes = [client.get("/api/v1/domains/search", params={"q": "ishuri"}).status_code for _ in range(22)]
     assert codes[:20] == [200] * 20 and codes[20:] == [429, 429]
 
 
-def test_rate_limit_is_per_visitor_behind_nginx(client, admin_headers):
+def test_rate_limit_is_per_visitor_behind_nginx(client, admin_headers, limits_on):
     _prices(client, admin_headers)
     a = {"X-Forwarded-For": "1.1.1.1"}
     b = {"X-Forwarded-For": "9.9.9.9, 2.2.2.2"}     # first entry is visitor-supplied; nginx added the last

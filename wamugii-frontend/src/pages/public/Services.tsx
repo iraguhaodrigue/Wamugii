@@ -9,8 +9,13 @@ import { Reveal } from '@/components/common/Reveal'
 import { PageHeader } from '@/components/common/PageHeader'
 import { ServicesOrbit } from '@/components/common/PageArt'
 import { cn } from '@/utils/cn'
+import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 
 export function Services() {
+  useDocumentTitle(
+    'Services',
+    'Web design, software development, IT consultancy, hosting and domains — the full lifecycle, from the first build to long-term support.',
+  )
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState<string | null>(null)
 

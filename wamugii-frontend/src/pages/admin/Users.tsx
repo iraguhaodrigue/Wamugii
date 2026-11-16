@@ -40,10 +40,6 @@ export function AdminUsers() {
     return () => clearTimeout(timeout)
   }, [search])
 
-  useEffect(() => {
-    setPage(0)
-  }, [debouncedSearch, role])
-
   const {
     data: users,
     isLoading,
@@ -72,14 +68,24 @@ export function AdminUsers() {
             aria-label="Search users"
             className="pl-10"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value)
+              // Back to the first page: page 4 of the old search is
+              // meaningless for the new one. Done here rather than in an
+              // effect, so there is never a render showing new filters with a
+              // stale page number.
+              setPage(0)
+            }}
           />
         </div>
         <Select
           aria-label="Filter by role"
           options={[{ value: '', label: 'All roles' }, ...ROLES.map((r) => ({ value: r, label: r }))]}
           value={role}
-          onChange={(e) => setRole(e.target.value as Role | '')}
+          onChange={(e) => {
+            setRole(e.target.value as Role | '')
+            setPage(0)
+          }}
         />
       </div>
 
